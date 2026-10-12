@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { createCourse, LEVEL, LEVELS, START, CUP, CANNON, LANDING, PIPE_IN, PIPE_OUT, SPRINGS, SPINNER, onCourse, heightAt, heightSlope, heightSlopeZ, frictionAt } from './course.js';
+import { createCourse, LEVEL, LEVELS, SELECTION, START, CUP, CANNON, LANDING, PIPE_IN, PIPE_OUT, SPRINGS, SPINNER, onCourse, heightAt, heightSlope, heightSlopeZ, frictionAt } from './course.js';
 import { BALL_RADIUS, PERFECT_ZONE, perfectZone, powerAt, precisionAt, shotError, shotSpeed, shouldSink, collideWalls, collideSpinner, collidePipe, entersPipe, springImpulse, collideBumper } from './mechanics.js';
 import { createLoopTrack, enterLoop, stepLoop } from './loop.js';
 import { onBridge, stepBridge, leavesBridge, bridgeFlight, flightPosition } from './bridge.js';
@@ -8,6 +8,7 @@ import { trapdoorAt, supportedByTrapdoors } from './trapdoors.js';
 import { collidePendulum } from './pendulum.js';
 import { trampolineFlight, throughHoop, createPinRack, knockPin, advancePins } from './carnival.js';
 import { themeFor } from './environment.js';
+import { WORLDS, ROUND, PROTOTYPES, holeLabel, builtCount, nextInRound } from './round.js';
 import { createGolfBall } from './ball.js';
 import * as activeLayout from './layout.js';
 import { puttingContext, puttSpeed } from './putting.js';
@@ -226,7 +227,7 @@ function win(){
   $('winStrokes').textContent=state.strokes;
   $('winTitle').innerHTML=state.strokes===1?'HOLE IN<br><em>ONE!</em>':state.strokes<=LEVEL.par-2?'EAGLE!<br><em>✦ ✦ ✦</em>':state.strokes===LEVEL.par-1?'BIRDIE!<br><em>✦ ✦</em>':state.strokes===LEVEL.par?'PÅ PAR!<br><em>✦</em>':'I MÅL<br><em>SNYGGT!</em>';
   $('winText').textContent=state.strokes<LEVEL.par?`Du slog par med ${LEVEL.par-state.strokes} slag. Snyggt jobbat!`:state.strokes===LEVEL.par?'Precis på par. En stark runda!':'Flaggan är din – dags för ett nytt försök?';
-  if(LEVEL.worldFinale)$('winText').textContent+=' Du klarade Urverkets final!';
+  if(SELECTION.slot?.finale)$('winText').textContent+=` Du klarade ${SELECTION.slot.world.finale}!`;
   $('win').classList.remove('hidden');
   burst(CUP.x,.6,CUP.z,0xffd264,55,1.7);burst(CUP.x,.6,CUP.z,0xf47761,30,1.2);
   sound(440,.18,'triangle',.08,1.5);setTimeout(()=>sound(660,.25,'triangle',.08,1.6),150);setTimeout(()=>sound(880,.42,'triangle',.08,1.3),310);
@@ -639,51 +640,108 @@ $('cameraButton').addEventListener('click',()=>{cameraOverview=!cameraOverview;$
 $('soundButton').addEventListener('click',()=>{audioEnabled=!audioEnabled;$('soundButton').classList.toggle('off',!audioEnabled);$('soundButton').textContent=audioEnabled?'♪':'×'});
 window.addEventListener('resize',resize);
 
+const recordText=level=>{const best=localStorage.getItem(level.recordKey);return best?`Bästa: ${best}`:'Inget rekord'};
 function openLevels(){
   if(['power','accuracy'].includes(state.phase)){state.power=0;setPhase('idle')}
   aimKeys.clear();
-  for(const level of LEVELS){
-    const best=localStorage.getItem(level.recordKey);
-    $(`record-${level.id}`).textContent=best?`Bästa: ${best} slag`:'Inget rekord ännu';
-  }
+  for(const level of LEVELS)$(`record-${level.id}`).textContent=recordText(level);
   $('levelPanel').showModal();
 }
 $('levelsButton').addEventListener('click',openLevels);
 $('introLevels').addEventListener('click',openLevels);
 $('winLevels').addEventListener('click',openLevels);
 $('closeLevels').addEventListener('click',()=>$('levelPanel').close());
+
+const builtHoles=ROUND.filter(slot=>slot.level).length;
+function holeCard(slot){
+  const number=holeLabel(slot.hole);
+  if(slot.placeholder)return `<div class="hole-card placeholder" title="${slot.placeholder.idea}">
+      <span class="hole-number">${number}</span><strong>${slot.placeholder.name}</strong>
+      <small>${slot.placeholder.idea}</small><span class="hole-status">Byggs</span></div>`;
+  const {level}=slot;
+  return `<a id="level-${level.id}" href="?hole=${slot.hole}" class="hole-card" data-world="${slot.world.key}">
+      <span class="hole-number">${number}</span><strong>${level.name}</strong>
+      <small>${level.feature}</small><span class="hole-meta">PAR ${level.par}${slot.finale?' · FINAL':''} · <span id="record-${level.id}">Inget rekord</span></span></a>`;
+}
+function worldSection(world,w){
+  const slots=ROUND.filter(slot=>slot.world===world),built=builtCount(world);
+  const status=built===6?'Klar':built?`${built} av 6 byggda`:'Inte påbörjad';
+  return `<section class="world-section" data-world="${world.key}">
+    <header><div><span class="world-range">HÅL ${holeLabel(w*6+1)}–${holeLabel(w*6+6)}</span><h3>${world.name}</h3></div>
+    <span class="world-status${built===6?' done':''}">${status}</span></header>
+    <div class="hole-grid">${slots.map(holeCard).join('')}</div></section>`;
+}
+function prototypeSection(){
+  return `<section class="world-section prototypes"><header><div><span class="world-range">UTANFÖR RUNDAN</span><h3>Prototyper</h3></div>
+    <span class="world-status">Ska byggas om</span></header>
+    <p class="world-note">Äldre testbanor. Spelbara, men deras idéer ska flyttas in i världarna.</p>
+    <div class="hole-grid">${PROTOTYPES.map(proto=>{const level=LEVELS.find(l=>l.id===proto.id);
+      return `<a id="level-${level.id}" href="?proto=${proto.slug}" class="hole-card prototype">
+      <span class="hole-number">P</span><strong>${level.name}</strong><small>${proto.world} · ${level.feature}</small>
+      <span class="hole-meta">PAR ${level.par} · <span id="record-${level.id}">Inget rekord</span></span></a>`}).join('')}</div></section>`;
+}
+function configureMenu(){
+  $('menuWorlds').innerHTML=WORLDS.map((world,w)=>{const built=builtCount(world);
+    return `<div class="menu-world" data-world="${world.key}"><div class="menu-world-head"><strong>${world.name}</strong><span>HÅL ${holeLabel(w*6+1)}–${holeLabel(w*6+6)}</span></div>
+      <div class="menu-progress" role="img" aria-label="${built} av 6 hål byggda">${ROUND.filter(s=>s.world===world).map(s=>`<i class="${s.level?'built':''}"></i>`).join('')}</div>
+      <small>${built===6?'Klar':built?`${built} av 6 byggda`:'Inte påbörjad'} · ${world.tagline}</small></div>`}).join('');
+  $('menuSummary').textContent=`${builtHoles} av 18 hål byggda · ${PROTOTYPES.length} prototyper att bygga om`;
+  const unplayed=ROUND.find(slot=>slot.level&&!localStorage.getItem(slot.level.recordKey));
+  if(unplayed&&unplayed.hole>1){$('menuContinue').hidden=false;$('menuContinue').href=`?hole=${unplayed.hole}`;$('menuContinue').textContent=`Fortsätt · Hål ${holeLabel(unplayed.hole)} ${unplayed.level.name}`}
+  if(SELECTION.missing){$('menuNotice').hidden=false;$('menuNotice').textContent=`Hål ${holeLabel(SELECTION.missing.hole)} · ${SELECTION.missing.placeholder.name} byggs fortfarande.`}
+}
+$('menuPlay').addEventListener('click',()=>{
+  history.replaceState(null,'','?hole=1');
+  document.title=`${LEVEL.name} · Hål 01`;
+  $('menu').classList.add('hidden');$('intro').classList.remove('hidden');$('playButton').focus();
+});
+$('menuLevels').addEventListener('click',openLevels);
+$('menuHelp').addEventListener('click',()=>$('helpPanel').showModal());
+
 function configureLevelUI(){
-  $('levelSummary').textContent=`${LEVELS.length} spelbara hål. ${new Set(LEVELS.map(level=>themeFor(level.id).key)).size} världar. Massor av bus.`;
-  $('levelOptions').innerHTML=[...LEVELS].sort((a,b)=>a.id-b.id).map(level=>{
-    const theme=themeFor(level.id);
-    return `<a id="level-${level.id}" href="?hole=${level.id}" class="level-option" data-world="${theme.key}">
-      <span class="level-number">${String(level.id).padStart(2,'0')}</span>
-      <span class="level-info"><strong>${level.name}</strong><span class="level-world">${theme.name.toUpperCase()} · ${theme.range}</span>
-      <span>${level.feature}</span><small>PAR ${level.par} · <span id="record-${level.id}">Inget rekord ännu</span></small></span><span class="level-arrow">→</span></a>`;
-  }).join('');
-  const number=String(LEVEL.id).padStart(2,'0');
+  $('levelSummary').textContent=`${builtHoles} av 18 hål byggda. Tomma platser byggs härnäst.`;
+  $('levelOptions').innerHTML=WORLDS.map(worldSection).join('')+prototypeSection();
+  const number=SELECTION.slot?holeLabel(SELECTION.slot.hole):'P';
+  const holeText=SELECTION.slot?`HÅL ${number}`:'PROTOTYP';
   const theme=themeFor(LEVEL.id);
   document.documentElement.dataset.theme=theme.key;
   document.documentElement.dataset.hole=LEVEL.id;
   $('worldName').textContent=theme.name;
-  $('introWorld').textContent=`${theme.name} · ${theme.range}`;
+  $('introWorld').textContent=SELECTION.slot?`${SELECTION.slot.world.name} · ${theme.range}`:`${theme.name} · Prototyp`;
   $('meter').style.setProperty('--sweet-start',`${50-PERFECT_ZONE*50}%`);
   $('meter').style.setProperty('--sweet-end',`${50+PERFECT_ZONE*50}%`);
   $('meter').style.setProperty('--sweet-width',`${PERFECT_ZONE*100}%`);
-  const next=LEVELS.find(l=>l.id===LEVEL.id+1);
-  $('nextHole').hidden=!next;if(next){$('nextHole').href=`?hole=${next.id}`;$('nextHole').textContent=`Nästa hål · ${next.name} →`}
+  configureNext();
 
-  document.title=`${LEVEL.name} · Hål ${number}`;
+  document.title=SELECTION.menu?'Mini Mayhem':`${LEVEL.name} · ${SELECTION.slot?`Hål ${number}`:'Prototyp'}`;
   $('holeNumber').textContent=number;$('holeName').textContent=LEVEL.name.toUpperCase();
   $('parCount').textContent=LEVEL.par;
-  $('introKicker').textContent=LEVEL.worldFinale?`URVERKETS FINAL · HÅL ${number}`:`VÄLKOMMEN TILL HÅL ${number}`;
+  $('introKicker').textContent=SELECTION.slot?.finale?`${SELECTION.slot.world.finale.toUpperCase()} · ${holeText}`:SELECTION.slot?`VÄLKOMMEN TILL ${holeText}`:'PROTOTYP · SKA BYGGAS OM';
   $('introTitle').innerHTML=`${LEVEL.title[0]}<br><em>${LEVEL.title[1]}</em><span class="title-star">✦</span>`;
   $('introDescription').textContent=LEVEL.description;
   $('featureBadge').textContent=LEVEL.feature.toUpperCase();$('parBadge').textContent=`⛳ PAR ${LEVEL.par}`;
-  $('playButton').innerHTML=`SPELA HÅL ${number} <span>→</span>`;
+  $('playButton').innerHTML=`SPELA ${SELECTION.slot?holeText:'PROTOTYPEN'} <span>→</span>`;
   $('routeHeading').textContent=LEVEL.routeHeading||(LEVEL.id===10?'RUNDA SVÄNGEN':'TVÅ VÄGAR TILL FLAGGAN');
   LEVEL.routes.forEach(([title,detail],i)=>{$(`routeTitle${i}`).textContent=title;$(`routeDetail${i}`).textContent=detail});
   $(`level-${LEVEL.id}`).setAttribute('aria-current','true');
+  configureMenu();
+  if(SELECTION.menu){$('intro').classList.add('hidden');$('menu').classList.remove('hidden')}
+}
+function configureNext(){
+  const link=$('nextHole'),note=$('nextNote');
+  if(SELECTION.prototype){
+    const next=PROTOTYPES[PROTOTYPES.indexOf(SELECTION.prototype)+1];
+    link.hidden=!next;if(next){link.href=`?proto=${next.slug}`;link.textContent=`Nästa prototyp · ${LEVELS.find(l=>l.id===next.id).name} →`}
+    return;
+  }
+  const {slot,skipped}=nextInRound(SELECTION.slot.hole);
+  link.hidden=false;
+  if(slot){link.href=`?hole=${slot.hole}`;link.textContent=`${slot.world===SELECTION.slot.world?'Nästa hål':`Vidare till ${slot.world.name}`} · ${holeLabel(slot.hole)} ${slot.level.name} →`}
+  else{link.href='./';link.textContent='Tillbaka till menyn →'}
+  if(skipped.length){
+    note.hidden=false;
+    note.textContent=skipped.length===1?`Hål ${holeLabel(skipped[0].hole)} byggs fortfarande och hoppas över.`:`Hål ${holeLabel(skipped[0].hole)}–${holeLabel(skipped.at(-1).hole)} byggs fortfarande.`;
+  }
 }
 
 async function init(){

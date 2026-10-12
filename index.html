@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#101d36" />
-    <meta name="description" content="Mini Mayhem – arkadminigolf i 3D. Solskensöar, neonhamn, kanoner, studsplattor och en vippbro över vattnet." />
-    <title>Kanonkurvan · Hål 09</title>
+    <meta name="description" content="Mini Mayhem – arkadminigolf i 3D. Tre världar med sex hål vardera: Urverkets stad, Molnskogen och Månkarnevalen." />
+    <title>Mini Mayhem</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -18,6 +18,7 @@
         <div class="brand"><span class="brand-icon">✦</span><span>MINI<span class="brand-accent">MAYHEM</span></span></div>
         <div class="hole-tag"><span class="tag-dot"></span> HÅL <strong id="holeNumber">09</strong><span class="tag-divider"></span><span id="holeName">KANONKURVAN</span></div>
         <nav class="utility-bar" aria-label="Spelverktyg">
+          <a id="menuButton" class="camera-button menu-link" href="./">☰ <span>Meny</span></a>
           <button id="levelsButton" class="camera-button levels-button">Banor</button>
           <button id="cameraButton" aria-label="Växla mellan översikt och spelvy" class="camera-button">⌖ <span id="cameraText">Översikt</span></button>
           <button id="soundButton" class="icon-button" title="Ljud av/på" aria-label="Ljud av/på">♪</button>
@@ -59,15 +60,30 @@
       </dialog>
 
       <div id="intro" class="modal-backdrop"><div class="intro-card"><div id="introWorld" class="intro-world"></div><span id="introKicker" class="intro-kicker">VÄLKOMMEN TILL HÅL 09</span><h1 id="introTitle">KANON<br /><em>KURVAN</em><span class="title-star">✦</span></h1><p id="introDescription">Rulla genom röret, sikta på kanonen och flyg över gapet. Eller ta den lugnare vägen runt.</p><div class="intro-badges"><span>✧ 3D-BANA</span><span id="featureBadge">◉ KANON</span><span id="parBadge">⛳ PAR 5</span></div><button id="playButton" class="play-button" disabled>SPELA HÅL 09 <span>→</span></button><button id="introLevels" class="text-button">Välj en annan bana</button><small>Tre tryck per slag: starta · välj kraft · pricka mitten</small></div></div>
-      <div id="win" class="modal-backdrop hidden"><div class="intro-card win-card"><span class="intro-kicker">FLAGGAN ÄR DIN!</span><h1 id="winTitle">SNYGGT<br /><em>SPEL!</em></h1><p id="winText">Vilken runda!</p><div class="win-score"><span>RESULTAT</span><strong id="winStrokes">5</strong><span>SLAG</span></div><button id="againButton" class="play-button">SPELA IGEN <span>↻</span></button><a id="nextHole" class="next-hole" hidden></a><button id="winLevels" class="text-button">Välj bana</button></div></div>
+      <div id="win" class="modal-backdrop hidden"><div class="intro-card win-card"><span class="intro-kicker">FLAGGAN ÄR DIN!</span><h1 id="winTitle">SNYGGT<br /><em>SPEL!</em></h1><p id="winText">Vilken runda!</p><div class="win-score"><span>RESULTAT</span><strong id="winStrokes">5</strong><span>SLAG</span></div><button id="againButton" class="play-button">SPELA IGEN <span>↻</span></button><a id="nextHole" class="next-hole" hidden></a><small id="nextNote" class="next-note" hidden></small><button id="winLevels" class="text-button">Välj bana</button><a class="text-button" href="./">Huvudmeny</a></div></div>
       <dialog id="levelPanel" class="level-panel" aria-labelledby="levelTitle">
         <button id="closeLevels" class="icon-button close-help" aria-label="Stäng banväljaren">×</button>
-        <span class="intro-kicker">DITT NÄSTA SLAG</span>
-        <h2 id="levelTitle">Välj din bana</h2>
+        <span class="intro-kicker">RUNDANS 18 HÅL</span>
+        <h2 id="levelTitle">Välj hål</h2>
         <p id="levelSummary"></p>
-        <div id="levelOptions" class="level-options"></div>
-        <small class="level-note">När du väljer bana startar en ny runda. Dina rekord finns kvar.</small>
+        <div id="levelOptions" class="level-worlds"></div>
+        <small class="level-note">När du väljer hål startar en ny runda. Dina rekord finns kvar. <a href="./">Till huvudmenyn</a></small>
       </dialog>
+      <div id="menu" class="modal-backdrop menu-backdrop hidden">
+        <div class="menu-card" role="dialog" aria-labelledby="menuTitle">
+          <div class="menu-brand"><span class="brand-icon">✦</span><span>MINI<span class="brand-accent">MAYHEM</span></span></div>
+          <h1 id="menuTitle">Tre världar.<br /><em>Arton hål.</em></h1>
+          <p id="menuNotice" class="menu-notice" hidden></p>
+          <div id="menuWorlds" class="menu-worlds"></div>
+          <div class="menu-actions">
+            <button id="menuPlay" class="play-button">SPELA RUNDAN <span>→</span></button>
+            <a id="menuContinue" class="menu-secondary" hidden></a>
+            <button id="menuLevels" class="menu-secondary">Välj hål</button>
+            <button id="menuHelp" class="menu-secondary">Så spelar du</button>
+          </div>
+          <small id="menuSummary" class="menu-summary"></small>
+        </div>
+      </div>
       <div id="loading" class="loading-screen"><div class="loading-orb">⛳</div><strong>Bygger banan...</strong><div class="loading-track"><span></span></div></div>
     </div>
     <script type="module" src="/src/main.js"></script>

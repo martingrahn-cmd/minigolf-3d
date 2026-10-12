@@ -3,6 +3,7 @@ import { onBridge, bridgeHeight } from './bridge.js';
 import { profileHeight, profileSlope, surfaceFriction } from './terrain.js';
 import { funnelSurface } from './funnel.js';
 import { onLift } from './lift.js';
+import { resolveSelection } from './round.js';
 export { LEVELS };
 
 export function createLayout(LEVEL){
@@ -102,5 +103,5 @@ const WALLS=[...BOUNDARIES,...(LEVEL.banks||[])];
 
 return {LEVEL, START, CUP, CANNON, LANDING, PIPE_IN, PIPE_OUT, PIPE_DIRECTION, PIPE_ENTRY, PIPE_GUIDES, pipeCoordinates, pipeWorld, pipeRampAt, SPRINGS, SPINNER, RAMP_X, TILES, onCourse, heightAt, heightSlope, heightSlopeZ, frictionAt, GRID_X, GRID_Z, CELLS, BOUNDARIES, WALLS, POST_COLLIDERS};
 }
-const selectedId=typeof window==='undefined'?9:Number(new URLSearchParams(window.location.search).get('hole'));
-export const {LEVEL, START, CUP, CANNON, LANDING, PIPE_IN, PIPE_OUT, PIPE_DIRECTION, PIPE_ENTRY, PIPE_GUIDES, pipeCoordinates, pipeWorld, pipeRampAt, SPRINGS, SPINNER, RAMP_X, TILES, onCourse, heightAt, heightSlope, heightSlopeZ, frictionAt, GRID_X, GRID_Z, CELLS, BOUNDARIES, WALLS, POST_COLLIDERS}=createLayout(LEVELS.find(level=>level.id===selectedId)||LEVELS[0]);
+export const SELECTION=resolveSelection(typeof window==='undefined'?'?proto=kanonkurvan':window.location.search);
+export const {LEVEL, START, CUP, CANNON, LANDING, PIPE_IN, PIPE_OUT, PIPE_DIRECTION, PIPE_ENTRY, PIPE_GUIDES, pipeCoordinates, pipeWorld, pipeRampAt, SPRINGS, SPINNER, RAMP_X, TILES, onCourse, heightAt, heightSlope, heightSlopeZ, frictionAt, GRID_X, GRID_Z, CELLS, BOUNDARIES, WALLS, POST_COLLIDERS}=createLayout(SELECTION.level);
