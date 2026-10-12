@@ -1,0 +1,89 @@
+# Mini Mayhem – Urverkets stad och hål 09–18
+
+Sexton spelbara 3D-minigolfbanor byggda med Three.js, egna modeller och KayKit Platformer Pack. Urverkets stad är en komplett värld med sex hål. Paketmodellerna ligger lokalt i `public/assets/kaykit`; originalmapparna under Dokument behöver inte flyttas.
+
+```bash
+npm install
+npm run dev
+```
+
+Öppna adressen som Vite visar. Knappen **Banor** låter dig välja fritt:
+
+- **01 · Gökporten · par 3** – första banan i **Urverkets stad**. En mässingsport lyfts av kugghjul och motvikter. En bred fairway med sarger leder till en green med romerska siffror framför ett animerat gökur. Kontrollerade slag ger par; en exakt placering kan ge birdie.
+- **02 · Rörposten · par 3** – en nedsänkt mässingstratt samlar bollen och skickar den genom ett glasrör till en hög postterrass. Dosera nästa slag i utförsrännan och använd mässingsvallen runt hörnet. Tryckluftstank, manometer, kolv, postfack och paket ger poststationen en egen prägel.
+
+- **03 · Klangbron · par 3** – träffa klockknappen så sänker kugghjul och motvikter en vindbrygga över urverket. Den korta bron saknar sidosarger; Urmakargången har sarger och går runt greenens bortre hörn. Bron ger en normal trea och chans till två, medan omvägen kräver ett extra placeringsslag. En stor mässingsklocka, klockspel och rörliga motvikter ger verkstaden en egen identitet. Ett exakt kraftslag efter klockträffen kan ge birdie.
+
+- **04 · Lodverket · par 4** – stanna ombord på en motvikthiss som lyfter bollen 5,4 meter till balkongen. Dosera slaget nedför klockrännan; maxkraft kan rulla över den markerade öppna kanten. En skyddad sväng leder till greenen. Ett exakt vallslag kan ge birdie. Hissbur, kedjor, dörrar, motvikter och uppdragsnyckel är egna modeller.
+
+- **05 · Sekundvalvet · par 4** – tajma ett mässingshjul med tre verkliga öppningar. Ett upplägg före hjulet ger kontroll; ett hårt och vältajmat utslag kan spara ett slag. Två studsklockor och en diagonal mässingsvall följs av en lugn green. Hjulets hål, lampor och kollision följer samma rotation.
+
+- **06 · Tolvslaget · par 4** – finalen i **Urverkets stad**. Ett jättelikt öppet fickur har en klockvisare som spelbar, roterande bro. Tajma kraftslaget eller låt en parkerad boll åka med. Öppna kanter ger verklig fallrisk; den skyddade servicegången tar extra slag. Ett vallslag leder till finalgreenen under två mässingsklockor. [Spela hål 6](http://localhost:5173/?hole=6).
+
+- **09 · Kanonkurvan · par 5** – en tratt med uppfart leder in i röret och vidare till kanonen. Det finns också en omväg runt gapet.
+- **10 · Dubbelstudsen · par 4** – två riktade studsplattor tar bollen runt svängen, följt av en lång röd snurra och en avslutande green.
+- **11 · Vippvarvet · par 3** – rörlig vippbro, kraftberoende hopp över vattnet, flipperstötar och en längre säker brygga.
+- **12 · Neonslussen · par 3** – en lyftport med trafikljus, två sidopassager och en kort flippergreen. Porten håller öppet om bollen ligger under den.
+- **13 · Frostfallet · par 4** – tre meters fallhöjd, en hal isränna med öppna kanter och en bredare väg med sarger. Greenen ligger runt hörnet.
+
+- **14 · Skybowling · par 4** – första hålet i **Molnskogen**. En infälld skogstrumma skjuter bollen genom en slingrande träring mot en smal bowlingbrygga med sex snidade ugglekäglor. För korta, långa eller sneda hopp kan ge ett fall och ett pliktslag; de markerade sidokanterna och änden saknar sarg. Sex käglor kan välta varandra, och en längre brygga med sarger ger en väg utan hopp.
+
+- **15 · Rotravinen · par 4** – en stenränna sjunker 5,6 meter mellan skogsklippor, under en rotbro. Gläntan nedanför ger plats att sikta mot en sidoförskjuten, 1,4 meter bred spång helt utan sarger, eller mot Svampstigen runt med räcken. Ett för hårt, rakt slag från utslaget kan rulla över gläntans markerade kant. Vattenhjul, en liten kvarnränna och svampöar ger hålet en egen miljö i Molnskogen.
+
+- **16 · Ekollonsvingen · par 4** – en jättestor ekollonpendel sveper lågt över en 2,4 meter bred passage utan sarger. Tajma passagen eller lägg upp före hindret; den tidigare vägen längs ytterkanten är stängd. En sned vallstock kan styra bollen runt hörnet, över en träbro och upp mot greenen. Frölyktor, stubbstugor och ekollonförråd ger hålet en egen prägel i Molnskogen.
+
+- **17 · Rotvolten · par 4** – en 6,4 meter hög rotloop över ett riktigt gap. För lite fart ger återrullning, medan ett kontrollerat kraftslag tar bollen genom hela varvet och nedför trä­rännan. Slå för hårt och du riskerar den öppna kanten efter backen. Två svängar leder till en blomsterterrass med jättestora blommor, bärnstensdetaljer och rotpelare.
+
+- **18 · Törnkronan · par 5** – Molnskogens final. Tre rotluckor öppnar sig efter varandra över en avgrund. Grönt ljus betyder bärande lucka, gult varnar före öppning, rött betyder öppet. Efter en trygg avsats väntar en smal trägren med ett roterande törnhjul och öppna sidokanter. Två snidade ugglevakter och en stor guldkrona vaktar den lugna slutgreenen.
+
+Direktlänkar: `/?hole=1`, `/?hole=2`, `/?hole=3`, `/?hole=4`, `/?hole=5`, `/?hole=9`, `/?hole=10`, `/?hole=11`, `/?hole=12`, `/?hole=13`, `/?hole=14`, `/?hole=15` `/?hole=16` `/?hole=17` och `/?hole=18`. Varje bana har ett eget rekord i webbläsaren. Bana 9 behåller det tidigare sparade rekordet.
+
+Hål 9 ligger i **Solskensöarna**. Hål 10–13 ligger i **Neonhamnen**, med måne, kristallöar, lampor och neonkanter. Hål 14–18 använder temat **Molnskogen**: skulpterade klippöar, höga träd, ormbunkar, svamp, fjärilar, en kristallgrotta och träbroar mot rosa molnhimmel. Hål 1–4 i Urverkets stad samt hål 9–18 är byggda. Riktningen för den färdiga rundan är nu tre världar med sex hål vardera. Temaförslaget är Urverkets stad, Molnskogen och Månkarnevalen; befintliga banor har ännu inte numrerats om. Efterforskning och plan för hela rundan finns i [DESIGN.md](DESIGN.md).
+
+Kameran följer bollen snett ovanifrån. Dra musen i sidled för att sikta eller finjustera med A/D. Shift ger extra precision. Tryck mellanslag tre gånger för att starta mätaren, välja kraft och välja precision; skärmknappen gör samma sak. Det gröna fältet ger ett rakt slag: 28 procent brett vid högst 20 procent kraft, sedan gradvis smalare till 10 procent vid halv kraft. Maxkraften är 26,5, men korta puttar behåller låg känslighet. Hårda slag utanför grönt avviker nu upp till 15 grader. Felet växer linjärt från grönzonens kant; en träff vid 75 procent av precisionsmätaren ger ungefär 6,7 graders fel vid maxkraft. Vid 20 procent kraft är maximalt riktningsfel nu cirka 1,9 grader. Koppens fångstradie växer mjukt från 32 till 38 cm för långsamma bollar. Den högsta fångstfarten är fortsatt 3,6; snabba puttar bromsas inte automatiskt för att räddas. Riktningen låses när mätaren startas, och Esc avbryter. I översikten klickar du på banan för att sikta. Hjälp finns under ?.
+
+Spelytans geometri och kollisioner använder samma layout. Banan och dess par väljs i `src/levels.js`, som även bygger banväljaren; `src/layout.js` bygger ytor, kanter och höjder. Båda snurrorna, studsplattorna, bågarna och rörmynningarna är KayKit-modeller. Rörets förbindelse och bolltransport delar en sammanhängande kurva. Infarten har en faktisk ramp och släpper bara in bollen genom öppningens plan. Golfbollen har geometriska gropar och roterar med sin rörelse.
+
+```bash
+npm test
+npm run build
+```
+
+Testerna kontrollerar rampskarvar, kanter vid hög fart, snurrornas rotation, kraft/precision, rörinfarten, båda studsarna på bana 10, vippbrons lutning/hopplängd och vägen runt på bana 11, lyftportens trafikljus/kollision/sensor samt spelbara vägar till mål på bana 12 och 13. Frostfallets höjdprofil och underlag delar data mellan geometri, gravitation och friktion i `src/terrain.js`. Översiktens sikte träffar den faktiska terrängen på banor med höjdprofil. Vippbrons geometri och fysik delar ytmodell i `src/bridge.js`. Egenbyggda hinder finns i `src/obstacles.js` och temaväljaren i `src/environment.js`. Hål 14 väljer sitt tema explicit via `theme` i bandata.
+
+Skybowling använder egna modeller i `src/carnival-visuals.js`: fjädrad studstrumma, klätterväxter kring träringen, svarvade träugglor och målad bowlingbrygga. Mekaniken i `src/carnival.js` bevarar infartens riktning, förstärker faktisk infartsfart och känner av ringpassager. Trumman garanterar ingen minsta säker hopplängd. För mycket fart kan även få en lyckad landning att rulla över den öppna änden. Banlayouten skiljer nu på öppna kanter i båda axelriktningarna, med samma kanter i grafik och kollision. Lätta käglor kan vältas både av bollen och av närliggande fallande käglor; vid ett fall återställs uppställningen till läget före slaget, med en kort uppresningsanimation. Käglor från tidigare lyckade slag förblir borta. En ny runda återställer hela uppställningen. Kägelkedjan, hoppet, ringpassagerna, omvägen och en fullföljd runda samt återställning efter upprepade fall kontrolleras av `tests/carnival.test.js`.
+
+3D-assets: KayKit Platformer Pack 1.0 av Kay Lousberg, CC0.
+
+Ekollonsvingen använder egna modeller i `src/acorn.js`, med fysisk pendel i `src/pendulum.js`. Pendeln och dess kollision delar tid och position vid 120 fysiksteg per sekund. En stillaliggande boll kan också träffas. Ekollonet är 2,8 meter brett och täcker den smala passagen när det sveper genom mitten; i ytterlägena finns utrymme att passera. Gula markeringar visar de öppna sidokanterna, och både terräng och räcken följer den smalare formen. Vallstockens radie och riktning läses från samma bandata som dess kollision. `tests/acorn.test.js` kontrollerar grafikens läge mot kollisionsvolymen, sidostötar, fri höjd, tajmning över hela svingcykeln, fallrisk, stängd sidogenväg, maxfart mot vallen och rundor på fyra respektive tre slag. Hålet använder en ny rekordnyckel för den svårare layouten; äldre rekord ligger kvar separat. Dekorativ rörelse kan minskas med systeminställningen; pendeln fortsätter röra sig eftersom den är ett spelhinder.
+
+## Grafik – Molnskogen
+
+`src/forest.js` bygger skogens egna 3D-modeller, material, växtlighet, terräng och moln. Gräs och plankor har egna procedurtexturer. Gränserna för träkanterna hämtas från samma layout som fysiken; hoppets öppna kanter förblir öppna. Den tryggare vägen har träkanter, stolpar och rep under bryggan. Träd, lyktor och dekorationer står utanför spelytan. Träd som hamnar mellan kamera och boll tonas bort; översikten visar hela världen.
+
+`src/forest-renderer.js` ger kontakt­skuggor, kantutjämning och en svag glöd kring kristaller. Solen har en 4096-pixels skuggkarta. Statiska smådetaljer slås ihop per material och grästuvorna instansieras, medan rörliga delar förblir separata. Animationerna i skogen respekterar systemets inställning för minskad rörelse. Skogens renderingspass laddas bara när temat används.
+
+Rotravinens egna klippväggar, rotbro, kvarn och spänger byggs i `src/ravine.js`. De använder skogens gemensamma material, modeller och golvbyggare. Ränna, gravitation, sarger, bollhöjd och översiktssikte använder samma höjdprofil. Kopp och flagga följer också banans höjd. Kvarnhjulet och vattnet rör sig; bron och klippväggarna kan tonas bort när de skymmer bollen. `tests/ravine.test.js` verifierar sammanhängande höjder, rännans sarger, öppna kanter, båda vägarna och fullföljda rundor på fyra respektive fem slag. Testerna täcker även den tidigare genvägen med raka maxslag och sneda slag över spången. Bana 15 använder en ny rekordnyckel för den ändrade layouten; gamla resultat finns kvar i webbläsarens lagring.
+
+Rotvoltens spelbana och bollbana använder samma tredimensionella ram i `src/loop.js`. Farten påverkas av höjd, gravitation och motstånd hela varvet; ett för svagt slag vänder naturligt. Mynningspassage kontrolleras i båda riktningarna. Loopen modelleras som en styrd arkadränna med sidokanter, inte en förutbestämd flyganimation. `src/loop-visuals.js` bygger grönytan, träundersidan, bärnstensljusen, rotstöden och blommorna. Kameran visar loopen från sidan under varvet. `tests/loop.test.js` provar grafisk/fysisk kontinuitet, infart, återrullning, missad precision, maxkraftens fallrisk samt rundor på par 4 och birdie 3.
+
+Törnkronans luckor och signallyktor delar `trapdoorPose` i `src/trapdoors.js`. De sex synliga halvorna fälls ner från ytterkanterna; varken den vanliga golvmeshen eller öarnas terräng fyller hålen. Stöd kontrolleras även när bollen står stilla eller spelaren startar mätaren. Ett nytt slag på en lucka ersätter inte den senaste säkra återställningsplatsen. Törnhjulets två armar delar radie, räckvidd och rotation med kollisionen, och kan träffa en vilande boll. `src/crown.js` bygger luckor, bladådring, gångjärn, lyktor, snidade ugglevakter, törnhjul och kronport. `tests/crown.test.js` täcker synlig rörelse kontra stöd, varningsfärger, tajmning över hela cykeln, stängda genvägar och en fullföljd runda på fyra respektive fem slag. `scripts/probe-crown.mjs` är ett separat verktyg för att mäta öppningsslag under balansering.
+
+
+## Närputt
+
+Inom 5,5 meter från koppen, på en fri och plan green, byts tidsmätaren mot ett reglage för **rulllängd i meter**. Klicka på hålet i spelvyn eller översikten för att sikta, dra reglaget och välj **Putta** (eller mellanslag). Putten har inget separat precisionstryck och följer vald riktning. Siktets längd visar vald rulllängd; uppgiften bredvid reglaget visar avståndet till koppen. **Fullt slag** växlar tillbaka till den vanliga mätaren. Rulllängden räknas från underlagets friktion; hjälp aktiveras inte genom sarg, gap, port eller snurra. Reglaget börjar på **1 meter** varje hål och behåller sedan spelarens eget val; avståndet till koppen fyller aldrig i kraften. Långsamma bollars fångstradie är 38 cm i stället för 45 cm, så tydliga kantmissar rullar förbi. Riktigt korta puttar förblir förlåtande. Hårda slags precision är oförändrad.
+
+## Urverkets stad
+
+`src/clockwork.js` bygger den nya världen från egen geometri: tandade mässingshjul, romerska urtavlor, gökfåglar med rörliga luckor, pendlar, timrade klockhus, kedjor, motvikter, parkett och ett uppdraget fjäderverk. Banan har vävd turkos filt och mässingssarger. Statiska detaljer sammanfogas, medan kugghjul, visare och hinder förblir rörliga. Miljön använder kontakt­skuggor, kantutjämning och varmt fönsterljus. Portens panel och motvikter delar samma höjdberäkning som kollisionerna. `tests/clockwork.test.js` verifierar rörelsen, en bred tajmningslucka och fullföljda slagvägar. `tests/putting.test.js` verifierar närputtens aktivering och tolerans för längd/riktningsfel.
+
+Törnkronans bro har separata höjder för trägolv och bärande undersida, vilket tar bort z-flimret. Trädet bakom kronporten är borttaget och själva kronan har fått en större guldring, välvda byglar och en central ädelsten.
+
+Rörposten använder `src/funnel.js` för skålens höjd, gravitation, infångning och transportkurva. `src/funnel-visuals.js` bygger skålen med en verklig öppning, glasrör, flänsar och poststationens egna modeller. Den synliga glasbanan och bollens färd använder samma kurva. `tests/funnel.test.js` kontrollerar tvådimensionell lutning, snabba passager genom halsen, kontinuerlig transport, säker utmatning, skillnaden mellan mjuka och hårda felslag samt vägar på par och birdie. Kameran följer nu efter bollen inne i röret och kommer gradvis närmare. `src/tube-camera.js` följer samma kurva, undviker tvära vridningar och rätar upp vyn vid utgången. Spelvyn återkommer mjukt. Översikten behåller sin vy, och systemets inställning för minskad rörelse ger en lugn sidokamera. Kamerans kontinuitet kontrolleras i `tests/tube-camera.test.js`.
+
+Klangbrons mekanik finns i `src/bell-bridge.js` och dess egna modeller i `src/bell-bridge-visuals.js`. Klockknappen sjunker undan efter träff; säkerhetsbommar spärrar passagen tills bron ligger helt nere. Det finns inget dolt golv under den uppfällda bron. Ett fall återställer klockans läge till före slaget; tidigare lyckad öppning behålls. `tests/bell-bridge.test.js` kontrollerar grafik mot kollision, stängd passage vid maxkraft, öppning, fallrisk, båda spelvägarna och återställning. `scripts/probe-bell-bridge.mjs` används för att balansera slaglängderna.
+
+Lodverkets hiss använder `src/lift.js` för stopp ombord, dörrar, lyfthöjd och återställning. `src/lift-visuals.js` bygger det öppna hisstornet, rörliga kedjor, motvikter och en liten utmatningsarm. Bollen behåller sin placering på plattan under färden. Kameran visar hissen från sidan och håller tornet ur siktlinjen när nästa slag förbereds. Ingen statisk ramp eller dold golvplatta korsar schaktet. Höjdprofilen efter hissen delas av fysik, golv, skyltar och sikte. `tests/lift.test.js` kontrollerar höjder, dörrar, ombordstigning, fallrisk, återställning och rundor på fyra respektive tre slag.
+
+Sekundvalvets mekanik i `src/clock-wheel.js` delar öppningarnas centrum och radie med `src/clock-wheel-visuals.js`. Den tandade skivan är extruderad med tre genomgående hål, numrerade mässingsringar, lager och ett mindre drivhjul. Kollisionsprovet sveper hela förflyttningen, tar hänsyn till bollens radie och släpper undan en boll som blivit stående vid en stängande öppning. Kameran glider åt sidan efter passagen. Egna studsklockor använder de befintliga flipperstötarnas fysik. `tests/clock-wheel.test.js` provar faktisk geometri med strålar, rotation, signaler, maxfart, felträffar, trygg återstuds och rundor på fyra respektive tre slag.
