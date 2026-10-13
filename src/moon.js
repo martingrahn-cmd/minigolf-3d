@@ -258,11 +258,11 @@ function rocketRampScenery(scene,heightAt){
   }
   const beacon=add(scene,new THREE.SphereGeometry(.22,10,8),glowMaterial(C.red,2),3.5,top+7.3,-13.6);beacon.name='gantry-beacon';
   asteroid(scene,3.5,top-2.4,-13.6,1.7,121).scale.set(1.6,.9,1.3);
-  asteroid(scene,18.4,1.4,-12.6,1.8,131).scale.set(1.5,.8,1.4);
-  rocket(scene,18.4,2.2,-12.6,.9,.05);
+  asteroid(scene,16.6,1.4,-12.6,1.8,131).scale.set(1.5,.8,1.4);
+  rocket(scene,16.6,2.2,-12.6,.9,.05);
   for(const [i,z] of [-1.2,0,1.2].entries())add(scene,new THREE.SphereGeometry(.2,10,8),glowMaterial(i===2?0x6fe3a0:C.gold,1.2),-21.6,.9,z);
   add(scene,new THREE.BoxGeometry(.25,.6,3.2),material(C.deep),-21.6,.9,0);
-  lantern(scene,-21.2,0,-3);lantern(scene,-21.2,0,3);lantern(scene,-5.3,0,-12.8);lantern(scene,16.6,heightAt(16,-14),-14.6);
+  lantern(scene,-21.2,0,-3);lantern(scene,-21.2,0,3);lantern(scene,-5.3,0,-12.8);lantern(scene,14.6,heightAt(14,-14),-14.6);
 }
 
 // Rocket pads: a glowing launch disc, chevrons along the true launch direction
