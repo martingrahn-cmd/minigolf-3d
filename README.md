@@ -7,7 +7,7 @@ npm install
 npm run dev
 ```
 
-Öppna adressen som Vite visar. Startsidan är en **huvudmeny** med rundans status per värld, **Spela rundan**, **Fortsätt** (första hålet utan rekord) och **Välj hål**. Banväljaren visar alla 18 hål grupperade per värld. Hål som inte är byggda visas som streckade platshållare med arbetsnamn och idé.
+Öppna adressen som Vite visar. Startsidan är en **huvudmeny** med rundans status per värld, **Spela rundan**, **Fortsätt** (första hålet utan rekord) och **Välj hål**. Banväljaren visar alla 18 hål grupperade per värld. Hål som inte är byggda visas som streckade platshållare med arbetsnamn och idé. När ett hål startar visas först en banöversikt med hålets vägval; ett tryck eller <kbd>Mellanslag</kbd> börjar spelet.
 
 | Hål | Värld | Status |
 | --- | --- | --- |
@@ -60,7 +60,7 @@ Varje värld avslutas med ett **set piece**: ett landmärke som också är håle
 
 - **12 · Moderträdet · par 5** – Molnskogens final och set piece. Ett jätteträd växer upp ur molnhavet med en tunnel, trädets öga, rakt genom stammen. Ett slag från utslaget kan ta bollen genom en rotvolt, ut på en rotbro och upp på en trumma som kastar den genom ögat till den svävande kronön. Kraftfönstret ligger runt 80–87 procent: för svagt rullar bollen tillbaka ur volten eller landar i barken, maxkraft seglar förbi ön. Allt bredvid ögat, inklusive rankridåerna, räknas som träd. Barkstigen runt trädet har sarger hela vägen och ger par; kedjan ger birdie och en chans till eagle. När bollen sjunker blommar trädet ut. Fysiken för ögat finns i `src/mother-tree.js`, grafiken i `src/mother-tree-visuals.js` och testerna i `tests/mother-tree.test.js`. [Spela hål 12](http://localhost:5173/?hole=12).
 
-- **13 · Raketrampen · par 3** – första hålet i **Månkarnevalen**, ett övergivet tivoli mellan asteroider. Raketplattor skjuter bollen vidare dit pilen pekar och lägger till extra fart (idén från prototypen Dubbelstudsen, nu som booster). Två plattor tar bollen runt två hörn och uppför en friktionssnål startramp till en upphöjd green. Utslaget avgör hur långt bollen kommer: runt 80–95 procent når greenen och ger birdiechans, svagare rullar tillbaka nerför rampen utan pliktslag, och full kraft flyger över den öppna kanten ut i rymden. En boll som rullar mot pilen passerar plattan utan att skjutas iväg. Världens miljö finns i `src/moon.js`, testerna i `tests/rocket-ramp.test.js`. [Spela hål 13](http://localhost:5173/?hole=13).
+- **13 · Raketrampen · par 3** – första hålet i **Månkarnevalen**, ett övergivet tivoli mellan asteroider. Raketplattor skjuter bollen vidare dit pilen pekar och lägger till extra fart (idén från prototypen Dubbelstudsen, nu som booster). Två plattor tar bollen runt två hörn och uppför en friktionssnål startramp till en upphöjd green. Utslaget avgör hur långt bollen kommer: runt 80–90 procent når greenen och ger birdiechans, svagare rullar tillbaka nerför rampen utan pliktslag, och från cirka 93 procent flyger bollen över den öppna kanten ut i rymden. En boll som rullar mot pilen passerar plattan utan att skjutas iväg. Världens miljö finns i `src/moon.js`, testerna i `tests/rocket-ramp.test.js`. [Spela hål 13](http://localhost:5173/?hole=13).
 
 Varje bana har ett eget rekord i webbläsaren.
 

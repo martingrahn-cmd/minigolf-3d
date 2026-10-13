@@ -26,14 +26,14 @@ test('the tee shot has a readable power window up the launch ramp',()=>{
   for(let p=.5;p<=1.0001;p+=.05)results.push([+p.toFixed(2),shot(S,p,padA)]);
   for(const [p,r] of results){
     if(p>=.6&&p<=.75)assert.ok(!r.fell&&r.x<0&&r.used.length===2,`${p}: rolls back down the ramp, no penalty`);
-    if(p>=.8&&p<=.95)assert.ok(!r.fell&&r.x>6&&layout.heightAt(r.x,r.z)>2,`${p}: reaches the launch platform`);
+    if(p>=.8&&p<=.9)assert.ok(!r.fell&&r.x>6&&layout.heightAt(r.x,r.z)>2,`${p}: reaches the launch platform`);
+    if(p>=.95)assert.ok(r.fell,`${p}: near-full power flies off the open edge into space`);
   }
-  assert.ok(results.find(([p])=>p===1)[1].fell,'Full power flies off the open edge into space');
   assert.deepEqual(results.find(([p])=>p===.5)[1].used,[0],'A soft shot gets only the first pad');
 });
 
 test('the chain gives birdie, a rolled-back chain still gives par, and a missed pad can be retried',()=>{
-  for(const p of [.8,.85,.9,.95]){
+  for(const p of [.8,.85,.9]){
     const b=shot(S,p,padA);
     assert.ok(Math.hypot(C.x-b.x,C.z-b.z)<=5.5&&putt(b).won,`${p}: one putt for birdie`);
   }

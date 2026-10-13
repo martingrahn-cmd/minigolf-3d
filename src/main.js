@@ -64,6 +64,8 @@ const touchInput=()=>root.dataset.input==='touch';
 function setInput(mode){if(root.dataset.input!==mode){root.dataset.input=mode;updateUI()}}
 window.addEventListener('pointerdown',e=>setInput(e.pointerType==='touch'||e.pointerType==='pen'?'touch':'mouse'),true);
 let fineAim=0,fineAimHeld=0;
+// Seconds left of the course overview shown when a hole starts; any tap begins play.
+let preview=0;
 let pipeCooldown=0;
 const springCooldowns=SPRINGS.map(()=>0);
 const gates=LEVEL.gates||[];
@@ -169,8 +171,19 @@ function updateUI(){
     $('puttOutput').textContent=`${puttLength.toFixed(1).replace('.',',')} m`;
     $('meterStatus').textContent=touch?'Tryck på hålet för att sikta · välj rulllängd':'Klicka på hålet för att sikta · välj rulllängd';
   }
+  if(preview>0){
+    $('controlTitle').textContent='Banöversikt';$('actionText').textContent='Börja';$('actionSteps').dataset.step='';$('meter').hidden=true;
+    $('meterStatus').textContent=touch?'Så ser banan ut · tryck för att börja':'Så ser banan ut · klicka eller Mellanslag för att börja';
+  }
 }
+function setOverview(on){
+  cameraOverview=on;$('cameraText').textContent=on?'Spelvy':'Översikt';setIcon($('cameraIcon'),on?'follow':'map');resize();updateUI();
+}
+function startPreview(){preview=4.5;setOverview(true);toast('Banöversikt · tryck för att börja',2400)}
+function finishPreview(){preview=0;setOverview(false);toast('Sikta · välj kraft · träffa grönt',2200)}
+function endPreview(){if(preview<=0)return false;finishPreview();return true}
 function action(){
+  if(endPreview())return;
   if(state.phase==='idle'){
     if(puttEnabled){state.accuracy=0;state.power=0;shoot(puttSpeed(puttLength,nearPutt.friction));return}
     setPhase('power');state.power=0;state.meterStart=elapsed;sound(530,.08,'triangle',.04,1.2);
@@ -214,7 +227,7 @@ function reset(full=true){
   Object.assign(bellBridgeState,createBellBridgeState());
   Object.assign(liftState,createLiftState());
   nearPutt=null;puttEnabled=false;puttLength=1;
-  cameraOverview=false;$('cameraText').textContent='Översikt';setIcon($('cameraIcon'),'map');
+  preview=0;cameraOverview=false;$('cameraText').textContent='Översikt';setIcon($('cameraIcon'),'map');
   setPhase('idle');
   if(full)toast('Ny chans! Sikta mot flaggan.');
 }
@@ -591,6 +604,7 @@ function draw(dt){
 function frame(){
   requestAnimationFrame(frame);
   const dt=Math.min(clock.getDelta(),.05);elapsed+=dt;
+  if(preview>0){preview-=dt;if(preview<=0)finishPreview()}
   if(state.phase==='idle'){
     const direction=Number(aimKeys.has('KeyD')||aimKeys.has('ArrowRight'))-Number(aimKeys.has('KeyA')||aimKeys.has('ArrowLeft'));
     state.aim+=direction*dt*(aimKeys.has('ShiftLeft')||aimKeys.has('ShiftRight')?.15:.65);
@@ -624,6 +638,7 @@ function overviewAim(ev,activeCamera=overviewCamera){
   }
 }
 canvas.addEventListener('pointerdown',e=>{
+  if(endPreview())return;
   if(state.phase!=='idle')return;
   draggingAim=true;lastPointerX=e.clientX;pointerDownX=e.clientX;pointerDownY=e.clientY;canvas.setPointerCapture(e.pointerId);
   if(cameraOverview)overviewAim(e);
@@ -680,10 +695,10 @@ $('actionButton').addEventListener('click',action);
 $('cancelShot').addEventListener('click',()=>{if(['power','accuracy'].includes(state.phase)){state.power=0;setPhase('idle')}});
 $('puttLength').addEventListener('input',()=>{puttLength=Number($('puttLength').value);updateUI()});
 $('shotMode').addEventListener('click',()=>{puttEnabled=!puttEnabled;updateUI();$('shotMode').blur()});
-$('playButton').addEventListener('click',()=>{lockPortrait();$('intro').classList.add('hidden');reset();toast('Sikta · välj kraft · träffa grönt',2600)});
+$('playButton').addEventListener('click',()=>{lockPortrait();$('intro').classList.add('hidden');reset();startPreview()});
 $('againButton').addEventListener('click',()=>{$('win').classList.add('hidden');reset()});
 $('resetButton').addEventListener('click',()=>{if(state.phase!=='intro'){reset();$('win').classList.add('hidden')}});
-$('cameraButton').addEventListener('click',()=>{cameraOverview=!cameraOverview;$('cameraText').textContent=cameraOverview?'Spelvy':'Översikt';setIcon($('cameraIcon'),cameraOverview?'follow':'map');resize();updateUI()});
+$('cameraButton').addEventListener('click',()=>{preview=0;setOverview(!cameraOverview)});
 $('soundButton').addEventListener('click',()=>{audioEnabled=!audioEnabled;$('soundButton').classList.toggle('off',!audioEnabled);setIcon($('soundIcon'),audioEnabled?'sound':'mute')});
 window.addEventListener('resize',resize);
 
