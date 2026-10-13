@@ -12,6 +12,12 @@ Uppdaterat 13 oktober 2026. **Rundan är numrerad 1–18 i `src/round.js`.** Urv
 
 Sex hål per värld är användarens önskade upplägg; valet av den tredje världen är fortfarande ett förslag. Varje sexa bör börja med en lättläst regel, växla mellan placering, fart, höjd och tajmning och avsluta med två redan kända idéer i kombination. En kortare precisionsbana mitt i varje värld ger andrum. Äldre Solskensöarna och Neonhamnen finns kvar som prototyper; inget tidigare hål eller rekord har tagits bort eller numrerats om.
 
+## Spelglädje: en värld i taget och stjärnor
+
+Efter speltestet av hål 14 kom frågan om vem som orkar spela 18 hål. Rundan saknade också ett mål utöver rekordet per hål. Därför är en värld, sex hål på cirka tio minuter, nu standardpasset. Huvudmenyn har en spelknapp per värld. Världsrundan sparas mellan sidladdningarna och slutar med ett resultatkort: varje hål med slag, par och stjärnor, och totalen mot par. Hela turneringen finns kvar som ett frivilligt val.
+
+Stjärnorna översätter slag till samma skala på alla hål: ★★★ för birdie eller bättre, ★★ för par, ★ för bogey och ingen stjärna för sämre. Spelaren föreslog den skalan. Stjärnorna från varje håls bästa resultat syns i banväljaren och summeras per värld, till exempel 6/9 ★. Ett hål med tomma stjärnor är en tydlig inbjudan att spela om. Nästa steg är flera spelare på samma telefon.
+
 ## Efterforskning och slutsatser
 
 - **Walkabout Mini Golf:** Mighty Coconut beskriver tematiska 18-hålsbanor med sammanhängande miljöer, utforskande och egna trickslag. Tillämpning här: en tydlig värld per nio hål och en trovärdig plats även utanför sargen. [Utvecklarens spelbeskrivning](https://www.mightycoconut.com/minigolf).

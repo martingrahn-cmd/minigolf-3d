@@ -7,7 +7,7 @@ npm install
 npm run dev
 ```
 
-Öppna adressen som Vite visar. Startsidan är en **huvudmeny** med rundans status per värld, **Spela rundan**, **Fortsätt** (första hålet utan rekord) och **Välj hål**. Banväljaren visar alla 18 hål grupperade per värld. Hål som inte är byggda visas som streckade platshållare med arbetsnamn och idé. När ett hål startar visas först en banöversikt med hålets vägval; ett tryck eller <kbd>Mellanslag</kbd> börjar spelet.
+Öppna adressen som Vite visar. Startsidan är en **huvudmeny** där varje värld spelas som en egen kort runda: **Spela** på en värld går igenom dess byggda hål i ordning och slutar med ett **resultatkort** med slag mot par och stjärnor per hål. Varje hål ger ★★★ för birdie eller bättre, ★★ för par och ★ för bogey. Det bästa resultatet per hål syns i banväljaren och summeras per värld. Under världarna finns **Hela turneringen** (alla hål i rad), **Fortsätt** (första hålet utan rekord) och **Välj hål**. Logiken finns i `src/progress.js` och testerna i `tests/progress.test.js`. Banväljaren visar alla 18 hål grupperade per värld. Hål som inte är byggda visas som streckade platshållare med arbetsnamn och idé. När ett hål startar visas först en banöversikt med hålets vägval; ett tryck eller <kbd>Mellanslag</kbd> börjar spelet.
 
 | Hål | Värld | Status |
 | --- | --- | --- |
