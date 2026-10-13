@@ -251,6 +251,30 @@ export const LEVELS = [
     routes:[['Svävhoppet','Rakt över hålet · rätt fart'],['Ringvägen','Glid runt hålet · ett slag till']],
   },
   {
+    // A black hole in the middle of the arena bends every passing ball toward it:
+    // pass at the right distance and it slingshots round to the cup behind it.
+    id:22,theme:'moon',scenery:'blackhole',name:'Svarta hålet',title:['SVARTA','HÅLET'],par:3,recordKey:'minimayhem-moon-15-svarta-halet',
+    description:'Mitt i arenan ligger ett svart hål som drar till sig bollen. Sikta förbi det med rätt fart så slungas bollen runt hålet mot koppen bakom. För nära eller för långsamt och den sugs in. Planeterna i hörnen studsar tillbaka bollar som far förbi.',
+    feature:'Svart hål & studsplaneter',hasPipe:false,hasRamp:false,start:{x:-10,z:0},cup:{x:7.6,z:0},
+    cannon:null,landing:null,overview:{x:-1,z:0,span:34,cameraX:-4,targetY:.3},cameraSide:2,spinner:null,arches:[],springs:[],
+    blackHole:{x:1,z:0,radius:3,horizon:.6,strength:12},
+    bumpers:[{x:8.3,z:-5.3,r:.8},{x:8.3,z:5.3,r:.8}],bumperToast:'PLANETSTUDS!',
+    surfaces:[{x1:-14,x2:11,z1:-9,z2:9,friction:1.1}],
+    banks:[
+      {ax:-8,az:-5,bx:-5,bz:-8,nx:Math.SQRT1_2,nz:Math.SQRT1_2},
+      {ax:7,az:-8,bx:10,bz:-5,nx:-Math.SQRT1_2,nz:Math.SQRT1_2},
+      {ax:10,az:5,bx:7,bz:8,nx:-Math.SQRT1_2,nz:-Math.SQRT1_2},
+      {ax:-5,az:8,bx:-8,bz:5,nx:Math.SQRT1_2,nz:-Math.SQRT1_2},
+    ],
+    tiles:[
+      {x1:-13,x2:-8,z1:-2.5,z2:2.5,color:0x46a6a0},
+      {x1:-8,x2:10,z1:-8,z2:8,color:0x52b3a8},
+    ],
+    labels:[['SIKTA FÖRBI HÅLET',-11.5,-1.9],['LÅNGT RUNT ↗',-3,6.6]],
+    supports:[],shelf:{x:9,z:-2},routeHeading:'GRAVITATIONEN DRAR',
+    routes:[['Slungskottet','Förbi hålet · rätt fart'],['Långt runt','Längs kanten · ett slag till']],
+  },
+  {
     // Månkarnevalen opens with one readable rule: a rocket pad sends the ball on
     // in its arrow's direction at a fixed speed, whatever speed it arrived with.
     id:20,theme:'moon',scenery:'rocketramp',name:'Raketrampen',title:['RAKET','RAMPEN'],par:3,recordKey:'minimayhem-moon-13-raketrampen',

@@ -100,7 +100,7 @@ Följande räknas fram ur spelmatematiken och ska fortsätta genereras i kod:
 | 12 Moderträdet | 🟡 Finalblommor runt koppen | `bloomHead()` | Fyra blommor utanför spelytan. Blomhuvudet skalas från 0,45 till 1 vid vinst och mitten lyser. | P2 |
 | 12 Moderträdet | 🟢 Två ugglevakter vid Barkstigens slut, lyktor, molnhav | `owl()`, `lantern()`, `cloudSea()` | | P2 |
 
-## Månkarnevalen (hål 13–18, hål 13–14 byggda)
+## Månkarnevalen (hål 13–18, hål 13–15 byggda)
 
 **Världskit** i `src/moon.js`. **P2**, eftersom det återanvänds på alla sex hålen.
 
@@ -126,7 +126,11 @@ Följande räknas fram ur spelmatematiken och ska fortsätta genereras i kod:
 | 14 Tyngdlösa tältet | 🟡 Manegefilt i violett | Ytan `ring` i `createMoonCourse` | Violett filt med målad cirkusring. Ytan är hal i fysiken (friktion 0,45). | P3 |
 | 14 Tyngdlösa tältet | 🟢 Tältstänger, sammetsridåer, strålkastare med ljuskägla, rampljus, trummor och skylten TYNGDLÖST | `zeroGTent()`, `zeroGStage()` | Står utanför spelytan. Skylten hänger över ingången på x = −9. | P3 |
 
-Hål 15–18 är platshållare. Nya mekaniker läggs till här när hålen designas, se planen i `DESIGN.md`.
+| 15 Svarta hålet | 🔴 Svarta hålet på filten | `createBlackHole()` | Allt ligger plant i filtens höjd, och inget får sticka upp, för bollen rullar över hela zonen. Den streckade ringen markerar dragningens gräns med radien 3,0 m kring (1, 0). Den svarta skivan är horisonten med radien 0,6 m, och den glödande ringen ligger precis utanför den. Virvelns spiralarmar och gnistorna roterar. Gör gärna virveln som shader. | P2 |
+| 15 Svarta hålet | 🔴 Studsplaneter | `createPlanetBumpers()` | Planetens radie är 0,8 m och är samma som kollisionsradien. Den står på en låg sockel. Ringen och planeten pulserar vid träff. Två stycken i de bortre hörnen (8,3, ±5,3). | P2 |
+| 15 Svarta hålet | 🟢 Observatorium med teleskop och skylten SVARTA HÅLET, lyktor | `blackHoleScenery()` | Står bakom koppen utanför spelytan. | P3 |
+
+Hål 16–18 är platshållare. Nya mekaniker läggs till här när hålen designas, se planen i `DESIGN.md`.
 
 ## Prototyper (Solskensöarna och Neonhamnen)
 

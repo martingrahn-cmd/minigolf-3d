@@ -254,6 +254,7 @@ export function createMoonCourse(scene,cells,boundaries,heightAt,level){
   }
   if(level.scenery==='rocketramp')rocketRampScenery(scene,heightAt);
   if(level.scenery==='zerog')zeroGStage(scene,heightAt,level);
+  if(level.scenery==='blackhole')blackHoleScenery(scene,level);
   return floor;
 }
 
@@ -412,4 +413,85 @@ export function createRocketPads(scene,springs,heightAt){
       p.glow.material.emissiveIntensity=.9+p.fire*2.5;
     }},
   };
+}
+
+// Hole 15: the black hole is painted on the felt. A violet swirl fills the pull
+// zone (its rim is the dashed ring), the black disc is the horizon, and a hot
+// accretion ring turns around it. Nothing stands up from the floor.
+function swirlTexture(){
+  const canvas=document.createElement('canvas');canvas.width=canvas.height=256;const ctx=canvas.getContext('2d');
+  const g=ctx.createRadialGradient(128,128,0,128,128,128);
+  g.addColorStop(0,'rgba(10,4,30,1)');g.addColorStop(.35,'rgba(48,20,110,.85)');g.addColorStop(.8,'rgba(90,55,170,.35)');g.addColorStop(1,'rgba(90,55,170,0)');
+  ctx.fillStyle=g;ctx.fillRect(0,0,256,256);
+  // Spiral arms show which way the pull drags the ball.
+  ctx.lineWidth=5;ctx.lineCap='round';
+  for(let arm=0;arm<4;arm++){
+    ctx.strokeStyle='rgba(200,170,255,.38)';ctx.beginPath();
+    for(let t=0;t<=1;t+=.02){const r=20+t*104,a=arm*Math.PI/2+t*3.4;const x=128+Math.cos(a)*r,y=128+Math.sin(a)*r;t?ctx.lineTo(x,y):ctx.moveTo(x,y)}
+    ctx.stroke();
+  }
+  const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;return texture;
+}
+export function createBlackHole(scene,hole){
+  if(!hole)return null;
+  const group=new THREE.Group();group.name='black-hole';group.position.set(hole.x,0,hole.z);scene.add(group);
+  const flat=(geometry,mat,y)=>{const m=add(group,geometry,mat,0,y,0);m.rotation.x=-Math.PI/2;m.castShadow=false;return m};
+  const swirl=flat(new THREE.CircleGeometry(hole.radius,64),new THREE.MeshBasicMaterial({map:swirlTexture(),transparent:true,depthWrite:false}),.05);
+  for(let i=0;i<24;i++){
+    const a=i/24*Math.PI*2,dash=flat(new THREE.PlaneGeometry(.42,.07),glowMaterial(0xb69cff,.9),.056);
+    dash.position.set(Math.cos(a)*hole.radius,.056,Math.sin(a)*hole.radius);dash.rotation.z=-a+Math.PI/2;
+  }
+  flat(new THREE.CircleGeometry(hole.horizon,40),new THREE.MeshBasicMaterial({color:0x020008}),.062);
+  const disc=new THREE.Group();disc.position.y=.08;group.add(disc);
+  const ring=add(disc,new THREE.TorusGeometry(hole.horizon+.12,.09,10,48),glowMaterial(0xffa04a,2.2));ring.rotation.x=Math.PI/2;ring.castShadow=false;
+  const hot=add(disc,new THREE.TorusGeometry(hole.horizon+.32,.04,8,48),glowMaterial(0xff6fa8,1.6));hot.rotation.x=Math.PI/2;hot.castShadow=false;
+  const sparks=[];
+  for(let i=0;i<14;i++){
+    const spark=add(disc,new THREE.SphereGeometry(.05+(i%3)*.02,6,5),glowMaterial(i%2?0xffd27a:0xc8b6ff,2),0,.02,0);spark.castShadow=false;
+    sparks.push({spark,r:hole.horizon+.25+(i%5)*.35,phase:i*.9,speed:2.6/(1+(i%5)*.5)});
+  }
+  const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTexture('190,140,255'),transparent:true,depthWrite:false,opacity:.5}));
+  glow.position.y=.25;glow.scale.setScalar(hole.horizon*5);group.add(glow);
+  let flash=0;
+  return {
+    swallow(){flash=1},
+    update(dt,time){
+      flash=Math.max(0,flash-dt*1.4);
+      swirl.rotation.z=time*.35;
+      for(const {spark,r,phase,speed} of sparks){const a=phase+time*speed;spark.position.set(Math.cos(a)*r,.02,-Math.sin(a)*r)}
+      ring.material.emissiveIntensity=2.2+Math.sin(time*3)*.4+flash*4;
+      glow.material.opacity=.5+flash*.5;glow.scale.setScalar(hole.horizon*(5+flash*4));
+    },
+  };
+}
+
+// Planet bumpers: a banded planet with a tilted ring on a short pedestal. The
+// planet's radius is the bumper's collision radius.
+export function createPlanetBumpers(scene,bumpers=[]){
+  const palettes=[[0xff9f5a,0xffd27a,0xd5485b],[0x6fe6d6,0x3fbfb2,0x9ff3ff],[0xb18cff,0xff8fc8,0x6c4bb0]];
+  return bumpers.map((b,i)=>{
+    const group=new THREE.Group();group.name='planet-bumper';group.position.set(b.x,0,b.z);scene.add(group);
+    add(group,new THREE.CylinderGeometry(b.r*.55,b.r*.75,.18,20),material(C.deep),0,.13,0);
+    const planet=new THREE.Group();planet.position.y=b.r*.92;group.add(planet);
+    const colors=palettes[i%palettes.length],body=new THREE.SphereGeometry(b.r,24,16),p=body.attributes.position,tint=[];
+    for(let k=0;k<p.count;k++){const c=new THREE.Color(colors[Math.floor((p.getY(k)/b.r+1)*3)%3]);tint.push(c.r,c.g,c.b)}
+    body.setAttribute('color',new THREE.Float32BufferAttribute(tint,3));
+    add(planet,body,material(0xffffff,{vertexColors:true,flatShading:false,roughness:.5,emissive:colors[0],emissiveIntensity:.12}));
+    const ring=add(planet,new THREE.TorusGeometry(b.r*1.45,.06,8,40),glowMaterial(C.gold,.8));ring.rotation.x=Math.PI/2-.4;ring.castShadow=false;
+    return {pulse:0,update(dt){
+      this.pulse=Math.max(0,this.pulse-dt*3);
+      planet.scale.setScalar(1+this.pulse*.18);ring.material.emissiveIntensity=.8+this.pulse*3;planet.rotation.y+=dt*.4;
+    }};
+  });
+}
+
+// The arena: an observatory dome behind the cup and lanterns at the tee.
+function blackHoleScenery(scene,level){
+  const cup=level.cup;
+  asteroid(scene,cup.x+6.5,-4,0,3.2,301,material(C.rockDark)).scale.set(1,.7,1.6);
+  const dome=add(scene,new THREE.SphereGeometry(2.2,24,12,0,Math.PI*2,0,Math.PI/2),material(C.ivory,{flatShading:false}),cup.x+6.5,-.6,0);dome.name='observatory';
+  const scope=beam(scene,[cup.x+6.5,.6,0],[cup.x+5,2.6,0],.28,material(C.deep,{metalness:.4}),12);scope.name='telescope';
+  const sign=add(scene,new THREE.PlaneGeometry(4.2,1.05),new THREE.MeshBasicMaterial({map:signTexture('SVARTA HÅLET'),transparent:true,side:THREE.DoubleSide}),cup.x+6.4,2.6,0);
+  sign.rotation.y=-Math.PI/2;sign.castShadow=false;
+  lantern(scene,-12.6,0,-2.9);lantern(scene,-12.6,0,2.9);lantern(scene,-8.6,0,-8.6);lantern(scene,-8.6,0,8.6);
 }
