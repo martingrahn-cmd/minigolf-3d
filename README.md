@@ -13,7 +13,7 @@ npm run dev
 | --- | --- | --- |
 | 01–06 | Urverkets stad | Klar |
 | 07–12 | Molnskogen | Klar – hål 12 Moderträdet är världens set piece |
-| 13–18 | Månkarnevalen | 1 av 6 byggda – hål 13 Raketrampen |
+| 13–18 | Månkarnevalen | 2 av 6 byggda – hål 13 Raketrampen och 14 Tyngdlösa tältet |
 | P | Prototyper (Solskensöarna, Neonhamnen) | Spelbara, ska byggas om |
 
 Rundans ordning och platshållarna finns i `src/round.js`. Banornas interna `id` i `src/levels.js` är oförändrade, så rekord och banspecifik logik påverkas inte av numreringen. Länkar: `/?hole=1` … `/?hole=18` för rundan och `/?proto=kanonkurvan`, `dubbelstudsen`, `vippvarvet`, `neonslussen`, `frostfallet` för prototyperna. Ett obyggt hål öppnar menyn med en notis.
@@ -62,6 +62,8 @@ Varje värld avslutas med ett **set piece**: ett landmärke som också är håle
 
 - **13 · Raketrampen · par 3** – första hålet i **Månkarnevalen**, ett övergivet tivoli mellan asteroider. Raketplattor skjuter bollen vidare dit pilen pekar och lägger till extra fart (idén från prototypen Dubbelstudsen, nu som booster). Två plattor tar bollen runt två hörn och uppför en friktionssnål startramp till en upphöjd green. Utslaget avgör hur långt bollen kommer: runt 80–90 procent når greenen och ger birdiechans, svagare rullar tillbaka nerför rampen utan pliktslag, och från cirka 93 procent flyger bollen över den öppna kanten ut i rymden. En boll som rullar mot pilen passerar plattan utan att skjutas iväg. Världens miljö finns i `src/moon.js`, testerna i `tests/rocket-ramp.test.js`. [Spela hål 13](http://localhost:5173/?hole=13).
 
+- **14 · Tyngdlösa tältet · par 4** – ett trasigt cirkustält där tyngdkraften är svag. Utslaget är ett vallningsslag: hörnsargen tar bollen runt till tältets ingång. Därinne är filten hal och bollen glider långt. Mitt i manegen finns ett öppet hål. En boll som rullar över kanten svävar vidare med sin fart och sjunker sakta. Når den golvet på andra sidan i tid landar den och rullar vidare, annars försvinner den ut i rymden med ett pliktslag. Från ingången ger runt 60–75 procent ett svävhopp över hålet och upp på den upphöjda artistscenen för birdie. 55 procent eller mindre sjunker i hålet, och från cirka 85 procent flyger bollen av scenens öppna bortre kant. Ringvägen runt hålet glider utan att sväva och ger par med ett slag till. Koppen ligger snett på scenen, så ett direkt svävhopp i koppen är ovanligt. Fysiken för svävandet finns i `src/low-gravity.js`, testerna i `tests/zero-g.test.js`. [Spela hål 14](http://localhost:5173/?hole=14).
+
 Varje bana har ett eget rekord i webbläsaren.
 
 Prototyperna Kanonkurvan (Solskensöarna) och Dubbelstudsen, Vippvarvet, Neonslussen och Frostfallet (Neonhamnen) ligger utanför rundan. Molnskogen använder skulpterade klippöar, höga träd, ormbunkar, svamp, fjärilar, en kristallgrotta och träbroar mot rosa molnhimmel. Efterforskning och plan för hela rundan finns i [DESIGN.md](DESIGN.md).
@@ -75,7 +77,7 @@ npm test
 npm run build
 ```
 
-Testerna kontrollerar rampskarvar, kanter vid hög fart, snurrornas rotation, kraft/precision, rörinfarten, båda studsarna på bana 10, vippbrons lutning/hopplängd och vägen runt på bana 11, lyftportens trafikljus/kollision/sensor samt spelbara vägar till mål på bana 12 och 13. Frostfallets höjdprofil och underlag delar data mellan geometri, gravitation och friktion i `src/terrain.js`. Översiktens sikte träffar den faktiska terrängen på banor med höjdprofil. Vippbrons geometri och fysik delar ytmodell i `src/bridge.js`. Egenbyggda hinder finns i `src/obstacles.js` och temaväljaren i `src/environment.js`. Hål 14 väljer sitt tema explicit via `theme` i bandata.
+Testerna kontrollerar rampskarvar, kanter vid hög fart, snurrornas rotation, kraft/precision, rörinfarten, båda studsarna på bana 10, vippbrons lutning/hopplängd och vägen runt på bana 11, lyftportens trafikljus/kollision/sensor samt spelbara vägar till mål på bana 12 och 13. För Månkarnevalen kontrolleras raketplattornas kraftfönster och svävhoppets fönster på hål 14. Frostfallets höjdprofil och underlag delar data mellan geometri, gravitation och friktion i `src/terrain.js`. Översiktens sikte träffar den faktiska terrängen på banor med höjdprofil. Vippbrons geometri och fysik delar ytmodell i `src/bridge.js`. Egenbyggda hinder finns i `src/obstacles.js` och temaväljaren i `src/environment.js`. Rundans hål väljer sitt tema explicit via `theme` i bandata.
 
 Skybowling använder egna modeller i `src/carnival-visuals.js`: fjädrad studstrumma, klätterväxter kring träringen, svarvade träugglor och målad bowlingbrygga. Mekaniken i `src/carnival.js` bevarar infartens riktning, förstärker faktisk infartsfart och känner av ringpassager. Trumman garanterar ingen minsta säker hopplängd. För mycket fart kan även få en lyckad landning att rulla över den öppna änden. Banlayouten skiljer nu på öppna kanter i båda axelriktningarna, med samma kanter i grafik och kollision. Lätta käglor kan vältas både av bollen och av närliggande fallande käglor; vid ett fall återställs uppställningen till läget före slaget, med en kort uppresningsanimation. Käglor från tidigare lyckade slag förblir borta. En ny runda återställer hela uppställningen. Kägelkedjan, hoppet, ringpassagerna, omvägen och en fullföljd runda samt återställning efter upprepade fall kontrolleras av `tests/carnival.test.js`.
 

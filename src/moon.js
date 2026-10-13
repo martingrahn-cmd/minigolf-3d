@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { profileHeight } from './terrain.js';
 
 // Månkarnevalen: an abandoned fun fair drifting between asteroids. Mid-level
 // procedural stand-ins, listed in BLENDER_ASSETS.md for later Blender models.
@@ -158,7 +159,7 @@ export function createMoonEnvironment(scene,level,dress){
   tent(fair,minX-6,-4.8,maxZ+9,2.6,4.4);
   stringLights(fair,[minX-6,-.2,maxZ+9],[maxX+10,.6,maxZ+4],2.5,22);
   stringLights(fair,[minX-14,2,minZ-10],[cx+6,3,minZ-24],3,24);
-  dress?.(scene,animated,level);
+  (dress??{zerog:zeroGTent}[level.scenery])?.(scene,animated,level);
   const reducedMotion=typeof window!=='undefined'&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   return {theme:MOON_THEME,update(time){
     if(reducedMotion)return;
@@ -167,6 +168,9 @@ export function createMoonEnvironment(scene,level,dress){
       if(entry.type==='spin')entry.object.rotation.y+=entry.speed*.016;
       if(entry.type==='wheel'){entry.wheel.rotation.z=time*.08;for(const g of entry.gondolas)g.rotation.z=-entry.wheel.rotation.z}
       if(entry.type==='glow')entry.object.material.emissiveIntensity=1.2+Math.sin(time*2+entry.phase)*.5;
+      if(entry.type==='bob')entry.object.position.y=entry.baseY+Math.sin(time*.6+entry.phase)*.35;
+      if(entry.type==='hover'){entry.object.rotation.y=time*.25;entry.object.position.y=entry.baseY+Math.sin(time*.5)*.2}
+      if(entry.type==='confetti'){entry.object.rotation.y=time*.03;entry.object.position.y=Math.sin(time*.3)*.4}
     }
   }};
 }
@@ -183,13 +187,14 @@ function feltTexture(){
 export function createMoonCourse(scene,cells,boundaries,heightAt,level){
   const positions=[],colors=[],uvs=[];
   for(const cell of cells){
-    const rail=cell.surface==='rail';
+    const rail=cell.surface==='rail',ring=cell.surface==='ring';
     const cuts=(lo,hi)=>[lo,...Array.from({length:Math.max(0,Math.ceil(hi/1.3)-Math.floor(lo/1.3)-1)},(_,i)=>(Math.floor(lo/1.3)+i+1)*1.3),hi];
     const xs=cuts(cell.x1,cell.x2),zs=cuts(cell.z1,cell.z2),mid=(cell.z1+cell.z2)/2;
     for(let i=0;i<xs.length-1;i++)for(let j=0;j<zs.length-1;j++){
       const x1=xs[i],x2=xs[i+1],z1=zs[j],z2=zs[j+1],check=(Math.floor((x1+x2)/2/1.3)+Math.floor((z1+z2)/2/1.3))%2;
       // The launch rail is ivory with a turquoise centre stripe; felt elsewhere.
-      const color=new THREE.Color(rail?(Math.abs((z1+z2)/2-mid)<.7?C.teal:C.ivory):check?C.felt:C.feltLight);
+      // Violet felt marks the weightless ring; the rule is visible before the first shot.
+      const color=new THREE.Color(rail?(Math.abs((z1+z2)/2-mid)<.7?C.teal:C.ivory):ring?(check?0x5a3f9c:0x4d3590):check?C.felt:C.feltLight);
       for(const [x,z] of [[x1,z1],[x1,z2],[x2,z1],[x1,z2],[x2,z2],[x2,z1]]){
         positions.push(x,heightAt(x,z)+.04,z);colors.push(color.r,color.g,color.b);uvs.push(x/1.6,z/1.6);
       }
@@ -209,14 +214,14 @@ export function createMoonCourse(scene,cells,boundaries,heightAt,level){
   add(scene,skirtGeometry,material(C.deep,{side:THREE.DoubleSide}));
   // An asteroid crust under every lane: the course is built on floating rock.
   for(const [i,t] of level.tiles.entries()){
+    if(t.surface==='ring')continue;
     const x=(t.x1+t.x2)/2,z=(t.z1+t.z2)/2,w=t.x2-t.x1,d=t.z2-t.z1,y=Math.min(heightAt(t.x1,z),heightAt(t.x2,z));
     const rock=asteroid(scene,x,y-2.2,z,1,90+i,material(i%2?C.rock:C.rockDark));rock.rotation.set(0,0,0);rock.scale.set(w*.55,1.6,d*.62);
   }
 
   // Candy-striped rails along every guarded edge, posts with fair bulbs at the joints.
   const red=[],ivory=[],postGeometries=[],bulbs=[];
-  for(const e of boundaries){
-    if(e.open)continue;
+  for(const e of [...boundaries.filter(edge=>!edge.open),...(level.banks||[])]){
     const ay=heightAt(e.ax,e.az)+.2,by=heightAt(e.bx,e.bz)+.2,length=Math.hypot(e.bx-e.ax,e.bz-e.az),n=Math.max(1,Math.round(length/.5));
     for(let k=0;k<n;k++){
       const t0=k/n,t1=(k+1)/n,a=new THREE.Vector3(e.ax+(e.bx-e.ax)*t0,ay+(by-ay)*t0,e.az+(e.bz-e.az)*t0),b=new THREE.Vector3(e.ax+(e.bx-e.ax)*t1,ay+(by-ay)*t1,e.az+(e.bz-e.az)*t1);
@@ -239,12 +244,16 @@ export function createMoonCourse(scene,cells,boundaries,heightAt,level){
   // Open edges are painted with violet and gold chevrons: this is where space begins.
   for(const edge of level.openEdges||[]){
     const vertical=edge.x!==undefined,lo=vertical?edge.z1:edge.x1,hi=vertical?edge.z2:edge.x2,count=Math.ceil((hi-lo)/.35);
+    // Paint on whichever side has floor: outer drops and holes in the floor alike.
+    const floorAt=(x,z)=>cells.some(c=>x>=c.x1&&x<=c.x2&&z>=c.z1&&z<=c.z2);
     for(let k=0;k<count;k++){
-      const t=lo+(k+.5)*(hi-lo)/count,x=vertical?edge.x-Math.sign(edge.x)*.09:t,z=vertical?t:edge.z;
+      const t=lo+(k+.5)*(hi-lo)/count,side=vertical?(floorAt(edge.x-.2,t)?-1:1):(floorAt(t,edge.z-.2)?-1:1);
+      const x=vertical?edge.x+side*.1:t,z=vertical?t:edge.z+side*.1;
       add(scene,new THREE.BoxGeometry(vertical?.16:.22,.02,vertical?.22:.16),material(k%2?C.violet:C.gold),x,heightAt(x,z)+.055,z);
     }
   }
   if(level.scenery==='rocketramp')rocketRampScenery(scene,heightAt);
+  if(level.scenery==='zerog')zeroGStage(scene,heightAt,level);
   return floor;
 }
 
@@ -263,6 +272,112 @@ function rocketRampScenery(scene,heightAt){
   for(const [i,z] of [-1.2,0,1.2].entries())add(scene,new THREE.SphereGeometry(.2,10,8),glowMaterial(i===2?0x6fe3a0:C.gold,1.2),-21.6,.9,z);
   add(scene,new THREE.BoxGeometry(.25,.6,3.2),material(C.deep),-21.6,.9,0);
   lantern(scene,-21.2,0,-3);lantern(scene,-21.2,0,3);lantern(scene,-5.3,0,-12.8);lantern(scene,14.6,heightAt(14,-14),-14.6);
+}
+
+// Hole 14: the open-topped big top. Walls follow the chamfered ring, with gaps
+// for the entrance and the stage; balloons and confetti drift in weak gravity.
+const TENT=[[-9,-3],[-9,-5],[-5,-9],[5,-9],[9,-5],[9,-3.5],null,[9,3.5],[9,5],[5,9],[-5,9],[-9,5],[-9,3]];
+function fabricWall(parent,a,b,height){
+  const dx=b[0]-a[0],dz=b[1]-a[1],length=Math.hypot(dx,dz),n=Math.max(2,Math.round(length/.7)),positions=[],colors=[];
+  const len=Math.hypot(a[0],a[1])||1,out=[0,0];
+  // Sit just outside the rail line, leaning out a touch like canvas on guy ropes.
+  const mx=(a[0]+b[0])/2,mz=(a[1]+b[1])/2,ml=Math.hypot(mx,mz)||1;out[0]=mx/ml*.15;out[1]=mz/ml*.15;
+  for(let k=0;k<n;k++){
+    const t0=k/n,t1=(k+1)/n,c=new THREE.Color(k%2?C.red:C.ivory);
+    const p0=[a[0]+dx*t0+out[0],a[1]+dz*t0+out[1]],p1=[a[0]+dx*t1+out[0],a[1]+dz*t1+out[1]];
+    const quad=[[p0[0],0,p0[1]],[p1[0],0,p1[1]],[p0[0]+out[0]*2,height,p0[1]+out[1]*2],[p1[0],0,p1[1]],[p1[0]+out[0]*2,height,p1[1]+out[1]*2],[p0[0]+out[0]*2,height,p0[1]+out[1]*2]];
+    for(const v of quad){positions.push(...v);colors.push(c.r,c.g,c.b)}
+  }
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));g.computeVertexNormals();
+  add(parent,g,material(0xffffff,{vertexColors:true,side:THREE.DoubleSide,flatShading:false}));
+  for(let k=0;k<n;k++){
+    const t=(k+.5)/n,flag=add(parent,new THREE.ConeGeometry(.16,.34,3),material(k%2?C.gold:C.teal),a[0]+dx*t+out[0]*3,height+.05,a[1]+dz*t+out[1]*3);flag.rotation.x=Math.PI;
+  }
+}
+function zeroGTent(scene,animated){
+  const tent=new THREE.Group();tent.name='zero-g-tent';scene.add(tent);
+  for(let i=0;i<TENT.length-1;i++)if(TENT[i]&&TENT[i+1])fabricWall(tent,TENT[i],TENT[i+1],2.4);
+  const tops=[];
+  for(const [x,z] of [[-9,-5],[-5,-9],[5,-9],[9,-5],[9,5],[5,9],[-5,9]]){
+    const l=Math.hypot(x,z),px=x+x/l*.45,pz=z+z/l*.45;
+    beam(tent,[px,0,pz],[px,9,pz],.09,material(C.ivory,{metalness:.3}));
+    add(tent,new THREE.SphereGeometry(.18,10,8),material(C.gold,{metalness:.5}),px,9.15,pz);tops.push([px,9.15,pz]);
+  }
+  // The weightless field: a slowly turning ring high above the pit, above the
+  // chase camera's height so it frames the overview without blocking play.
+  const hover=new THREE.Group();hover.name='gravity-ring';hover.position.set(-.5,14,0);tent.add(hover);
+  const ring=add(hover,new THREE.TorusGeometry(2.6,.16,10,48),glowMaterial(C.teal,1.4));ring.rotation.x=Math.PI/2;
+  for(let i=0;i<6;i++){const a=i/6*Math.PI*2;add(hover,new THREE.SphereGeometry(.22,10,8),glowMaterial(i%2?C.gold:0xff8fc8,1.2),Math.cos(a)*2.6,0,Math.sin(a)*2.6)}
+  animated.push({object:hover,type:'hover',baseY:14});
+  for(const top of tops)stringLights(tent,top,[-.5+(top[0]+.5)*.25,14,top[2]*.25],.6,8);
+  // Balloons drift high along the walls, above the camera and the line of play.
+  const colors=[0xff7a9c,0xffd166,0x6fe6d6,0xb18cff,0xff9f5a,0x9ff3ff,0xff7a9c];
+  [[-7.6,-3.8],[-3,-8.2],[3.6,-8.2],[7.8,-6.4],[7.9,6.3],[3,8.3],[-3.8,8.2]].forEach(([x,z],i)=>{
+    const balloon=new THREE.Group();balloon.position.set(x,11+(i%3)*.8,z);tent.add(balloon);
+    const body=add(balloon,new THREE.SphereGeometry(.42,14,10),material(colors[i],{flatShading:false,roughness:.35}));body.scale.y=1.2;
+    add(balloon,new THREE.ConeGeometry(.08,.12,8),material(colors[i]),0,-.53,0);
+    beam(balloon,[0,-.58,0],[.05,2.4-balloon.position.y,.05],.01,material(C.ivory));
+    animated.push({object:balloon,type:'bob',baseY:balloon.position.y,phase:i*1.3});
+  });
+  const random=randomSource(77),positions=[],tints=[];
+  for(let i=0;i<220;i++){
+    positions.push(-8+random()*16,.6+random()*12,-8+random()*16);
+    const c=new THREE.Color([C.gold,C.teal,0xff8fc8,C.ivory][i%4]);tints.push(c.r,c.g,c.b);
+  }
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.setAttribute('color',new THREE.Float32BufferAttribute(tints,3));
+  const confetti=new THREE.Points(g,new THREE.PointsMaterial({size:.14,vertexColors:true,transparent:true,opacity:.85,depthWrite:false}));tent.add(confetti);
+  animated.push({object:confetti,type:'confetti'});
+}
+
+// Floor art, the entrance sign, the pit's glow and the raised stage of hole 14.
+function signTexture(text){
+  const canvas=document.createElement('canvas');canvas.width=512;canvas.height=128;const ctx=canvas.getContext('2d');
+  ctx.fillStyle='#2c2250';ctx.beginPath();ctx.roundRect(4,4,504,120,24);ctx.fill();ctx.strokeStyle='#f2c25c';ctx.lineWidth=8;ctx.stroke();
+  ctx.fillStyle='#fbf3e6';ctx.font='800 64px Fredoka, sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,256,68);
+  const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;return texture;
+}
+function zeroGStage(scene,heightAt,level){
+  // A painted circus ring around the pit, inside the chamfered walls.
+  for(const [inner,outer,color] of [[6.25,6.85,C.red],[6.85,7.1,C.ivory]]){
+    const ring=add(scene,new THREE.RingGeometry(inner,outer,72),material(color,{side:THREE.DoubleSide,flatShading:false}),0,.052,0);ring.rotation.x=-Math.PI/2;ring.castShadow=false;
+  }
+  // The weightless base is a ring of rock: through the pit you look straight into space.
+  // Rotating the extrusion by +90° about x maps shape y to world z and depth downwards.
+  const shape=new THREE.Shape(TENT.filter(Boolean).map(([x,z])=>new THREE.Vector2(x,z)));
+  const hole=new THREE.Path([[-3,-3],[2,-3],[2,3],[-3,3]].map(([x,z])=>new THREE.Vector2(x,z)));shape.holes.push(hole);
+  const base=add(scene,new THREE.ExtrudeGeometry(shape,{depth:1.6,bevelEnabled:false}),material(C.rock),0,-.05,0);base.rotation.x=Math.PI/2;
+  for(const [x,z,r] of [[-6.5,-5,3.2],[5,-5.5,3.4],[-5.5,5.5,3],[5.5,5,3.3]])asteroid(scene,x,-3,z,r,200+x*3,material(C.rockDark)).scale.y=.6;
+  const glowCanvas=document.createElement('canvas');glowCanvas.width=glowCanvas.height=128;const gctx=glowCanvas.getContext('2d');
+  const gradient=gctx.createRadialGradient(64,64,4,64,64,64);gradient.addColorStop(0,'rgba(140,240,255,.9)');gradient.addColorStop(.4,'rgba(150,110,255,.35)');gradient.addColorStop(1,'rgba(40,20,90,0)');
+  gctx.fillStyle=gradient;gctx.fillRect(0,0,128,128);const glowTex=new THREE.CanvasTexture(glowCanvas);glowTex.colorSpace=THREE.SRGBColorSpace;
+  const portal=add(scene,new THREE.PlaneGeometry(7,7),new THREE.MeshBasicMaterial({map:glowTex,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}),-.5,-2.6,0);portal.rotation.x=-Math.PI/2;portal.castShadow=false;portal.name='pit-portal';
+  // Entrance arch with its sign: the rule is named before the ball goes in.
+  for(const z of [-3.15,3.15])beam(scene,[-9.05,0,z],[-9.05,3.5,z],.09,material(C.ivory,{metalness:.3}));
+  beam(scene,[-9.05,3.5,-3.15],[-9.05,3.5,3.15],.09,material(C.gold,{metalness:.4}));
+  const sign=add(scene,new THREE.PlaneGeometry(4.2,1.05),new THREE.MeshBasicMaterial({map:signTexture('TYNGDLÖST'),transparent:true,side:THREE.DoubleSide}),-9.1,4.15,0);sign.rotation.y=-Math.PI/2;sign.castShadow=false;
+  // The artists' stage: velvet wings, spotlights and footlights along the ramp.
+  const stageY=heightAt(14,0),velvet=material(0x8e1f3a,{flatShading:false,roughness:.9}),gold=material(C.gold,{metalness:.4});
+  for(const side of [-1,1]){
+    const z=side*4.05;
+    for(let x=11.4;x<=17.6;x+=.42)beam(scene,[x,stageY-.4,z+Math.sin(x*7)*.08],[x,stageY+3,z+Math.sin(x*7)*.08],.17,velvet,10);
+    beam(scene,[11.2,stageY+3.1,z],[17.8,stageY+3.1,z],.16,gold);
+    const lamp=new THREE.Group();lamp.position.set(10.6,stageY,side*4.4);scene.add(lamp);
+    beam(lamp,[0,-.4,0],[0,3.6,0],.07,material(C.deep));
+    const head=add(lamp,new THREE.CylinderGeometry(.22,.3,.5,12),material(C.deep),0,3.7,0);head.rotation.z=-1.1;head.rotation.x=side*.5;
+    // A soft light cone from the lamp head down onto the cup.
+    const head3=new THREE.Vector3(10.6,stageY+3.7,side*4.4),target=new THREE.Vector3(level.cup.x,stageY,level.cup.z),dir=head3.clone().sub(target);
+    const beamCone=add(scene,new THREE.ConeGeometry(1.3,dir.length(),20,1,true),new THREE.MeshBasicMaterial({color:0xfff2c8,transparent:true,opacity:.09,depthWrite:false,side:THREE.DoubleSide}));
+    beamCone.position.copy(head3).add(target).multiplyScalar(.5);beamCone.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir.normalize());beamCone.castShadow=false;beamCone.receiveShadow=false;
+  }
+  for(let x=9.4;x<=11.4;x+=.5)for(const z of [-3.62,3.62])add(scene,new THREE.SphereGeometry(.09,8,6),glowMaterial(C.gold,1.6),x,heightAt(x,z)+.12,z).castShadow=false;
+  // Backstage clutter fills the corners cut off by the chamfered walls.
+  for(const [x,z] of [[-8,-8],[8,-8],[8,8],[-8,8]]){
+    for(const [dx,dz,r,h,col] of [[0,0,.55,.7,C.red],[.7,.45,.4,.55,C.teal],[-.3,.75,.35,.9,C.ivory]]){
+      const drum=add(scene,new THREE.CylinderGeometry(r,r,h,16),material(col,{flatShading:false}),x+Math.sign(x)*dx*.5,h/2+.04,z+Math.sign(z)*dz*.5);
+      add(scene,new THREE.TorusGeometry(r,.04,6,20),material(C.gold),drum.position.x,h+.04,drum.position.z).rotation.x=Math.PI/2;
+    }
+  }
+  lantern(scene,-14,0,7.6);lantern(scene,-24.6,0,2.6);
 }
 
 // Rocket pads: a glowing launch disc, chevrons along the true launch direction
