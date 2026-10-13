@@ -1,6 +1,6 @@
 # Mini Mayhem – banrytm och temavärldar
 
-Uppdaterat 1 oktober 2026. **Hål 1–5 och 9–18 är spelbara.** Den aktuella riktningen är tre världar med sex hål vardera. Äldre prototyper behåller sina nummer tills rundan sätts ihop.
+Uppdaterat 12 oktober 2026. **Rundan är numrerad 1–18 i `src/round.js`.** Urverkets stad (1–6) är klar. Molnskogen är hål 7–12: Skybowling, Rotravinen, Ekollonsvingen, Rotvolten, ett obyggt hål 11 och Törnkronan som final. Månkarnevalen (13–18) har bara platshållare. Solskensöarna och Neonhamnen ligger kvar som spelbara prototyper utanför rundan.
 
 ## Aktuellt förslag – tre världar med sex hål
 

@@ -1,13 +1,33 @@
-# Mini Mayhem – Urverkets stad och hål 09–18
+# Mini Mayhem – tre världar, arton hål
 
-Sexton spelbara 3D-minigolfbanor byggda med Three.js, egna modeller och KayKit Platformer Pack. Urverkets stad är en komplett värld med sex hål. Paketmodellerna ligger lokalt i `public/assets/kaykit`; originalmapparna under Dokument behöver inte flyttas.
+3D-minigolf byggd med Three.js, egna modeller och KayKit Platformer Pack. Rundan består av tre världar med sex hål vardera. Paketmodellerna ligger lokalt i `public/assets/kaykit`.
 
 ```bash
 npm install
 npm run dev
 ```
 
-Öppna adressen som Vite visar. Knappen **Banor** låter dig välja fritt:
+Öppna adressen som Vite visar. Startsidan är en **huvudmeny** med rundans status per värld, **Spela rundan**, **Fortsätt** (första hålet utan rekord) och **Välj hål**. Banväljaren visar alla 18 hål grupperade per värld. Hål som inte är byggda visas som streckade platshållare med arbetsnamn och idé.
+
+| Hål | Värld | Status |
+| --- | --- | --- |
+| 01–06 | Urverkets stad | Klar |
+| 07–12 | Molnskogen | 5 av 6 byggda – hål 11 saknas |
+| 13–18 | Månkarnevalen | Inte påbörjad |
+| P | Prototyper (Solskensöarna, Neonhamnen) | Spelbara, ska byggas om |
+
+Rundans ordning och platshållarna finns i `src/round.js`. Banornas interna `id` i `src/levels.js` är oförändrade, så rekord och banspecifik logik påverkas inte av numreringen. Länkar: `/?hole=1` … `/?hole=18` för rundan och `/?proto=kanonkurvan`, `dubbelstudsen`, `vippvarvet`, `neonslussen`, `frostfallet` för prototyperna. Ett obyggt hål öppnar menyn med en notis.
+
+## Publicering, uppdateringar och mobil
+
+- **GitHub Pages:** `.github/workflows/pages.yml` testar, bygger och publicerar vid varje push till `main`. Slå på det en gång under repots *Settings → Pages → Source: GitHub Actions*. Spelet hamnar på `https://<användare>.github.io/minigolf-3d/`. Bygget använder relativa sökvägar (`base: './'` i `vite.config.js`), så det fungerar både där och på en egen domän.
+- **Versionskoll:** varje bygge får ett versions-id som finns i spelet och i `version.json`. Spelet kollar efter en nyare version vid start, när det kommer tillbaka i förgrunden och var femte minut. Finns en nyare version visas **Ny version av spelet finns · Uppdatera**. Knappen laddar om med `?v=<id>` så att ingen gammal cache blir kvar. Aktuell version står längst ner i huvudmenyn. Kollen är avstängd i `npm run dev`.
+- **Manifest och ikoner:** `public/manifest.webmanifest` och `public/icons/` gör att spelet kan läggas till på hemskärmen och då öppnas i helskärm utan webbläsarlist.
+- **Stående läge:** manifestet låser stående läge när spelet är installerat på Android. iOS tillåter inte låsning, så en liggande telefon får ett tips att vrida den, med knappen *Spela liggande ändå*.
+
+## Banorna
+
+Molnskogens hål beskrivs nedan med sina gamla nummer: 14 → 07, 15 → 08, 16 → 09, 17 → 10, 18 → 12. Hål 9–13 nedan är prototyperna.
 
 - **01 · Gökporten · par 3** – första banan i **Urverkets stad**. En mässingsport lyfts av kugghjul och motvikter. En bred fairway med sarger leder till en green med romerska siffror framför ett animerat gökur. Kontrollerade slag ger par; en exakt placering kan ge birdie.
 - **02 · Rörposten · par 3** – en nedsänkt mässingstratt samlar bollen och skickar den genom ett glasrör till en hög postterrass. Dosera nästa slag i utförsrännan och använd mässingsvallen runt hörnet. Tryckluftstank, manometer, kolv, postfack och paket ger poststationen en egen prägel.
@@ -36,9 +56,9 @@ npm run dev
 
 - **18 · Törnkronan · par 5** – Molnskogens final. Tre rotluckor öppnar sig efter varandra över en avgrund. Grönt ljus betyder bärande lucka, gult varnar före öppning, rött betyder öppet. Efter en trygg avsats väntar en smal trägren med ett roterande törnhjul och öppna sidokanter. Två snidade ugglevakter och en stor guldkrona vaktar den lugna slutgreenen.
 
-Direktlänkar: `/?hole=1`, `/?hole=2`, `/?hole=3`, `/?hole=4`, `/?hole=5`, `/?hole=9`, `/?hole=10`, `/?hole=11`, `/?hole=12`, `/?hole=13`, `/?hole=14`, `/?hole=15` `/?hole=16` `/?hole=17` och `/?hole=18`. Varje bana har ett eget rekord i webbläsaren. Bana 9 behåller det tidigare sparade rekordet.
+Varje bana har ett eget rekord i webbläsaren.
 
-Hål 9 ligger i **Solskensöarna**. Hål 10–13 ligger i **Neonhamnen**, med måne, kristallöar, lampor och neonkanter. Hål 14–18 använder temat **Molnskogen**: skulpterade klippöar, höga träd, ormbunkar, svamp, fjärilar, en kristallgrotta och träbroar mot rosa molnhimmel. Hål 1–4 i Urverkets stad samt hål 9–18 är byggda. Riktningen för den färdiga rundan är nu tre världar med sex hål vardera. Temaförslaget är Urverkets stad, Molnskogen och Månkarnevalen; befintliga banor har ännu inte numrerats om. Efterforskning och plan för hela rundan finns i [DESIGN.md](DESIGN.md).
+Prototyperna Kanonkurvan (Solskensöarna) och Dubbelstudsen, Vippvarvet, Neonslussen och Frostfallet (Neonhamnen) ligger utanför rundan. Molnskogen använder skulpterade klippöar, höga träd, ormbunkar, svamp, fjärilar, en kristallgrotta och träbroar mot rosa molnhimmel. Efterforskning och plan för hela rundan finns i [DESIGN.md](DESIGN.md).
 
 Kameran följer bollen snett ovanifrån. Dra musen i sidled för att sikta eller finjustera med A/D. Shift ger extra precision. Tryck mellanslag tre gånger för att starta mätaren, välja kraft och välja precision; skärmknappen gör samma sak. Det gröna fältet ger ett rakt slag: 28 procent brett vid högst 20 procent kraft, sedan gradvis smalare till 10 procent vid halv kraft. Maxkraften är 26,5, men korta puttar behåller låg känslighet. Hårda slag utanför grönt avviker nu upp till 15 grader. Felet växer linjärt från grönzonens kant; en träff vid 75 procent av precisionsmätaren ger ungefär 6,7 graders fel vid maxkraft. Vid 20 procent kraft är maximalt riktningsfel nu cirka 1,9 grader. Koppens fångstradie växer mjukt från 32 till 38 cm för långsamma bollar. Den högsta fångstfarten är fortsatt 3,6; snabba puttar bromsas inte automatiskt för att räddas. Riktningen låses när mätaren startas, och Esc avbryter. I översikten klickar du på banan för att sikta. Hjälp finns under ?.
 

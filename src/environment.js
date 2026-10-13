@@ -8,8 +8,8 @@ import { createLoopScenery } from './loop-visuals.js';
 import { CLOCK_THEME, createClockEnvironment } from './clockwork.js';
 
 export const THEMES={
-  sunset:{key:'sunset',name:'Solskensöarna',range:'SOLSKENSVÄRLD',sky:0x6eabc7,horizon:0xffce9e,water:0x248eaa,rail:0xffefcb,base:0x326773,accent:0xffc367},
-  neon:{key:'neon',name:'Neonhamnen',range:'NEONVÄRLD',sky:0x151b48,horizon:0x716391,water:0x143d63,rail:0x89e7df,base:0x273452,accent:0x8af6e8},
+  sunset:{key:'sunset',name:'Solskensöarna',range:'PROTOTYP',sky:0x6eabc7,horizon:0xffce9e,water:0x248eaa,rail:0xffefcb,base:0x326773,accent:0xffc367},
+  neon:{key:'neon',name:'Neonhamnen',range:'PROTOTYP',sky:0x151b48,horizon:0x716391,water:0x143d63,rail:0x89e7df,base:0x273452,accent:0x8af6e8},
   forest:FOREST_THEME,
   clockwork:CLOCK_THEME,
 };

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { createCourse, LEVEL, LEVELS, START, CUP, CANNON, LANDING, PIPE_IN, PIPE_OUT, SPRINGS, SPINNER, onCourse, heightAt, heightSlope, heightSlopeZ, frictionAt } from './course.js';
+import { createCourse, LEVEL, LEVELS, SELECTION, START, CUP, CANNON, LANDING, PIPE_IN, PIPE_OUT, SPRINGS, SPINNER, onCourse, heightAt, heightSlope, heightSlopeZ, frictionAt } from './course.js';
 import { BALL_RADIUS, PERFECT_ZONE, perfectZone, powerAt, precisionAt, shotError, shotSpeed, shouldSink, collideWalls, collideSpinner, collidePipe, entersPipe, springImpulse, collideBumper } from './mechanics.js';
 import { createLoopTrack, enterLoop, stepLoop } from './loop.js';
 import { onBridge, stepBridge, leavesBridge, bridgeFlight, flightPosition } from './bridge.js';
@@ -8,6 +8,8 @@ import { trapdoorAt, supportedByTrapdoors } from './trapdoors.js';
 import { collidePendulum } from './pendulum.js';
 import { trampolineFlight, throughHoop, createPinRack, knockPin, advancePins } from './carnival.js';
 import { themeFor } from './environment.js';
+import { APP_VERSION, watchForUpdates, applyUpdate } from './updates.js';
+import { WORLDS, ROUND, PROTOTYPES, holeLabel, builtCount, nextInRound } from './round.js';
 import { createGolfBall } from './ball.js';
 import * as activeLayout from './layout.js';
 import { puttingContext, puttSpeed } from './putting.js';
@@ -52,6 +54,14 @@ let audioEnabled=true;
 let audioContext;
 let toastTimer;
 const aimKeys=new Set();
+// Touch and mouse/keyboard get their own hints and controls. Starts from the primary
+// pointer and follows whatever the player actually uses (e.g. an iPad with a keyboard).
+const root=document.documentElement;
+root.dataset.input=matchMedia('(pointer: coarse)').matches?'touch':'mouse';
+const touchInput=()=>root.dataset.input==='touch';
+function setInput(mode){if(root.dataset.input!==mode){root.dataset.input=mode;updateUI()}}
+window.addEventListener('pointerdown',e=>setInput(e.pointerType==='touch'||e.pointerType==='pen'?'touch':'mouse'),true);
+let fineAim=0,fineAimHeld=0;
 let pipeCooldown=0;
 const springCooldowns=SPRINGS.map(()=>0);
 const gates=LEVEL.gates||[];
@@ -138,19 +148,23 @@ function updateUI(){
   $('controlPanel').classList.toggle('busy',busy);
   $('app').classList.toggle('overview',cameraOverview);
   $('meter').classList.toggle('accuracy',state.phase==='accuracy');
-  $('meterStatus').textContent={idle:cameraOverview?'Klicka på banan för att sikta':'Dra för att sikta · A / D finjusterar',power:'Mjukt ← kraft → hårt · Esc avbryter',accuracy:state.power<.3?'Mjuk putt · större grönt fält':'Pricka mitten · hårda slag kräver precision',moving:'Nästa slag när bollen stannar',looping:'Farten avgör om du når runt',cannon:'Över gapet mot flaggan',pipe:'På väg till kanonen',bridgeflight:'Nästa stopp: flippergreen',drumflight:'Genom ringen – mot käglorna!',falling:'+1 pliktslag',win:'Flaggan är din!'}[state.phase]||'';
+  const touch=touchInput();
+  $('meterStatus').textContent={idle:cameraOverview?(touch?'Tryck på banan för att sikta':'Klicka på banan för att sikta'):(touch?'Dra för att sikta · ◁ ▷ finsiktar':'Dra för att sikta · A / D finjusterar'),power:touch?'Mjukt ← kraft → hårt':'Mjukt ← kraft → hårt · Esc avbryter',accuracy:state.power<.3?'Mjuk putt · större grönt fält':'Pricka mitten · hårda slag kräver precision',moving:'Nästa slag när bollen stannar',looping:'Farten avgör om du når runt',cannon:'Över gapet mot flaggan',pipe:'På väg till kanonen',bridgeflight:'Nästa stopp: flippergreen',drumflight:'Genom ringen – mot käglorna!',falling:'+1 pliktslag',win:'Flaggan är din!'}[state.phase]||'';
   if(state.phase==='funnel')$('meterStatus').textContent='Tryckluften lyfter dig till postterrassen';
   if(state.phase==='elevator')$('meterStatus').textContent='Motvikterna tar dig till balkongen';
   const putting=puttEnabled&&state.phase==='idle';
   $('puttControls').hidden=!putting;$('meter').hidden=putting;
   $('shotMode').hidden=!nearPutt||state.phase!=='idle';
+  $('fineAim').hidden=state.phase!=='idle'||cameraOverview;
+  $('cancelShot').hidden=!touch||!['power','accuracy'].includes(state.phase);
+  if($('fineAim').hidden)fineAim=0;
   $('shotMode').textContent=putting?'Fullt slag':'Närputt';
   if(putting){
     $('controlTitle').textContent='Närputt';$('actionText').textContent='Putta';
     $('puttDistance').textContent=`${nearPutt.distance.toFixed(1).replace('.',',')} m till hålet`;
     $('puttLength').value=puttLength;
     $('puttOutput').textContent=`${puttLength.toFixed(1).replace('.',',')} m`;
-    $('meterStatus').textContent='Klicka på hålet för att sikta · välj rulllängd';
+    $('meterStatus').textContent=touch?'Tryck på hålet för att sikta · välj rulllängd':'Klicka på hålet för att sikta · välj rulllängd';
   }
 }
 function action(){
@@ -226,7 +240,7 @@ function win(){
   $('winStrokes').textContent=state.strokes;
   $('winTitle').innerHTML=state.strokes===1?'HOLE IN<br><em>ONE!</em>':state.strokes<=LEVEL.par-2?'EAGLE!<br><em>✦ ✦ ✦</em>':state.strokes===LEVEL.par-1?'BIRDIE!<br><em>✦ ✦</em>':state.strokes===LEVEL.par?'PÅ PAR!<br><em>✦</em>':'I MÅL<br><em>SNYGGT!</em>';
   $('winText').textContent=state.strokes<LEVEL.par?`Du slog par med ${LEVEL.par-state.strokes} slag. Snyggt jobbat!`:state.strokes===LEVEL.par?'Precis på par. En stark runda!':'Flaggan är din – dags för ett nytt försök?';
-  if(LEVEL.worldFinale)$('winText').textContent+=' Du klarade Urverkets final!';
+  if(SELECTION.slot?.finale)$('winText').textContent+=` Du klarade ${SELECTION.slot.world.finale}!`;
   $('win').classList.remove('hidden');
   burst(CUP.x,.6,CUP.z,0xffd264,55,1.7);burst(CUP.x,.6,CUP.z,0xf47761,30,1.2);
   sound(440,.18,'triangle',.08,1.5);setTimeout(()=>sound(660,.25,'triangle',.08,1.6),150);setTimeout(()=>sound(880,.42,'triangle',.08,1.3),310);
@@ -560,6 +574,7 @@ function frame(){
   if(state.phase==='idle'){
     const direction=Number(aimKeys.has('KeyD')||aimKeys.has('ArrowRight'))-Number(aimKeys.has('KeyA')||aimKeys.has('ArrowLeft'));
     state.aim+=direction*dt*(aimKeys.has('ShiftLeft')||aimKeys.has('ShiftRight')?.15:.65);
+    if(fineAim){fineAimHeld+=dt;state.aim+=fineAim*dt*(fineAimHeld>.7?.3:.1)}
   }
   if(state.phase==='power')state.power=powerAt(elapsed-state.meterStart);
   if(state.phase==='accuracy')state.needle=precisionAt(elapsed-state.accuracyStart);
@@ -599,7 +614,7 @@ canvas.addEventListener('pointermove',e=>{
   state.aim+=(e.clientX-lastPointerX)*(e.shiftKey?.001:.004);lastPointerX=e.clientX;
 });
 canvas.addEventListener('pointerup',e=>{
-  if(draggingAim&&puttEnabled&&!cameraOverview&&Math.hypot(e.clientX-pointerDownX,e.clientY-pointerDownY)<5)overviewAim(e,camera);
+  if(draggingAim&&puttEnabled&&!cameraOverview&&Math.hypot(e.clientX-pointerDownX,e.clientY-pointerDownY)<(e.pointerType==='touch'?12:5))overviewAim(e,camera);
   draggingAim=false;
 });
 canvas.addEventListener('pointercancel',()=>{draggingAim=false});
@@ -623,70 +638,151 @@ window.addEventListener('keydown',e=>{
   if(e.code==='KeyR'&&state.phase!=='intro'){reset();$('win').classList.add('hidden')}
 });
 window.addEventListener('keyup',e=>aimKeys.delete(e.code));
-window.addEventListener('blur',()=>{aimKeys.clear();draggingAim=false});
+window.addEventListener('keydown',e=>{if(!e.repeat&&e.code!=='Tab')setInput('mouse')},true);
+window.addEventListener('blur',()=>{aimKeys.clear();draggingAim=false;fineAim=0});
+// Fine aim for touch: a tap nudges about 0.2 degrees, holding turns slowly and then a little faster.
+for(const [id,dir] of [['aimLeft',-1],['aimRight',1]]){
+  const button=$(id);
+  button.addEventListener('pointerdown',e=>{
+    if(state.phase!=='idle')return;
+    e.preventDefault();button.setPointerCapture(e.pointerId);
+    state.aim+=dir*.0035;fineAim=dir;fineAimHeld=0;
+  });
+  for(const type of ['pointerup','pointercancel','lostpointercapture'])button.addEventListener(type,()=>{fineAim=0});
+  button.addEventListener('contextmenu',e=>e.preventDefault());
+}
 $('helpButton').addEventListener('click',()=>{
   if(['power','accuracy'].includes(state.phase)){state.power=0;setPhase('idle')}
   aimKeys.clear();$('helpPanel').showModal();
 });
 $('closeHelp').addEventListener('click',()=>$('helpPanel').close());
 $('actionButton').addEventListener('click',action);
+$('cancelShot').addEventListener('click',()=>{if(['power','accuracy'].includes(state.phase)){state.power=0;setPhase('idle')}});
 $('puttLength').addEventListener('input',()=>{puttLength=Number($('puttLength').value);updateUI()});
 $('shotMode').addEventListener('click',()=>{puttEnabled=!puttEnabled;updateUI();$('shotMode').blur()});
-$('playButton').addEventListener('click',()=>{$('intro').classList.add('hidden');reset();toast('Sikta · välj kraft · träffa grönt',2600)});
+$('playButton').addEventListener('click',()=>{lockPortrait();$('intro').classList.add('hidden');reset();toast('Sikta · välj kraft · träffa grönt',2600)});
 $('againButton').addEventListener('click',()=>{$('win').classList.add('hidden');reset()});
 $('resetButton').addEventListener('click',()=>{if(state.phase!=='intro'){reset();$('win').classList.add('hidden')}});
 $('cameraButton').addEventListener('click',()=>{cameraOverview=!cameraOverview;$('cameraText').textContent=cameraOverview?'Spelvy':'Översikt';resize();updateUI()});
 $('soundButton').addEventListener('click',()=>{audioEnabled=!audioEnabled;$('soundButton').classList.toggle('off',!audioEnabled);$('soundButton').textContent=audioEnabled?'♪':'×'});
 window.addEventListener('resize',resize);
 
+const recordText=level=>{const best=localStorage.getItem(level.recordKey);return best?`Bästa: ${best}`:'Inget rekord'};
 function openLevels(){
   if(['power','accuracy'].includes(state.phase)){state.power=0;setPhase('idle')}
   aimKeys.clear();
-  for(const level of LEVELS){
-    const best=localStorage.getItem(level.recordKey);
-    $(`record-${level.id}`).textContent=best?`Bästa: ${best} slag`:'Inget rekord ännu';
-  }
+  for(const level of LEVELS)$(`record-${level.id}`).textContent=recordText(level);
   $('levelPanel').showModal();
 }
 $('levelsButton').addEventListener('click',openLevels);
 $('introLevels').addEventListener('click',openLevels);
 $('winLevels').addEventListener('click',openLevels);
 $('closeLevels').addEventListener('click',()=>$('levelPanel').close());
+
+const builtHoles=ROUND.filter(slot=>slot.level).length;
+function holeCard(slot){
+  const number=holeLabel(slot.hole);
+  if(slot.placeholder)return `<div class="hole-card placeholder" title="${slot.placeholder.idea}">
+      <span class="hole-number">${number}</span><strong>${slot.placeholder.name}</strong>
+      <small>${slot.placeholder.idea}</small><span class="hole-status">Byggs</span></div>`;
+  const {level}=slot;
+  return `<a id="level-${level.id}" href="?hole=${slot.hole}" class="hole-card" data-world="${slot.world.key}">
+      <span class="hole-number">${number}</span><strong>${level.name}</strong>
+      <small>${level.feature}</small><span class="hole-meta">PAR ${level.par}${slot.finale?' · FINAL':''} · <span id="record-${level.id}">Inget rekord</span></span></a>`;
+}
+function worldSection(world,w){
+  const slots=ROUND.filter(slot=>slot.world===world),built=builtCount(world);
+  const status=built===6?'Klar':built?`${built} av 6 byggda`:'Inte påbörjad';
+  return `<section class="world-section" data-world="${world.key}">
+    <header><div><span class="world-range">HÅL ${holeLabel(w*6+1)}–${holeLabel(w*6+6)}</span><h3>${world.name}</h3></div>
+    <span class="world-status${built===6?' done':''}">${status}</span></header>
+    <div class="hole-grid">${slots.map(holeCard).join('')}</div></section>`;
+}
+function prototypeSection(){
+  return `<section class="world-section prototypes"><header><div><span class="world-range">UTANFÖR RUNDAN</span><h3>Prototyper</h3></div>
+    <span class="world-status">Ska byggas om</span></header>
+    <p class="world-note">Äldre testbanor. Spelbara, men deras idéer ska flyttas in i världarna.</p>
+    <div class="hole-grid">${PROTOTYPES.map(proto=>{const level=LEVELS.find(l=>l.id===proto.id);
+      return `<a id="level-${level.id}" href="?proto=${proto.slug}" class="hole-card prototype">
+      <span class="hole-number">P</span><strong>${level.name}</strong><small>${proto.world} · ${level.feature}</small>
+      <span class="hole-meta">PAR ${level.par} · <span id="record-${level.id}">Inget rekord</span></span></a>`}).join('')}</div></section>`;
+}
+function configureMenu(){
+  $('menuWorlds').innerHTML=WORLDS.map((world,w)=>{const built=builtCount(world);
+    return `<div class="menu-world" data-world="${world.key}"><div class="menu-world-head"><strong>${world.name}</strong><span>HÅL ${holeLabel(w*6+1)}–${holeLabel(w*6+6)}</span></div>
+      <div class="menu-progress" role="img" aria-label="${built} av 6 hål byggda">${ROUND.filter(s=>s.world===world).map(s=>`<i class="${s.level?'built':''}"></i>`).join('')}</div>
+      <small>${built===6?'Klar':built?`${built} av 6 byggda`:'Inte påbörjad'} · ${world.tagline}</small></div>`}).join('');
+  $('menuSummary').textContent=`${builtHoles} av 18 hål byggda · ${PROTOTYPES.length} prototyper att bygga om`;
+  const unplayed=ROUND.find(slot=>slot.level&&!localStorage.getItem(slot.level.recordKey));
+  if(unplayed&&unplayed.hole>1){$('menuContinue').hidden=false;$('menuContinue').href=`?hole=${unplayed.hole}`;$('menuContinue').textContent=`Fortsätt · Hål ${holeLabel(unplayed.hole)} ${unplayed.level.name}`}
+  if(SELECTION.missing){$('menuNotice').hidden=false;$('menuNotice').textContent=`Hål ${holeLabel(SELECTION.missing.hole)} · ${SELECTION.missing.placeholder.name} byggs fortfarande.`}
+}
+$('menuPlay').addEventListener('click',()=>{
+  history.replaceState(null,'','?hole=1');
+  document.title=`${LEVEL.name} · Hål 01`;
+  $('menu').classList.add('hidden');$('intro').classList.remove('hidden');$('playButton').focus();
+});
+$('menuLevels').addEventListener('click',openLevels);
+$('menuHelp').addEventListener('click',()=>$('helpPanel').showModal());
+
 function configureLevelUI(){
-  $('levelSummary').textContent=`${LEVELS.length} spelbara hål. ${new Set(LEVELS.map(level=>themeFor(level.id).key)).size} världar. Massor av bus.`;
-  $('levelOptions').innerHTML=[...LEVELS].sort((a,b)=>a.id-b.id).map(level=>{
-    const theme=themeFor(level.id);
-    return `<a id="level-${level.id}" href="?hole=${level.id}" class="level-option" data-world="${theme.key}">
-      <span class="level-number">${String(level.id).padStart(2,'0')}</span>
-      <span class="level-info"><strong>${level.name}</strong><span class="level-world">${theme.name.toUpperCase()} · ${theme.range}</span>
-      <span>${level.feature}</span><small>PAR ${level.par} · <span id="record-${level.id}">Inget rekord ännu</span></small></span><span class="level-arrow">→</span></a>`;
-  }).join('');
-  const number=String(LEVEL.id).padStart(2,'0');
+  $('levelSummary').textContent=`${builtHoles} av 18 hål byggda. Tomma platser byggs härnäst.`;
+  $('levelOptions').innerHTML=WORLDS.map(worldSection).join('')+prototypeSection();
+  const number=SELECTION.slot?holeLabel(SELECTION.slot.hole):'P';
+  const holeText=SELECTION.slot?`HÅL ${number}`:'PROTOTYP';
   const theme=themeFor(LEVEL.id);
   document.documentElement.dataset.theme=theme.key;
   document.documentElement.dataset.hole=LEVEL.id;
   $('worldName').textContent=theme.name;
-  $('introWorld').textContent=`${theme.name} · ${theme.range}`;
+  $('introWorld').textContent=SELECTION.slot?`${SELECTION.slot.world.name} · ${theme.range}`:`${theme.name} · Prototyp`;
   $('meter').style.setProperty('--sweet-start',`${50-PERFECT_ZONE*50}%`);
   $('meter').style.setProperty('--sweet-end',`${50+PERFECT_ZONE*50}%`);
   $('meter').style.setProperty('--sweet-width',`${PERFECT_ZONE*100}%`);
-  const next=LEVELS.find(l=>l.id===LEVEL.id+1);
-  $('nextHole').hidden=!next;if(next){$('nextHole').href=`?hole=${next.id}`;$('nextHole').textContent=`Nästa hål · ${next.name} →`}
+  configureNext();
 
-  document.title=`${LEVEL.name} · Hål ${number}`;
+  document.title=SELECTION.menu?'Mini Mayhem':`${LEVEL.name} · ${SELECTION.slot?`Hål ${number}`:'Prototyp'}`;
   $('holeNumber').textContent=number;$('holeName').textContent=LEVEL.name.toUpperCase();
   $('parCount').textContent=LEVEL.par;
-  $('introKicker').textContent=LEVEL.worldFinale?`URVERKETS FINAL · HÅL ${number}`:`VÄLKOMMEN TILL HÅL ${number}`;
+  $('introKicker').textContent=SELECTION.slot?.finale?`${SELECTION.slot.world.finale.toUpperCase()} · ${holeText}`:SELECTION.slot?`VÄLKOMMEN TILL ${holeText}`:'PROTOTYP · SKA BYGGAS OM';
   $('introTitle').innerHTML=`${LEVEL.title[0]}<br><em>${LEVEL.title[1]}</em><span class="title-star">✦</span>`;
   $('introDescription').textContent=LEVEL.description;
   $('featureBadge').textContent=LEVEL.feature.toUpperCase();$('parBadge').textContent=`⛳ PAR ${LEVEL.par}`;
-  $('playButton').innerHTML=`SPELA HÅL ${number} <span>→</span>`;
+  $('playButton').innerHTML=`SPELA ${SELECTION.slot?holeText:'PROTOTYPEN'} <span>→</span>`;
   $('routeHeading').textContent=LEVEL.routeHeading||(LEVEL.id===10?'RUNDA SVÄNGEN':'TVÅ VÄGAR TILL FLAGGAN');
   LEVEL.routes.forEach(([title,detail],i)=>{$(`routeTitle${i}`).textContent=title;$(`routeDetail${i}`).textContent=detail});
   $(`level-${LEVEL.id}`).setAttribute('aria-current','true');
+  configureMenu();
+  if(SELECTION.menu){$('intro').classList.add('hidden');$('menu').classList.remove('hidden')}
+}
+function configureNext(){
+  const link=$('nextHole'),note=$('nextNote');
+  if(SELECTION.prototype){
+    const next=PROTOTYPES[PROTOTYPES.indexOf(SELECTION.prototype)+1];
+    link.hidden=!next;if(next){link.href=`?proto=${next.slug}`;link.textContent=`Nästa prototyp · ${LEVELS.find(l=>l.id===next.id).name} →`}
+    return;
+  }
+  const {slot,skipped}=nextInRound(SELECTION.slot.hole);
+  link.hidden=false;
+  if(slot){link.href=`?hole=${slot.hole}`;link.textContent=`${slot.world===SELECTION.slot.world?'Nästa hål':`Vidare till ${slot.world.name}`} · ${holeLabel(slot.hole)} ${slot.level.name} →`}
+  else{link.href='./';link.textContent='Tillbaka till menyn →'}
+  if(skipped.length){
+    note.hidden=false;
+    note.textContent=skipped.length===1?`Hål ${holeLabel(skipped[0].hole)} byggs fortfarande och hoppas över.`:`Hål ${holeLabel(skipped[0].hole)}–${holeLabel(skipped.at(-1).hole)} byggs fortfarande.`;
+  }
 }
 
+let pendingUpdate=null;
+function showUpdate(latest){pendingUpdate=latest;$('updateBanner').hidden=false}
+$('updateButton').addEventListener('click',()=>{if(pendingUpdate)applyUpdate(pendingUpdate)});
+$('updateLater').addEventListener('click',()=>{$('updateBanner').hidden=true});
+// Phones play in portrait. Installed on Android the manifest locks it; iOS can't lock,
+// so a landscape phone gets a hint that can be dismissed.
+$('rotateAnyway').addEventListener('click',()=>{root.dataset.landscape='ok'});
+function lockPortrait(){screen.orientation?.lock?.('portrait').catch(()=>{})}
+
 async function init(){
+  $('menuVersion').textContent=`Version ${APP_VERSION.label}`;
+  watchForUpdates(showUpdate);
   configureLevelUI();resize();
   try{course=await createCourse(scene)}catch(error){console.error(error);toast('Vissa modeller kunde inte läsas.');}
   if(['forest','clockwork'].includes(LEVEL.theme)){

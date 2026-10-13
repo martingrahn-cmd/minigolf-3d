@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
-export const FOREST_THEME={key:'forest',name:'Molnskogen',range:'SKOGSVÄRLD',sky:0xef79b9,horizon:0xffacd7,rail:0xa76b37,base:0x986344,accent:0x96ca50};
+export const FOREST_THEME={key:'forest',name:'Molnskogen',range:'HÅL 07–12',sky:0xef79b9,horizon:0xffacd7,rail:0xa76b37,base:0x986344,accent:0x96ca50};
 const palette={bark:0x76503a,wood:0xb17c43,cut:0xeac082,moss:0x557d2c,leaf:0x69a72c,leafLight:0x92c83b,rock:0xb99973};
 const material=(color,extra={})=>new THREE.MeshStandardMaterial({color,roughness:.95,flatShading:true,...extra});
 function randomSource(seed){return()=>{seed=(seed*16807)%2147483647;return(seed-1)/2147483646}}

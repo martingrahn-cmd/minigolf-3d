@@ -131,3 +131,87 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:focus-visibl
 .level-option[data-world=clockwork]{background:linear-gradient(110deg,#d7e4d5,#f2dfb5);border-color:#bfa472}
 .level-option[data-world=clockwork] .level-number{color:#397165}.level-option[data-world=clockwork] .level-world{color:#897446}
 .level-option[data-world=clockwork][aria-current=true]{border-color:#9b793c}
+
+/* Main menu and the round's hole picker: three worlds of six holes, with placeholders for unbuilt holes. */
+.menu-link{display:flex;align-items:center;gap:5px;text-decoration:none}
+.next-note{display:block;margin-top:6px;font-size:11px;color:#7a8a96}.next-note[hidden]{display:none}
+.intro-card a.text-button{width:max-content}
+.menu-backdrop{z-index:12;overflow-y:auto}
+.menu-card{width:min(560px,100%);padding:30px;background:#fffaf0;border:4px solid #fff;border-radius:24px;color:#263b52;box-shadow:0 16px 0 #2c457266,0 35px 90px #0d244b66;text-align:center;margin:auto}
+.menu-brand{display:inline-flex;align-items:center;gap:9px;font:700 18px Fredoka,sans-serif;letter-spacing:.03em;color:#19324a}
+.menu-card h1{font:600 clamp(38px,7vw,54px)/.92 Fredoka,sans-serif;letter-spacing:-.04em;margin:16px 0 20px}.menu-card h1 em{font-style:normal;color:#f76350}
+.menu-notice{margin:0 0 16px;padding:9px 12px;border-radius:10px;background:#fff1cf;color:#8a5a12;font-size:13px;font-weight:700}.menu-notice[hidden]{display:none}
+.menu-worlds{display:grid;gap:9px;text-align:left;margin-bottom:20px}
+.menu-world{padding:11px 14px;border-radius:13px;border:2px solid #e2e6dc;background:#f6f6ee}
+.menu-world-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.menu-world-head strong{font:600 18px Fredoka,sans-serif}.menu-world-head span{font-size:10px;font-weight:800;letter-spacing:.12em;color:#7b8a96}
+.menu-world small{display:block;font-size:11px;color:#6b7d89;margin-top:6px}
+.menu-progress{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-top:8px}.menu-progress i{height:7px;border-radius:9px;background:repeating-linear-gradient(135deg,#d6dad4 0 4px,#e9ebe5 4px 8px)}.menu-progress i.built{background:#3f9c84}
+.menu-world[data-world=clockwork]{background:linear-gradient(110deg,#e1ead9,#f6e8c6);border-color:#d3bd8c}.menu-world[data-world=clockwork] .menu-progress i.built{background:#397165}
+.menu-world[data-world=forest]{background:linear-gradient(110deg,#e6ecd0,#f7e6cd);border-color:#d0d8b0}.menu-world[data-world=forest] .menu-progress i.built{background:#69883f}
+.menu-world[data-world=moon]{background:linear-gradient(110deg,#ebe6f7,#f3eef5);border-color:#d7cfea}
+.menu-actions{display:grid;gap:9px}.menu-actions .play-button{width:100%}
+.menu-secondary{display:block;border:2px solid #dfe4dc;background:#fff;color:#2c4558;border-radius:12px;padding:11px;font-weight:800;font-size:14px;text-decoration:none;text-align:center}.menu-secondary:hover{border-color:#f5b855}.menu-secondary[hidden]{display:none}
+.menu-summary{display:block;margin-top:14px;font-size:11px;color:#7b8a96;font-weight:700}
+.level-panel{width:min(860px,calc(100% - 32px))}
+.level-note a{color:inherit;font-weight:800}
+.level-worlds{display:grid;gap:22px}
+.world-section header{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid #e6e8df}
+.world-section h3{font:600 22px Fredoka,sans-serif;margin:2px 0 0}
+.world-range{font-size:10px;font-weight:800;letter-spacing:.13em;color:#8a8f84}
+.world-status{font-size:11px;font-weight:800;padding:4px 9px;border-radius:99px;background:#efe9d9;color:#7a6a45;white-space:nowrap}.world-status.done{background:#d8eddf;color:#2f7254}
+.world-note{font-size:12px;color:#6f7f8a;margin:-2px 0 10px}
+.hole-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.hole-card{position:relative;display:flex;flex-direction:column;gap:3px;min-height:104px;padding:11px 12px;border:2px solid #e0e9df;border-radius:14px;background:#f5f7eb;color:inherit;text-decoration:none;transition:border-color .15s,transform .15s}
+a.hole-card:hover{border-color:#f5b855;transform:translateY(-2px)}a.hole-card:focus-visible{outline:3px solid #245e85;outline-offset:2px}a.hole-card[aria-current=true]{border-color:#eeb651;box-shadow:0 0 0 2px #eeb65155}
+.hole-number{font:600 26px/1 Fredoka,sans-serif;color:#25899c}.hole-card strong{font:600 16px Fredoka,sans-serif}
+.hole-card small{font-size:11px;color:#62798a;line-height:1.35}.hole-meta{margin-top:auto;font-size:10px;font-weight:800;letter-spacing:.05em;color:#7d8c96}
+.hole-card[data-world=clockwork]{background:linear-gradient(110deg,#d7e4d5,#f2dfb5);border-color:#cdb582}.hole-card[data-world=clockwork] .hole-number{color:#397165}
+.hole-card[data-world=forest]{background:linear-gradient(110deg,#e3e9c9,#f4e3c7);border-color:#ccd5ab}.hole-card[data-world=forest] .hole-number{color:#69883f}
+.hole-card.prototype{background:#f1f1f4;border-color:#dcdbe6}.hole-card.prototype .hole-number{color:#8c63a9}
+.hole-card.placeholder{background:repeating-linear-gradient(135deg,#f7f6f1 0 10px,#f0efe8 10px 20px);border:2px dashed #cfcdc2;color:#8b8c86}
+.hole-card.placeholder .hole-number{color:#b6b4a8}.hole-card.placeholder small{color:#959488}
+.hole-status{position:absolute;top:10px;right:10px;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:3px 7px;border-radius:99px;background:#ece8da;color:#8c7f5b}
+.world-section[data-world=moon] h3{color:#6f5a98}
+@media(max-width:700px){.hole-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.menu-card{padding:22px 18px}.menu-link span{display:none}.menu-link{width:33px;padding:0;justify-content:center}}
+@media(max-width:380px){.hole-grid{grid-template-columns:1fr}.hole-card{min-height:0}}
+@media(prefers-reduced-motion:reduce){.hole-card{transition:none}}
+
+/* Touch: own hints, fine-aim buttons, larger targets and no browser gestures getting in the way. */
+html{touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
+#app{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.fine-aim{display:none;gap:6px;margin-left:auto}
+.fine-aim-button{width:44px;height:34px;border:1px solid #c9d3c6;border-radius:10px;background:#fff;color:#2d4a52;font-size:15px;line-height:1;touch-action:none;-webkit-user-select:none;user-select:none}
+.fine-aim-button:active{background:#e8f1e6}
+[data-input=touch] .fine-aim{display:flex}[data-input=touch] .fine-aim[hidden]{display:none}
+[data-input=touch] .fine-aim+.shot-mode{margin-left:0}
+[data-theme=clockwork] .fine-aim-button{border-color:#c2a46a;background:#fff6df;color:#2b4c48;border-radius:6px}
+[data-theme=forest] .fine-aim-button{border-color:#bfc895;background:#fffbe9;color:#3f472d}
+[data-input=touch] .action-key,[data-input=touch] .keys-only{display:none}
+[data-input=mouse] .touch-only{display:none}
+[data-input=touch] #puttLength{height:34px}
+[data-input=touch] .icon-button,[data-input=touch] .camera-button{min-height:40px}
+@media(hover:none){a.hole-card:hover,.level-option:hover{transform:none}}
+@media(max-width:470px){.toast{white-space:normal;text-align:center;max-width:calc(100% - 32px);width:max-content}}
+/* Low screens (phone held sideways): cards scroll instead of being cut off, and the intro is more compact. */
+.modal-backdrop{overflow-y:auto;overscroll-behavior:contain}.modal-backdrop>.intro-card,.modal-backdrop>.menu-card{margin:auto}
+@media(max-height:500px){
+  .modal-backdrop{padding:12px}
+  .intro-card{padding:16px 22px;max-width:520px}.intro-card:before{display:none}
+  .intro-card h1{font-size:40px;margin:8px 0 10px}.intro-card p{font-size:13px;line-height:1.4;margin:6px 0}
+  .intro-badges{margin:8px 0}.intro-card .play-button{padding:10px}.intro-card>small{display:none}
+  .menu-card{padding:16px 20px}.menu-card h1{font-size:32px;margin:8px 0 12px}.menu-worlds{gap:6px;margin-bottom:12px}.menu-world{padding:8px 12px}
+  .level-panel,.help-panel{max-height:calc(100dvh - 24px);overflow-y:auto}
+}
+
+/* Update banner and the portrait hint for phones held sideways. */
+.update-banner{position:absolute;z-index:30;left:50%;top:max(12px,env(safe-area-inset-top));transform:translateX(-50%);display:flex;align-items:center;gap:10px;padding:8px 8px 8px 16px;border-radius:99px;background:#243b59f2;color:#fff8ec;font-size:13px;font-weight:700;box-shadow:0 8px 24px #10203a55;white-space:nowrap}
+.update-banner[hidden]{display:none}
+.update-banner button{border:0;border-radius:99px;padding:8px 14px;background:#ffcf55;color:#192b45;font-weight:800;font-size:13px}
+.update-banner .update-later{background:transparent;color:#fff8ec;padding:6px 10px;font-size:18px}
+.menu-version{display:block;margin-top:4px;font-size:10px;color:#9aa5ad}
+.rotate-hint{display:none;position:absolute;inset:0;z-index:25;place-items:center;padding:16px;background:#10243df2;color:#fff7ec;text-align:center}
+.rotate-card{max-width:320px}.rotate-icon{font-size:44px;display:inline-block;transform:rotate(90deg);animation:rotate-phone 2.4s ease-in-out infinite}
+.rotate-card strong{display:block;font:600 26px Fredoka,sans-serif;margin:10px 0 4px}.rotate-card p{margin:0 0 16px;color:#cfd8e2;font-size:14px}
+@keyframes rotate-phone{0%,30%{transform:rotate(90deg)}60%,100%{transform:rotate(0deg)}}
+@media(orientation:landscape) and (max-height:500px) and (pointer:coarse){:root:not([data-landscape=ok]) .rotate-hint{display:grid}}
+@media(prefers-reduced-motion:reduce){.rotate-icon{animation:none;transform:none}}

@@ -193,7 +193,7 @@ export const LEVELS = [
     routes:[['Rotloopen','Rak träff · fart hela varvet'],['Utförsrännan','Öppen kant efter backen']],
   },
   {
-    id:18,theme:'forest',scenery:'crown',name:'Törnkronan',title:['TÖRN','KRONAN'],par:5,recordKey:'minimayhem-hole-18-best',
+    id:18,theme:'forest',scenery:'crown',worldFinale:true,name:'Törnkronan',title:['TÖRN','KRONAN'],par:5,recordKey:'minimayhem-hole-18-best',
     description:'Molnskogens sista prövning. Tre rotluckor öppnar avgrunden under bollen – läs lyktorna och slå när vägen bär! Runda sedan väktaren och tajma törnhjulet på den smala grenen. Kronan väntar på andra sidan.',
     feature:'Rotluckor & törnhjul',hasPipe:false,hasRamp:false,start:{x:-21.5,z:0},cup:{x:19.4,z:-14.8},
     cannon:null,landing:null,overview:{x:-1,z:-7,span:61,cameraX:-7,targetY:1.5},cameraSide:3,
