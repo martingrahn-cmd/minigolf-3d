@@ -9,6 +9,7 @@ import { collidePendulum } from './pendulum.js';
 import { trampolineFlight, throughHoop, createPinRack, knockPin, advancePins } from './carnival.js';
 import { themeFor } from './environment.js';
 import { APP_VERSION, watchForUpdates, applyUpdate } from './updates.js';
+import { hydrateIcons, setIcon } from './icons.js';
 import { WORLDS, ROUND, PROTOTYPES, holeLabel, builtCount, nextInRound } from './round.js';
 import { createGolfBall } from './ball.js';
 import * as activeLayout from './layout.js';
@@ -146,6 +147,7 @@ function updateUI(){
   $('actionText').textContent=actions[state.phase]||'Starta';
   const busy=!['idle','power','accuracy'].includes(state.phase);
   $('actionButton').disabled=busy;
+  $('actionSteps').dataset.step={idle:0,power:1,accuracy:2}[state.phase]??'';
   $('controlPanel').classList.toggle('busy',busy);
   $('app').classList.toggle('overview',cameraOverview);
   $('meter').classList.toggle('accuracy',state.phase==='accuracy');
@@ -161,7 +163,7 @@ function updateUI(){
   if($('fineAim').hidden)fineAim=0;
   $('shotMode').textContent=putting?'Fullt slag':'Närputt';
   if(putting){
-    $('controlTitle').textContent='Närputt';$('actionText').textContent='Putta';
+    $('controlTitle').textContent='Närputt';$('actionText').textContent='Putta';$('actionSteps').dataset.step='putt';
     $('puttDistance').textContent=`${nearPutt.distance.toFixed(1).replace('.',',')} m till hålet`;
     $('puttLength').value=puttLength;
     $('puttOutput').textContent=`${puttLength.toFixed(1).replace('.',',')} m`;
@@ -190,7 +192,8 @@ function shoot(puttingSpeed){
   const speed=puttingSpeed??shotSpeed(state.power);
   state.vx=Math.cos(angle)*speed;state.vz=Math.sin(angle)*speed;
   state.strokes++;state.shotAge=0;state.settle=0;
-  if(!trapdoorAt(state.x,state.z,LEVEL.trapdoors)&&!inClockWell(state.x,state.z,LEVEL.clockHand))state.saved={x:state.x,z:state.z};
+  // The return spot after a fall also remembers where the player aimed from it.
+  if(!trapdoorAt(state.x,state.z,LEVEL.trapdoors)&&!inClockWell(state.x,state.z,LEVEL.clockHand))state.saved={x:state.x,z:state.z,aim:state.aim};
   $('strokeCount').textContent=state.strokes;
   setPhase('moving');
   sound(170,.22,'triangle',.16,2.25);
@@ -205,13 +208,13 @@ function reset(full=true){
   pipeCooldown=0;springCooldowns.fill(0);gateClocks.fill(0);bridgeAngle=LEVEL.bridge?.maxAngle||0;launch=null;shotKick=0;ball.visible=true;ballCore.quaternion.identity();
   pinRack.reset();course?.carnival?.reset();course?.motherTree?.reset();hoopHit=false;
   pendulumTime=0;pendulumHitCooldown=0;crownTime=0;
-  loopRide=null;loopPosition=null;state.saved={...START};
+  loopRide=null;loopPosition=null;state.saved={...START,aim:0};
   funnelRide=null;funnelPosition=null;
   tubeCameraEntry=null;tubeCameraRecovery=0;camera.up.set(0,1,0);
   Object.assign(bellBridgeState,createBellBridgeState());
   Object.assign(liftState,createLiftState());
   nearPutt=null;puttEnabled=false;puttLength=1;
-  cameraOverview=false;$('cameraText').textContent='Översikt';
+  cameraOverview=false;$('cameraText').textContent='Översikt';setIcon($('cameraIcon'),'map');
   setPhase('idle');
   if(full)toast('Ny chans! Sikta mot flaggan.');
 }
@@ -436,7 +439,7 @@ function physics(dt){
         course?.carnival?.restorePins(raised);
         toast('+1 pliktslag · käglorna återställda',1800);
       }
-      state.strokes++;state.x=state.saved.x;state.z=state.saved.z;state.vx=0;state.vz=0;ball.visible=true;setPhase('idle');
+      state.strokes++;state.x=state.saved.x;state.z=state.saved.z;state.aim=state.saved.aim??state.aim;state.vx=0;state.vz=0;ball.visible=true;setPhase('idle');
     }
   }
   state.boost=Math.max(0,state.boost-dt);
@@ -680,8 +683,8 @@ $('shotMode').addEventListener('click',()=>{puttEnabled=!puttEnabled;updateUI();
 $('playButton').addEventListener('click',()=>{lockPortrait();$('intro').classList.add('hidden');reset();toast('Sikta · välj kraft · träffa grönt',2600)});
 $('againButton').addEventListener('click',()=>{$('win').classList.add('hidden');reset()});
 $('resetButton').addEventListener('click',()=>{if(state.phase!=='intro'){reset();$('win').classList.add('hidden')}});
-$('cameraButton').addEventListener('click',()=>{cameraOverview=!cameraOverview;$('cameraText').textContent=cameraOverview?'Spelvy':'Översikt';resize();updateUI()});
-$('soundButton').addEventListener('click',()=>{audioEnabled=!audioEnabled;$('soundButton').classList.toggle('off',!audioEnabled);$('soundButton').textContent=audioEnabled?'♪':'×'});
+$('cameraButton').addEventListener('click',()=>{cameraOverview=!cameraOverview;$('cameraText').textContent=cameraOverview?'Spelvy':'Översikt';setIcon($('cameraIcon'),cameraOverview?'follow':'map');resize();updateUI()});
+$('soundButton').addEventListener('click',()=>{audioEnabled=!audioEnabled;$('soundButton').classList.toggle('off',!audioEnabled);setIcon($('soundIcon'),audioEnabled?'sound':'mute')});
 window.addEventListener('resize',resize);
 
 const recordText=level=>{const best=localStorage.getItem(level.recordKey);return best?`Bästa: ${best}`:'Inget rekord'};
@@ -731,7 +734,7 @@ function configureMenu(){
       <small>${built===6?'Klar':built?`${built} av 6 byggda`:'Inte påbörjad'} · ${world.tagline}</small></div>`}).join('');
   $('menuSummary').textContent=`${builtHoles} av 18 hål byggda · ${PROTOTYPES.length} prototyper att bygga om`;
   const unplayed=ROUND.find(slot=>slot.level&&!localStorage.getItem(slot.level.recordKey));
-  if(unplayed&&unplayed.hole>1){$('menuContinue').hidden=false;$('menuContinue').href=`?hole=${unplayed.hole}`;$('menuContinue').textContent=`Fortsätt · Hål ${holeLabel(unplayed.hole)} ${unplayed.level.name}`}
+  if(unplayed&&unplayed.hole>1){$('menuContinue').hidden=false;$('menuContinue').href=`?hole=${unplayed.hole}`;$('menuContinue').innerHTML=`<i data-icon="arrow"></i>Fortsätt · Hål ${holeLabel(unplayed.hole)} ${unplayed.level.name}`;hydrateIcons($('menuContinue'))}
   if(SELECTION.missing){$('menuNotice').hidden=false;$('menuNotice').textContent=`Hål ${holeLabel(SELECTION.missing.hole)} · ${SELECTION.missing.placeholder.name} byggs fortfarande.`}
 }
 $('menuPlay').addEventListener('click',()=>{
@@ -773,15 +776,20 @@ function configureLevelUI(){
 }
 function configureNext(){
   const link=$('nextHole'),note=$('nextNote');
+  // The way onward is the primary button; replaying is secondary unless nothing follows.
+  const show=(href,label)=>{
+    link.hidden=!href;$('againButton').className=href?'secondary-button wide':'play-button';
+    $('winMenu').hidden=href==='./';
+    if(href){link.href=href;link.innerHTML=`<span>${label}</span><i data-icon="arrow"></i>`;hydrateIcons(link)}
+  };
   if(SELECTION.prototype){
     const next=PROTOTYPES[PROTOTYPES.indexOf(SELECTION.prototype)+1];
-    link.hidden=!next;if(next){link.href=`?proto=${next.slug}`;link.textContent=`Nästa prototyp · ${LEVELS.find(l=>l.id===next.id).name} →`}
+    show(next&&`?proto=${next.slug}`,next&&`Nästa prototyp · ${LEVELS.find(l=>l.id===next.id).name}`);
     return;
   }
   const {slot,skipped}=nextInRound(SELECTION.slot.hole);
-  link.hidden=false;
-  if(slot){link.href=`?hole=${slot.hole}`;link.textContent=`${slot.world===SELECTION.slot.world?'Nästa hål':`Vidare till ${slot.world.name}`} · ${holeLabel(slot.hole)} ${slot.level.name} →`}
-  else{link.href='./';link.textContent='Tillbaka till menyn →'}
+  if(slot)show(`?hole=${slot.hole}`,`${slot.world===SELECTION.slot.world?'Nästa hål':`Vidare till ${slot.world.name}`} · ${holeLabel(slot.hole)} ${slot.level.name}`);
+  else show('./','Till menyn');
   if(skipped.length){
     note.hidden=false;
     note.textContent=skipped.length===1?`Hål ${holeLabel(skipped[0].hole)} byggs fortfarande och hoppas över.`:`Hål ${holeLabel(skipped[0].hole)}–${holeLabel(skipped.at(-1).hole)} byggs fortfarande.`;
@@ -798,6 +806,7 @@ $('rotateAnyway').addEventListener('click',()=>{root.dataset.landscape='ok'});
 function lockPortrait(){screen.orientation?.lock?.('portrait').catch(()=>{})}
 
 async function init(){
+  hydrateIcons();
   $('menuVersion').textContent=`Version ${APP_VERSION.label}`;
   watchForUpdates(showUpdate);
   configureLevelUI();resize();

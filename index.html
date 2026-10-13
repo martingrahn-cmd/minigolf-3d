@@ -25,12 +25,12 @@
         <div class="brand"><span class="brand-icon">✦</span><span>MINI<span class="brand-accent">MAYHEM</span></span></div>
         <div class="hole-tag"><span class="tag-dot"></span> HÅL <strong id="holeNumber">09</strong><span class="tag-divider"></span><span id="holeName">KANONKURVAN</span></div>
         <nav class="utility-bar" aria-label="Spelverktyg">
-          <a id="menuButton" class="camera-button menu-link" href="./">☰ <span>Meny</span></a>
-          <button id="levelsButton" class="camera-button levels-button">Banor</button>
-          <button id="cameraButton" aria-label="Växla mellan översikt och spelvy" class="camera-button">⌖ <span id="cameraText">Översikt</span></button>
-          <button id="soundButton" class="icon-button" title="Ljud av/på" aria-label="Ljud av/på">♪</button>
-          <button id="resetButton" class="icon-button" title="Börja om hålet (R)" aria-label="Börja om hålet">↻</button>
-          <button id="helpButton" class="icon-button" title="Så spelar du" aria-label="Så spelar du">?</button>
+          <a id="menuButton" class="camera-button menu-link" href="./" aria-label="Huvudmeny"><i data-icon="menu"></i><span>Meny</span></a>
+          <button id="levelsButton" class="camera-button levels-button" aria-label="Välj bana"><i data-icon="grid"></i><span>Banor</span></button>
+          <button id="cameraButton" aria-label="Växla mellan översikt och spelvy" class="camera-button"><i id="cameraIcon" data-icon="map"></i><span id="cameraText">Översikt</span></button>
+          <button id="soundButton" class="icon-button" title="Ljud av/på" aria-label="Ljud av/på"><i id="soundIcon" data-icon="sound"></i></button>
+          <button id="resetButton" class="icon-button" title="Börja om hålet (R)" aria-label="Börja om hålet"><i data-icon="restart"></i></button>
+          <button id="helpButton" class="icon-button" title="Så spelar du" aria-label="Så spelar du"><i data-icon="help"></i></button>
         </nav>
       </header>
 
@@ -53,22 +53,26 @@
             <div id="puttControls" hidden><div class="putt-label"><label for="puttLength">Rulllängd <output id="puttOutput" for="puttLength">1,0 m</output></label><span id="puttDistance"></span></div><input id="puttLength" type="range" min="0.25" max="6" step="0.05" value="1" aria-label="Puttens rulllängd i meter"></div>
             <div id="meterStatus" class="meter-status">Dra för att sikta · A / D finjusterar</div>
           </div>
-          <button id="actionButton" class="action-button"><span id="actionText">Starta</span><span class="action-key">Mellanslag</span></button>
+          <button id="actionButton" class="action-button"><span id="actionText">Starta</span><span class="action-key">Mellanslag</span><span id="actionSteps" class="action-steps" aria-hidden="true"><i></i><i></i><i></i></span></button>
         </div>
       </div>
       <dialog id="helpPanel" class="help-panel" aria-labelledby="helpTitle">
         <button id="closeHelp" class="icon-button close-help" aria-label="Stäng hjälp">×</button>
         <h2 id="helpTitle">Ett bra slag, tre tryck.</h2>
-        <p>Dra över banan för att sikta. I översikten <span class="keys-only">klickar</span><span class="touch-only">trycker</span> du dit du vill slå.</p>
-        <ol><li><strong>Starta</strong> kraftmätaren.</li><li><strong>Lås kraften</strong> – lite för en putt, mycket för hoppet. Sista delen ger extra fart.</li><li><strong>Slå i det gröna fältet</strong> för en helt rak träff. Utanför mitten drar slaget åt sidan, särskilt vid hög kraft. Mjuka puttar får ett bredare grönt fält.</li></ol>
-        <p class="keys-only">Använd knappen eller <kbd>Mellanslag</kbd> för varje steg.</p><p class="touch-only">Tryck på den stora knappen för varje steg.</p>
-        <p><strong>Nära hålet: närputt.</strong> På en fri och plan green får du ett reglage för rulllängd. <span class="keys-only">Klicka</span><span class="touch-only">Tryck</span> på hålet för att sikta, välj längd och tryck <strong>Putta</strong>. Reglaget börjar på 1 meter och minns sedan ditt val under hålet. Du doserar själv varje putt; inget precisionstryck behövs. Välj <strong>Fullt slag</strong> om du vill använda den vanliga mätaren.</p>
-        <div class="help-shortcuts touch-only"><span><strong>◁ ▷</strong> finsiktar – tryck för ett litet steg, håll in för att vrida</span><span><strong>Avbryt</strong> stoppar en påbörjad kraftmätare</span></div>
-        <div class="help-shortcuts keys-only"><span><kbd>A</kbd> / <kbd>D</kbd> finjusterar</span><span><kbd>Shift</kbd> ger extra precision</span><span><kbd>Esc</kbd> avbryter slagmätaren</span></div>
+        <div class="help-steps">
+          <div class="help-step"><i data-icon="aim"></i><div><strong>1 · Sikta</strong><small><span class="touch-only">Dra över banan. ◁ ▷ finsiktar.</span><span class="keys-only">Dra med musen. <kbd>A</kbd>/<kbd>D</kbd> finjusterar, <kbd>Shift</kbd> ger precision.</span></small></div></div>
+          <div class="help-step"><i data-icon="power"></i><div><strong>2 · Kraft</strong><small>Lite för en putt, mycket för ett hopp. Sista biten ger extra fart.</small></div></div>
+          <div class="help-step"><i data-icon="target"></i><div><strong>3 · Pricka grönt</strong><small>Grönt fält ger ett rakt slag. Hårda slag kräver mer precision.</small></div></div>
+        </div>
+        <p class="help-hint"><span class="touch-only">Tryck på den stora knappen för varje steg. <strong>Avbryt</strong> stoppar en påbörjad mätare.</span><span class="keys-only">Knappen eller <kbd>Mellanslag</kbd> för varje steg. <kbd>Esc</kbd> avbryter.</span></p>
+        <div class="help-cards">
+          <div class="help-card"><i data-icon="flag"></i><div><strong>Närputt</strong><small>Nära hålet på en plan green: välj rulllängd och tryck <strong>Putta</strong>. Inget precisionstryck. <strong>Fullt slag</strong> ger vanliga mätaren.</small></div></div>
+          <div class="help-card"><i data-icon="map"></i><div><strong>Översikt</strong><small>Se hela banan och <span class="touch-only">tryck</span><span class="keys-only">klicka</span> där du vill sikta.</small></div></div>
+        </div>
       </dialog>
 
-      <div id="intro" class="modal-backdrop"><div class="intro-card"><div id="introWorld" class="intro-world"></div><span id="introKicker" class="intro-kicker">VÄLKOMMEN TILL HÅL 09</span><h1 id="introTitle">KANON<br /><em>KURVAN</em><span class="title-star">✦</span></h1><p id="introDescription">Rulla genom röret, sikta på kanonen och flyg över gapet. Eller ta den lugnare vägen runt.</p><div class="intro-badges"><span>✧ 3D-BANA</span><span id="featureBadge">◉ KANON</span><span id="parBadge">⛳ PAR 5</span></div><button id="playButton" class="play-button" disabled>SPELA HÅL 09 <span>→</span></button><button id="introLevels" class="text-button">Välj en annan bana</button><small>Tre tryck per slag: starta · välj kraft · pricka mitten</small></div></div>
-      <div id="win" class="modal-backdrop hidden"><div class="intro-card win-card"><span class="intro-kicker">FLAGGAN ÄR DIN!</span><h1 id="winTitle">SNYGGT<br /><em>SPEL!</em></h1><p id="winText">Vilken runda!</p><div class="win-score"><span>RESULTAT</span><strong id="winStrokes">5</strong><span>SLAG</span></div><button id="againButton" class="play-button">SPELA IGEN <span>↻</span></button><a id="nextHole" class="next-hole" hidden></a><small id="nextNote" class="next-note" hidden></small><button id="winLevels" class="text-button">Välj bana</button><a class="text-button" href="./">Huvudmeny</a></div></div>
+      <div id="intro" class="modal-backdrop"><div class="intro-card"><div id="introWorld" class="intro-world"></div><span id="introKicker" class="intro-kicker">VÄLKOMMEN TILL HÅL 09</span><h1 id="introTitle">KANON<br /><em>KURVAN</em><span class="title-star">✦</span></h1><p id="introDescription">Rulla genom röret, sikta på kanonen och flyg över gapet. Eller ta den lugnare vägen runt.</p><div class="intro-badges"><span>✧ 3D-BANA</span><span id="featureBadge">◉ KANON</span><span id="parBadge">⛳ PAR 5</span></div><button id="playButton" class="play-button" disabled>SPELA HÅL 09 <span>→</span></button><div class="card-actions"><button id="introLevels" class="secondary-button"><i data-icon="grid"></i>Välj bana</button><a class="secondary-button" href="./"><i data-icon="menu"></i>Meny</a></div><div class="step-strip" aria-label="Tre tryck per slag"><span><i data-icon="aim"></i>Sikta</span><span><i data-icon="power"></i>Kraft</span><span><i data-icon="target"></i>Pricka</span></div></div></div>
+      <div id="win" class="modal-backdrop hidden"><div class="intro-card win-card"><span class="intro-kicker">FLAGGAN ÄR DIN!</span><h1 id="winTitle">SNYGGT<br /><em>SPEL!</em></h1><p id="winText">Vilken runda!</p><div class="win-score"><span>RESULTAT</span><strong id="winStrokes">5</strong><span>SLAG</span></div><a id="nextHole" class="play-button next-hole-button" hidden></a><button id="againButton" class="secondary-button wide"><i data-icon="restart"></i>Spela igen</button><small id="nextNote" class="next-note" hidden></small><div class="card-actions"><button id="winLevels" class="secondary-button"><i data-icon="grid"></i>Välj bana</button><a id="winMenu" class="secondary-button" href="./"><i data-icon="menu"></i>Meny</a></div></div></div>
       <dialog id="levelPanel" class="level-panel" aria-labelledby="levelTitle">
         <button id="closeLevels" class="icon-button close-help" aria-label="Stäng banväljaren">×</button>
         <span class="intro-kicker">RUNDANS 18 HÅL</span>
@@ -86,8 +90,8 @@
           <div class="menu-actions">
             <button id="menuPlay" class="play-button">SPELA RUNDAN <span>→</span></button>
             <a id="menuContinue" class="menu-secondary" hidden></a>
-            <button id="menuLevels" class="menu-secondary">Välj hål</button>
-            <button id="menuHelp" class="menu-secondary">Så spelar du</button>
+            <button id="menuLevels" class="menu-secondary"><i data-icon="grid"></i>Välj hål</button>
+            <button id="menuHelp" class="menu-secondary"><i data-icon="help"></i>Så spelar du</button>
           </div>
           <small id="menuSummary" class="menu-summary"></small>
           <small id="menuVersion" class="menu-version"></small>
