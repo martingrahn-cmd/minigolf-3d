@@ -53,6 +53,14 @@ let audioEnabled=true;
 let audioContext;
 let toastTimer;
 const aimKeys=new Set();
+// Touch and mouse/keyboard get their own hints and controls. Starts from the primary
+// pointer and follows whatever the player actually uses (e.g. an iPad with a keyboard).
+const root=document.documentElement;
+root.dataset.input=matchMedia('(pointer: coarse)').matches?'touch':'mouse';
+const touchInput=()=>root.dataset.input==='touch';
+function setInput(mode){if(root.dataset.input!==mode){root.dataset.input=mode;updateUI()}}
+window.addEventListener('pointerdown',e=>setInput(e.pointerType==='touch'||e.pointerType==='pen'?'touch':'mouse'),true);
+let fineAim=0,fineAimHeld=0;
 let pipeCooldown=0;
 const springCooldowns=SPRINGS.map(()=>0);
 const gates=LEVEL.gates||[];
@@ -139,19 +147,23 @@ function updateUI(){
   $('controlPanel').classList.toggle('busy',busy);
   $('app').classList.toggle('overview',cameraOverview);
   $('meter').classList.toggle('accuracy',state.phase==='accuracy');
-  $('meterStatus').textContent={idle:cameraOverview?'Klicka på banan för att sikta':'Dra för att sikta · A / D finjusterar',power:'Mjukt ← kraft → hårt · Esc avbryter',accuracy:state.power<.3?'Mjuk putt · större grönt fält':'Pricka mitten · hårda slag kräver precision',moving:'Nästa slag när bollen stannar',looping:'Farten avgör om du når runt',cannon:'Över gapet mot flaggan',pipe:'På väg till kanonen',bridgeflight:'Nästa stopp: flippergreen',drumflight:'Genom ringen – mot käglorna!',falling:'+1 pliktslag',win:'Flaggan är din!'}[state.phase]||'';
+  const touch=touchInput();
+  $('meterStatus').textContent={idle:cameraOverview?(touch?'Tryck på banan för att sikta':'Klicka på banan för att sikta'):(touch?'Dra för att sikta · ◁ ▷ finsiktar':'Dra för att sikta · A / D finjusterar'),power:touch?'Mjukt ← kraft → hårt':'Mjukt ← kraft → hårt · Esc avbryter',accuracy:state.power<.3?'Mjuk putt · större grönt fält':'Pricka mitten · hårda slag kräver precision',moving:'Nästa slag när bollen stannar',looping:'Farten avgör om du når runt',cannon:'Över gapet mot flaggan',pipe:'På väg till kanonen',bridgeflight:'Nästa stopp: flippergreen',drumflight:'Genom ringen – mot käglorna!',falling:'+1 pliktslag',win:'Flaggan är din!'}[state.phase]||'';
   if(state.phase==='funnel')$('meterStatus').textContent='Tryckluften lyfter dig till postterrassen';
   if(state.phase==='elevator')$('meterStatus').textContent='Motvikterna tar dig till balkongen';
   const putting=puttEnabled&&state.phase==='idle';
   $('puttControls').hidden=!putting;$('meter').hidden=putting;
   $('shotMode').hidden=!nearPutt||state.phase!=='idle';
+  $('fineAim').hidden=state.phase!=='idle'||cameraOverview;
+  $('cancelShot').hidden=!touch||!['power','accuracy'].includes(state.phase);
+  if($('fineAim').hidden)fineAim=0;
   $('shotMode').textContent=putting?'Fullt slag':'Närputt';
   if(putting){
     $('controlTitle').textContent='Närputt';$('actionText').textContent='Putta';
     $('puttDistance').textContent=`${nearPutt.distance.toFixed(1).replace('.',',')} m till hålet`;
     $('puttLength').value=puttLength;
     $('puttOutput').textContent=`${puttLength.toFixed(1).replace('.',',')} m`;
-    $('meterStatus').textContent='Klicka på hålet för att sikta · välj rulllängd';
+    $('meterStatus').textContent=touch?'Tryck på hålet för att sikta · välj rulllängd':'Klicka på hålet för att sikta · välj rulllängd';
   }
 }
 function action(){
@@ -561,6 +573,7 @@ function frame(){
   if(state.phase==='idle'){
     const direction=Number(aimKeys.has('KeyD')||aimKeys.has('ArrowRight'))-Number(aimKeys.has('KeyA')||aimKeys.has('ArrowLeft'));
     state.aim+=direction*dt*(aimKeys.has('ShiftLeft')||aimKeys.has('ShiftRight')?.15:.65);
+    if(fineAim){fineAimHeld+=dt;state.aim+=fineAim*dt*(fineAimHeld>.7?.3:.1)}
   }
   if(state.phase==='power')state.power=powerAt(elapsed-state.meterStart);
   if(state.phase==='accuracy')state.needle=precisionAt(elapsed-state.accuracyStart);
@@ -600,7 +613,7 @@ canvas.addEventListener('pointermove',e=>{
   state.aim+=(e.clientX-lastPointerX)*(e.shiftKey?.001:.004);lastPointerX=e.clientX;
 });
 canvas.addEventListener('pointerup',e=>{
-  if(draggingAim&&puttEnabled&&!cameraOverview&&Math.hypot(e.clientX-pointerDownX,e.clientY-pointerDownY)<5)overviewAim(e,camera);
+  if(draggingAim&&puttEnabled&&!cameraOverview&&Math.hypot(e.clientX-pointerDownX,e.clientY-pointerDownY)<(e.pointerType==='touch'?12:5))overviewAim(e,camera);
   draggingAim=false;
 });
 canvas.addEventListener('pointercancel',()=>{draggingAim=false});
@@ -624,13 +637,26 @@ window.addEventListener('keydown',e=>{
   if(e.code==='KeyR'&&state.phase!=='intro'){reset();$('win').classList.add('hidden')}
 });
 window.addEventListener('keyup',e=>aimKeys.delete(e.code));
-window.addEventListener('blur',()=>{aimKeys.clear();draggingAim=false});
+window.addEventListener('keydown',e=>{if(!e.repeat&&e.code!=='Tab')setInput('mouse')},true);
+window.addEventListener('blur',()=>{aimKeys.clear();draggingAim=false;fineAim=0});
+// Fine aim for touch: a tap nudges about 0.2 degrees, holding turns slowly and then a little faster.
+for(const [id,dir] of [['aimLeft',-1],['aimRight',1]]){
+  const button=$(id);
+  button.addEventListener('pointerdown',e=>{
+    if(state.phase!=='idle')return;
+    e.preventDefault();button.setPointerCapture(e.pointerId);
+    state.aim+=dir*.0035;fineAim=dir;fineAimHeld=0;
+  });
+  for(const type of ['pointerup','pointercancel','lostpointercapture'])button.addEventListener(type,()=>{fineAim=0});
+  button.addEventListener('contextmenu',e=>e.preventDefault());
+}
 $('helpButton').addEventListener('click',()=>{
   if(['power','accuracy'].includes(state.phase)){state.power=0;setPhase('idle')}
   aimKeys.clear();$('helpPanel').showModal();
 });
 $('closeHelp').addEventListener('click',()=>$('helpPanel').close());
 $('actionButton').addEventListener('click',action);
+$('cancelShot').addEventListener('click',()=>{if(['power','accuracy'].includes(state.phase)){state.power=0;setPhase('idle')}});
 $('puttLength').addEventListener('input',()=>{puttLength=Number($('puttLength').value);updateUI()});
 $('shotMode').addEventListener('click',()=>{puttEnabled=!puttEnabled;updateUI();$('shotMode').blur()});
 $('playButton').addEventListener('click',()=>{$('intro').classList.add('hidden');reset();toast('Sikta · välj kraft · träffa grönt',2600)});

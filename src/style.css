@@ -175,3 +175,30 @@ a.hole-card:hover{border-color:#f5b855;transform:translateY(-2px)}a.hole-card:fo
 @media(max-width:700px){.hole-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.menu-card{padding:22px 18px}.menu-link span{display:none}.menu-link{width:33px;padding:0;justify-content:center}}
 @media(max-width:380px){.hole-grid{grid-template-columns:1fr}.hole-card{min-height:0}}
 @media(prefers-reduced-motion:reduce){.hole-card{transition:none}}
+
+/* Touch: own hints, fine-aim buttons, larger targets and no browser gestures getting in the way. */
+html{touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
+#app{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.fine-aim{display:none;gap:6px;margin-left:auto}
+.fine-aim-button{width:44px;height:34px;border:1px solid #c9d3c6;border-radius:10px;background:#fff;color:#2d4a52;font-size:15px;line-height:1;touch-action:none;-webkit-user-select:none;user-select:none}
+.fine-aim-button:active{background:#e8f1e6}
+[data-input=touch] .fine-aim{display:flex}[data-input=touch] .fine-aim[hidden]{display:none}
+[data-input=touch] .fine-aim+.shot-mode{margin-left:0}
+[data-theme=clockwork] .fine-aim-button{border-color:#c2a46a;background:#fff6df;color:#2b4c48;border-radius:6px}
+[data-theme=forest] .fine-aim-button{border-color:#bfc895;background:#fffbe9;color:#3f472d}
+[data-input=touch] .action-key,[data-input=touch] .keys-only{display:none}
+[data-input=mouse] .touch-only{display:none}
+[data-input=touch] #puttLength{height:34px}
+[data-input=touch] .icon-button,[data-input=touch] .camera-button{min-height:40px}
+@media(hover:none){a.hole-card:hover,.level-option:hover{transform:none}}
+@media(max-width:470px){.toast{white-space:normal;text-align:center;max-width:calc(100% - 32px);width:max-content}}
+/* Low screens (phone held sideways): cards scroll instead of being cut off, and the intro is more compact. */
+.modal-backdrop{overflow-y:auto;overscroll-behavior:contain}.modal-backdrop>.intro-card,.modal-backdrop>.menu-card{margin:auto}
+@media(max-height:500px){
+  .modal-backdrop{padding:12px}
+  .intro-card{padding:16px 22px;max-width:520px}.intro-card:before{display:none}
+  .intro-card h1{font-size:40px;margin:8px 0 10px}.intro-card p{font-size:13px;line-height:1.4;margin:6px 0}
+  .intro-badges{margin:8px 0}.intro-card .play-button{padding:10px}.intro-card>small{display:none}
+  .menu-card{padding:16px 20px}.menu-card h1{font-size:32px;margin:8px 0 12px}.menu-worlds{gap:6px;margin-bottom:12px}.menu-world{padding:8px 12px}
+  .level-panel,.help-panel{max-height:calc(100dvh - 24px);overflow-y:auto}
+}
