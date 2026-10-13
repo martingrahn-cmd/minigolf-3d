@@ -12,7 +12,7 @@ npm run dev
 | Hål | Värld | Status |
 | --- | --- | --- |
 | 01–06 | Urverkets stad | Klar |
-| 07–12 | Molnskogen | 5 av 6 byggda – hål 11 saknas |
+| 07–12 | Molnskogen | Klar – hål 12 Moderträdet är världens set piece |
 | 13–18 | Månkarnevalen | Inte påbörjad |
 | P | Prototyper (Solskensöarna, Neonhamnen) | Spelbara, ska byggas om |
 
@@ -27,7 +27,9 @@ Rundans ordning och platshållarna finns i `src/round.js`. Banornas interna `id`
 
 ## Banorna
 
-Molnskogens hål beskrivs nedan med sina gamla nummer: 14 → 07, 15 → 08, 16 → 09, 17 → 10, 18 → 12. Hål 9–13 nedan är prototyperna.
+Molnskogens hål beskrivs nedan med sina gamla nummer: 14 → 07, 15 → 08, 16 → 09, 17 → 10, 18 → 11. Moderträdet är hål 12. Hål 9–13 nedan är prototyperna.
+
+Varje värld avslutas med ett **set piece**: ett landmärke som också är hålets mekanik. Grafiken är tills vidare procedurell på mellannivå; vilka modeller som ska byggas i Blender, med spelkritiska mått, står i [BLENDER_ASSETS.md](BLENDER_ASSETS.md).
 
 - **01 · Gökporten · par 3** – första banan i **Urverkets stad**. En mässingsport lyfts av kugghjul och motvikter. En bred fairway med sarger leder till en green med romerska siffror framför ett animerat gökur. Kontrollerade slag ger par; en exakt placering kan ge birdie.
 - **02 · Rörposten · par 3** – en nedsänkt mässingstratt samlar bollen och skickar den genom ett glasrör till en hög postterrass. Dosera nästa slag i utförsrännan och använd mässingsvallen runt hörnet. Tryckluftstank, manometer, kolv, postfack och paket ger poststationen en egen prägel.
@@ -54,7 +56,9 @@ Molnskogens hål beskrivs nedan med sina gamla nummer: 14 → 07, 15 → 08, 16 
 
 - **17 · Rotvolten · par 4** – en 6,4 meter hög rotloop över ett riktigt gap. För lite fart ger återrullning, medan ett kontrollerat kraftslag tar bollen genom hela varvet och nedför trä­rännan. Slå för hårt och du riskerar den öppna kanten efter backen. Två svängar leder till en blomsterterrass med jättestora blommor, bärnstensdetaljer och rotpelare.
 
-- **18 · Törnkronan · par 5** – Molnskogens final. Tre rotluckor öppnar sig efter varandra över en avgrund. Grönt ljus betyder bärande lucka, gult varnar före öppning, rött betyder öppet. Efter en trygg avsats väntar en smal trägren med ett roterande törnhjul och öppna sidokanter. Två snidade ugglevakter och en stor guldkrona vaktar den lugna slutgreenen.
+- **18 · Törnkronan · par 5** – Skogens portvakt före finalen. Tre rotluckor öppnar sig efter varandra över en avgrund. Grönt ljus betyder bärande lucka, gult varnar före öppning, rött betyder öppet. Efter en trygg avsats väntar en smal trägren med ett roterande törnhjul och öppna sidokanter. Två snidade ugglevakter och en stor guldkrona vaktar den lugna slutgreenen.
+
+- **12 · Moderträdet · par 5** – Molnskogens final och set piece. Ett jätteträd växer upp ur molnhavet med en tunnel, trädets öga, rakt genom stammen. Ett slag från utslaget kan ta bollen genom en rotvolt, ut på en rotbro och upp på en trumma som kastar den genom ögat till den svävande kronön. Kraftfönstret ligger runt 80–87 procent: för svagt rullar bollen tillbaka ur volten eller landar i barken, maxkraft seglar förbi ön. Allt bredvid ögat, inklusive rankridåerna, räknas som träd. Barkstigen runt trädet har sarger hela vägen och ger par; kedjan ger birdie och en chans till eagle. När bollen sjunker blommar trädet ut. Fysiken för ögat finns i `src/mother-tree.js`, grafiken i `src/mother-tree-visuals.js` och testerna i `tests/mother-tree.test.js`. [Spela hål 12](http://localhost:5173/?hole=12).
 
 Varje bana har ett eget rekord i webbläsaren.
 

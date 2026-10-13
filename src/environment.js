@@ -5,6 +5,7 @@ import { FOREST_THEME, createForestEnvironment } from './forest.js';
 import { createRavineScenery } from './ravine.js';
 import { createAcornScenery } from './acorn.js';
 import { createLoopScenery } from './loop-visuals.js';
+import { createMotherTreeScenery } from './mother-tree-visuals.js';
 import { CLOCK_THEME, createClockEnvironment } from './clockwork.js';
 
 export const THEMES={
@@ -26,7 +27,7 @@ function beam(scene,a,b,r,material){
 }
 export function createEnvironment(scene,level){
   if(themeFor(level.id).key==='clockwork')return createClockEnvironment(scene,level);
-  if(themeFor(level.id).key==='forest')return createForestEnvironment(scene,level.scenery==='crown'?createCrownScenery:level.scenery==='loop'?createLoopScenery:level.scenery==='acorn'?createAcornScenery:level.scenery==='ravine'?createRavineScenery:undefined);
+  if(themeFor(level.id).key==='forest')return createForestEnvironment(scene,level.scenery==='mothertree'?createMotherTreeScenery:level.scenery==='crown'?createCrownScenery:level.scenery==='loop'?createLoopScenery:level.scenery==='acorn'?createAcornScenery:level.scenery==='ravine'?createRavineScenery:undefined);
   const night=level.id>=10,theme=themeFor(level.id),animated=[];
   let seed=137;
   const random=()=>{seed=(seed*16807)%2147483647;return(seed-1)/2147483646};

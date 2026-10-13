@@ -12,9 +12,7 @@ export const WORLDS = [
   {
     key:'forest',name:'Molnskogen',finale:'Molnskogens final',
     tagline:'Rosa molnhimmel, rotbroar, svampar och snidade ugglor.',
-    slots:[14,15,16,17,
-      {name:'Svampstudsen',idea:'Nytt skogshål: svampstudsmatta eller ihåligt träd som rör. Lugnare precisionshål före finalen.'},
-      18],
+    slots:[14,15,16,17,18,19],
   },
   {
     key:'moon',name:'Månkarnevalen',finale:'Månkarnevalens final',

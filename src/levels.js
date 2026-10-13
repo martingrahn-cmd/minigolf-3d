@@ -193,8 +193,8 @@ export const LEVELS = [
     routes:[['Rotloopen','Rak träff · fart hela varvet'],['Utförsrännan','Öppen kant efter backen']],
   },
   {
-    id:18,theme:'forest',scenery:'crown',worldFinale:true,name:'Törnkronan',title:['TÖRN','KRONAN'],par:5,recordKey:'minimayhem-hole-18-best',
-    description:'Molnskogens sista prövning. Tre rotluckor öppnar avgrunden under bollen – läs lyktorna och slå när vägen bär! Runda sedan väktaren och tajma törnhjulet på den smala grenen. Kronan väntar på andra sidan.',
+    id:18,theme:'forest',scenery:'crown',name:'Törnkronan',title:['TÖRN','KRONAN'],par:5,recordKey:'minimayhem-hole-18-best',
+    description:'Skogens portvakt. Tre rotluckor öppnar avgrunden under bollen – läs lyktorna och slå när vägen bär! Runda sedan väktaren och tajma törnhjulet på den smala grenen. Kronan väntar på andra sidan.',
     feature:'Rotluckor & törnhjul',hasPipe:false,hasRamp:false,start:{x:-21.5,z:0},cup:{x:19.4,z:-14.8},
     cannon:null,landing:null,overview:{x:-1,z:-7,span:61,cameraX:-7,targetY:1.5},cameraSide:3,
     springs:[],arches:[],
@@ -217,6 +217,29 @@ export const LEVELS = [
     labels:[['GRÖNT = BÄR',-20.5,-2.6],['RUNDA VÄKTAREN ↑',-.2,2.6],['TAJMA HJULET →',2,-10.5],['KRONAN ÄR DIN',19,-16.3]],
     supports:[],shelf:{x:20,z:-16},routeHeading:'SKOGENS FINAL',
     routes:[['Rotluckorna','Grönt bär · gult varnar'],['Törnhjulet','Smal gren · öppna kanter']],
+  },
+  {
+    // Molnskogens set piece: the root loop feeds the drum, which throws the ball
+    // through the tunnel in the Mother Tree's trunk to the floating crown island.
+    id:19,theme:'forest',scenery:'mothertree',worldFinale:true,name:'Moderträdet',title:['MODER','TRÄDET'],par:5,recordKey:'minimayhem-forest-12-mothertree',
+    description:'Molnskogens final! Volta genom roten, studsa på trumman och flyg rakt genom ögat i Moderträdets stam till kronön. För lite fart och du träffar barken, för mycket och du seglar förbi. Barkstigen runt trädet är längre men har sarger hela vägen.',
+    feature:'Rotvolt, trumma & trädets öga',hasPipe:false,hasRamp:false,start:{x:-18,z:0},cup:{x:23.6,z:-8.6},
+    cannon:null,landing:null,overview:{x:1,z:-1.5,span:56,cameraX:-17,targetY:1},cameraSide:2.5,spinner:null,springs:[],arches:[],
+    loop:{x:-10,y:0,z:0,radius:3.2,advance:4,shift:-3.2,halfWidth:1.05,drag:.095,gravity:6.9,exitToast:'ROTVOLT! ↻ Rakt mot trumman'},
+    trampoline:{x:-2.2,z:-3.2,radius:1,vy:8.4,boost:4,speedGain:1.3,maxSpeed:21,title:'Genom ögat!',status:'Mot kronön – håll andan'},
+    treeEye:{x:7,y:3,z:-3.2,radius:1.9,depth:4.8,blockHalfWidth:5.6},
+    surfaces:[{x1:-22,x2:-10,z1:-3.8,z2:3.8,friction:1},{x1:-6,x2:.2,z1:-4.25,z2:-2.15,friction:.9},{x1:-16,x2:19,z1:3.8,z2:6.8,friction:1.05}],
+    openEdges:[{x:-10,z1:-1.05,z2:1.05},{x:-6,z1:-4.25,z2:-2.15},{x:.2,z1:-4.25,z2:-2.15},{x:15,z1:-10.5,z2:1.5},{x:26,z1:-5.2,z2:-1.2}],
+    tiles:[
+      {x1:-22,x2:-10,z1:-3.8,z2:3.8,color:0x83ae3c,surface:'grass'},
+      {x1:-6,x2:.2,z1:-4.25,z2:-2.15,color:0xd8b77e,surface:'wood'},
+      {x1:15,x2:26,z1:-10.5,z2:1.5,color:0x9bbe58,surface:'grass'},
+      {x1:-16,x2:19,z1:3.8,z2:6.8,color:0xc8a070,surface:'wood'},
+      {x1:16,x2:19,z1:1.5,z2:3.8,color:0xc8a070,surface:'wood'},
+    ],
+    labels:[['SIKTA GENOM ROTEN',-18,-2.6],['TRUMMAN ↗',-4.3,-1.4],['KRONÖN',20.5,-.2],['BARKSTIGEN →',-13.5,5.3]],
+    supports:[],shelf:{x:24,z:-9},routeHeading:'MOLNSKOGENS FINAL',
+    routes:[['Trädets öga','Volt, trumma & flygtur'],['Barkstigen','Sarger hela vägen · längre']],
   },
   {
     id:1,theme:'clockwork',name:'Gökporten',title:['GÖK','PORTEN'],par:3,recordKey:'minimayhem-clockwork-01-best',
