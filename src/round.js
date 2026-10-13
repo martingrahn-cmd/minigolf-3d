@@ -18,9 +18,9 @@ export const WORLDS = [
     key:'moon',name:'Månkarnevalen',finale:'Månkarnevalens final',
     tagline:'Ett övergivet tivoli mellan asteroider. Raketer, tält och violett rymd.',
     // Built holes reuse the prototypes' best ideas in new form: Dubbelstudsen's
-    // pads, Kanonkurvan's cannon, the harbour's flippers and Vippvarvet's seesaw.
-    slots:[20,
-      {name:'Tyngdlösa tältet',idea:'Låg gravitation i ett cirkustält: bollen svävar i korta hopp och glider längre. Vippbron från Vippvarvet som gungbräda.'},
+    // pads, Frostfallet's slippery open edges, the harbour's flippers and Kanonkurvan's
+    // cannon.
+    slots:[20,21,
       {name:'Planetvallen',idea:'Flipperstötarna från Neonhamnen blir planeter som studsar bollen runt en asteroid.'},
       {name:'Kanonkometen',idea:'Kanonen från Kanonkurvan som raketkanon med svängande sikte och flera landningshyllor.'},
       {name:'Pariserhjulet',idea:'Pariserhjulsfärja som bär bollen mellan avsatser. Tajma när du kliver av.'},

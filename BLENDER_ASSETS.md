@@ -100,7 +100,7 @@ Följande räknas fram ur spelmatematiken och ska fortsätta genereras i kod:
 | 12 Moderträdet | 🟡 Finalblommor runt koppen | `bloomHead()` | Fyra blommor utanför spelytan. Blomhuvudet skalas från 0,45 till 1 vid vinst och mitten lyser. | P2 |
 | 12 Moderträdet | 🟢 Två ugglevakter vid Barkstigens slut, lyktor, molnhav | `owl()`, `lantern()`, `cloudSea()` | | P2 |
 
-## Månkarnevalen (hål 13–18, hål 13 byggt)
+## Månkarnevalen (hål 13–18, hål 13–14 byggda)
 
 **Världskit** i `src/moon.js`. **P2**, eftersom det återanvänds på alla sex hålen.
 
@@ -119,7 +119,14 @@ Följande räknas fram ur spelmatematiken och ska fortsätta genereras i kod:
 | 13 Raketrampen | 🟡 Startrampens räls | Ytan `rail` i `createMoonCourse` | Elfenben med turkos mittrand. Ytan följer höjdprofilen och genereras i kod. | P3 |
 | 13 Raketrampen | 🟢 Uppskjutningstorn med blinkande fyr, nedräkningsskylt med tre lampor | `rocketRampScenery()` | Står utanför spelytan. | P3 |
 
-Hål 14–18 är platshållare. Nya mekaniker läggs till här när hålen designas, se planen i `DESIGN.md`.
+| 14 Tyngdlösa tältet | 🔴 Manegens kant runt hålet | `zeroGStage()` (extruderad åttkant med hål) | Hålet är exakt x −3…2, z −3…3 och helt öppet. Inga sarger eller kanter får sticka upp, för bollen svävar över i filtens höjd. Ovansidan ligger i nivå med filten. Insidan av hålet får gärna lysa (portalen). | P2 |
+| 14 Tyngdlösa tältet | 🔴 Tältväggar och fasade hörn | `zeroGTent()`, `TENT` | Väggarna följer åttkanten `TENT` med kollision i hörnen (banks i bandata). Två öppningar ska vara kvar: ingången vid x = −9, z −3…3 och scenöppningen vid x = 9, z −3,5…3,5. Väggarna är 2,4 m höga runt spelytan. | P2 |
+| 14 Tyngdlösa tältet | 🔴 Artistscenen | Platta x 9…18, z −3,5…3,5 | Scenen är 1,2 m hög med en ramp från x = 9 till 11,5. Bortre kanten vid x = 18 är öppen. Inga lister. Koppen står på (15,2, −2,1). | P2 |
+| 14 Tyngdlösa tältet | 🟡 Gravitationsring och ballonger | `gravity-ring`, ballonger i `zeroGTent()` | Ringen hänger på y = 14 och ballongerna från y = 11. Inget får hänga lägre än cirka 10 m inne i tältet, annars skymmer det jaktkameran under svävandet. Ringen och ballongerna rör sig långsamt. | P3 |
+| 14 Tyngdlösa tältet | 🟡 Manegefilt i violett | Ytan `ring` i `createMoonCourse` | Violett filt med målad cirkusring. Ytan är hal i fysiken (friktion 0,45). | P3 |
+| 14 Tyngdlösa tältet | 🟢 Tältstänger, sammetsridåer, strålkastare med ljuskägla, rampljus, trummor och skylten TYNGDLÖST | `zeroGTent()`, `zeroGStage()` | Står utanför spelytan. Skylten hänger över ingången på x = −9. | P3 |
+
+Hål 15–18 är platshållare. Nya mekaniker läggs till här när hålen designas, se planen i `DESIGN.md`.
 
 ## Prototyper (Solskensöarna och Neonhamnen)
 

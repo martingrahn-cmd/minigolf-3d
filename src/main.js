@@ -21,6 +21,7 @@ import {createLiftState,liftPose,tryBoardLift,stepLift,liftBarriers,restoreLift}
 import {collideClockWheel,wheelSignal} from './clock-wheel.js';
 import {clockHandPose,inClockWell,supportedByClockHand,carryOnClockHand} from './clock-hand.js';
 import {crossTreeEye} from './mother-tree.js';
+import {inLowGravity,stepFloat,floatDrop} from './low-gravity.js';
 import './style.css';
 
 const $=id=>document.getElementById(id);
@@ -143,9 +144,9 @@ function setPhase(phase){
 function updateUI(){
   $('strokeCount').textContent=state.strokes;
   $('bestScore').textContent=localStorage.getItem(LEVEL.recordKey)||'–';
-  const names={idle:'Sikta',power:'Välj kraft',accuracy:'Träffa grönt',moving:'Bollen rullar',looping:'Runt i roten!',cannon:'Flygtur!',pipe:'Rörpost!',funnel:'Specialleverans!',elevator:'Nästa våning!',bridgeflight:'Luft under bollen!',drumflight:LEVEL.trampoline?.title||'Skybowling!',falling:'Oj då!',win:'I hålet!'};
+  const names={idle:'Sikta',power:'Välj kraft',accuracy:'Träffa grönt',moving:'Bollen rullar',looping:'Runt i roten!',cannon:'Flygtur!',pipe:'Rörpost!',funnel:'Specialleverans!',elevator:'Nästa våning!',bridgeflight:'Luft under bollen!',floating:'Svävar!',drumflight:LEVEL.trampoline?.title||'Skybowling!',falling:'Oj då!',win:'I hålet!'};
   $('controlTitle').textContent=names[state.phase]||'Sikta';
-  const actions={idle:'Starta',power:'Lås kraft',accuracy:'Slå!',moving:'Rullar…',looping:'Loopar…',cannon:'Flyger…',pipe:'Rörpost…',funnel:'På väg…',elevator:'Åker upp…',bridgeflight:'Flyger…',drumflight:'Flyger…',falling:'Vänta…',win:'Klart!'};
+  const actions={idle:'Starta',power:'Lås kraft',accuracy:'Slå!',moving:'Rullar…',looping:'Loopar…',cannon:'Flyger…',pipe:'Rörpost…',funnel:'På väg…',elevator:'Åker upp…',bridgeflight:'Flyger…',floating:'Svävar…',drumflight:'Flyger…',falling:'Vänta…',win:'Klart!'};
   $('actionText').textContent=actions[state.phase]||'Starta';
   const busy=!['idle','power','accuracy'].includes(state.phase);
   $('actionButton').disabled=busy;
@@ -154,7 +155,7 @@ function updateUI(){
   $('app').classList.toggle('overview',cameraOverview);
   $('meter').classList.toggle('accuracy',state.phase==='accuracy');
   const touch=touchInput();
-  $('meterStatus').textContent={idle:cameraOverview?(touch?'Tryck på banan för att sikta':'Klicka på banan för att sikta'):(touch?'Dra för att sikta · ◁ ▷ finsiktar':'Dra för att sikta · A / D finjusterar'),power:touch?'Mjukt ← kraft → hårt':'Mjukt ← kraft → hårt · Esc avbryter',accuracy:state.power<.3?'Mjuk putt · större grönt fält':'Pricka mitten · hårda slag kräver precision',moving:'Nästa slag när bollen stannar',looping:'Farten avgör om du når runt',cannon:'Över gapet mot flaggan',pipe:'På väg till kanonen',bridgeflight:'Nästa stopp: flippergreen',drumflight:LEVEL.trampoline?.status||'Genom ringen – mot käglorna!',falling:'+1 pliktslag',win:'Flaggan är din!'}[state.phase]||'';
+  $('meterStatus').textContent={idle:cameraOverview?(touch?'Tryck på banan för att sikta':'Klicka på banan för att sikta'):(touch?'Dra för att sikta · ◁ ▷ finsiktar':'Dra för att sikta · A / D finjusterar'),power:touch?'Mjukt ← kraft → hårt':'Mjukt ← kraft → hårt · Esc avbryter',accuracy:state.power<.3?'Mjuk putt · större grönt fält':'Pricka mitten · hårda slag kräver precision',moving:'Nästa slag när bollen stannar',looping:'Farten avgör om du når runt',cannon:'Över gapet mot flaggan',pipe:'På väg till kanonen',bridgeflight:'Nästa stopp: flippergreen',floating:'Låg gravitation · bollen sjunker långsamt',drumflight:LEVEL.trampoline?.status||'Genom ringen – mot käglorna!',falling:'+1 pliktslag',win:'Flaggan är din!'}[state.phase]||'';
   if(state.phase==='funnel')$('meterStatus').textContent='Tryckluften lyfter dig till postterrassen';
   if(state.phase==='elevator')$('meterStatus').textContent='Motvikterna tar dig till balkongen';
   const putting=puttEnabled&&state.phase==='idle';
@@ -344,7 +345,14 @@ function physics(dt){
     if(collideBellBridge(state,bellBridgeState,LEVEL.bellBridge)){
       sound(145,.1,'triangle',.04);toast('Träffa klockknappen för att öppna bron',1600);
     }
-    if(!onCourse(state.x,state.z)){doFall(surfaceHeight(previous.x,previous.z));return}
+    if(!onCourse(state.x,state.z)){
+      // In weak gravity the ball floats on over a gap instead of dropping at once.
+      if(inLowGravity(previous.x,previous.z,LEVEL.lowGravity)){
+        state.float=0;state.floatY=surfaceHeight(previous.x,previous.z);setPhase('floating');
+        toast('SVÄVAR! ✦',1100);sound(300,.5,'sine',.07,1.6);return;
+      }
+      doFall(surfaceHeight(previous.x,previous.z));return;
+    }
     if(!supportedByClockHand(state.x,state.z,crownTime,LEVEL.clockHand)){doFall(undefined,'Missad visarbrygga! +1 pliktslag');return}
     if(!supportedByTrapdoors(state.x,state.z,crownTime,LEVEL.trapdoors)){doFall(undefined,'Rotluckan öppnades! +1 pliktslag');return}
     gates.forEach((gate,i)=>{if(collideGate(state,gate,gateClocks[i]))sound(190,.08,'triangle',.04,.8)});
@@ -375,6 +383,12 @@ function physics(dt){
       if(state.settle>.45){state.vx=0;state.vz=0;setPhase('idle');toast('Din tur igen',1000)}
     }else state.settle=0;
     if(state.shotAge>14){state.vx=0;state.vz=0;setPhase('idle')}
+  }else if(state.phase==='floating'){
+    const result=stepFloat(state,dt,onCourse);
+    if(result==='land'){
+      state.settle=0;state.shotAge=0;setPhase('moving');
+      sound(180,.14,'triangle',.08,.8);burst(state.x,surfaceHeight(state.x,state.z)+.2,state.z,0xc8b6ff,16,.7);
+    }else if(result==='lost')doFall(state.floatY-floatDrop(state.float),'Ut i rymden! +1 pliktslag');
   }else if(state.phase==='elevator'){
     if(stepLift(state,liftState,LEVEL.lift,dt)){
       state.aim=0;state.shotAge=0;state.settle=0;setPhase('moving');
@@ -486,12 +500,13 @@ function draw(dt){
   if(phase==='pipe')extraY=course.pipePath.getPoint(Math.min(1,state.pipe/1.2)).y-(ballHeight+.04+BALL_RADIUS);
   if(phase==='looping')extraY=loopPosition.y-(ballHeight+.04+BALL_RADIUS);
   if(phase==='funnel')extraY=funnelPosition.position.y-(ballHeight+.04+BALL_RADIUS);
+  if(phase==='floating')extraY=state.floatY-ballHeight-floatDrop(state.float);
   ball.position.set(state.x,ballHeight+.04+BALL_RADIUS+extraY,state.z);
   ball.visible=true;
   const rollingSpeed=Math.hypot(state.vx,state.vz);
   trail.forEach(m=>{m.material.opacity=Math.max(0,m.material.opacity-dt*1.8);m.scale.multiplyScalar(Math.exp(-dt*2))});
   trailTimer+=dt;
-  if(trailTimer>.025){trailTimer=0;if((phase==='moving'&&rollingSpeed>6)||phase==='looping'||phase==='bridgeflight'||phase==='drumflight'){
+  if(trailTimer>.025){trailTimer=0;if((phase==='moving'&&rollingSpeed>6)||phase==='looping'||phase==='bridgeflight'||phase==='drumflight'||phase==='floating'){
     const m=trail[trailCursor++%trail.length];m.position.copy(ball.position);m.scale.setScalar(1);m.material.opacity=.65;
   }}
   if(rollingSpeed>.001){

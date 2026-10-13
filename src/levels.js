@@ -219,6 +219,38 @@ export const LEVELS = [
     routes:[['Rotluckorna','Grönt bär · gult varnar'],['Törnhjulet','Smal gren · öppna kanter']],
   },
   {
+    // Inside the torn circus tent gravity is weak: the felt is slippery and a ball
+    // that rolls off the edge of the ring's open pit floats on before it sinks.
+    id:21,theme:'moon',scenery:'zerog',name:'Tyngdlösa tältet',title:['TYNGDLÖSA','TÄLTET'],par:4,recordKey:'minimayhem-moon-14-tyngdlosa-taltet',
+    description:'Valla in bollen vid tältets ingång. Därinne är tyngdkraften svag: bollen glider långt, och med rätt fart svävar den rakt över hålet i manegen och upp på artistscenen. För lite fart sjunker den ut i rymden, för mycket och den flyger av scenens bortre kant. Runt hålet går en lugnare ringväg.',
+    feature:'Låg gravitation, svävhopp & ringväg',hasPipe:false,hasRamp:false,start:{x:-22,z:5},cup:{x:15.2,z:-2.1},
+    cannon:null,landing:null,overview:{x:-3,z:-1,span:48,cameraX:-6,targetY:.5},cameraSide:2,spinner:null,arches:[],springs:[],
+    lowGravity:[{x1:-9,x2:9,z1:-9,z2:9}],
+    heightProfile:[{x:-25,y:0},{x:9,y:0},{x:11.5,y:1.2},{x:18,y:1.2}],
+    surfaces:[{x1:-9,x2:9,z1:-9,z2:9,friction:.45},{x1:-26,x2:19,z1:-10,z2:8,friction:1.1}],
+    banks:[
+      {ax:-11.2,az:7,bx:-9,bz:4.8,nx:-Math.SQRT1_2,nz:-Math.SQRT1_2},
+      {ax:-9,az:3,bx:-9,bz:7,nx:-1,nz:0},
+      {ax:-9,az:-5,bx:-5,bz:-9,nx:Math.SQRT1_2,nz:Math.SQRT1_2},
+      {ax:5,az:-9,bx:9,bz:-5,nx:-Math.SQRT1_2,nz:Math.SQRT1_2},
+      {ax:9,az:5,bx:5,bz:9,nx:-Math.SQRT1_2,nz:-Math.SQRT1_2},
+      {ax:-5,az:9,bx:-9,bz:5,nx:Math.SQRT1_2,nz:-Math.SQRT1_2},
+    ],
+    openEdges:[{x:-3,z1:-3,z2:3},{x:2,z1:-3,z2:3},{x1:-3,x2:2,z:-3},{x1:-3,x2:2,z:3},{x:18,z1:-3.5,z2:3.5}],
+    tiles:[
+      {x1:-25,x2:-13,z1:3,z2:7,color:0x46a6a0},
+      {x1:-13,x2:-9,z1:-3,z2:7,color:0x46a6a0},
+      {x1:-9,x2:-3,z1:-9,z2:9,color:0x52b3a8,surface:'ring'},
+      {x1:2,x2:9,z1:-9,z2:9,color:0x52b3a8,surface:'ring'},
+      {x1:-3,x2:2,z1:-9,z2:-3,color:0x52b3a8,surface:'ring'},
+      {x1:-3,x2:2,z1:3,z2:9,color:0x52b3a8,surface:'ring'},
+      {x1:9,x2:18,z1:-3.5,z2:3.5,color:0x46a6a0},
+    ],
+    labels:[['VALLA IN I TÄLTET ↑',-19,3.6],['SVÄVA ÖVER →',-6.5,-1.8],['ARTISTSCENEN',14.4,-2.5]],
+    supports:[],shelf:{x:15,z:-3},routeHeading:'TYNGDLÖST I MANEGEN',
+    routes:[['Svävhoppet','Rakt över hålet · rätt fart'],['Ringvägen','Glid runt hålet · ett slag till']],
+  },
+  {
     // Månkarnevalen opens with one readable rule: a rocket pad sends the ball on
     // in its arrow's direction at a fixed speed, whatever speed it arrived with.
     id:20,theme:'moon',scenery:'rocketramp',name:'Raketrampen',title:['RAKET','RAMPEN'],par:3,recordKey:'minimayhem-moon-13-raketrampen',

@@ -1,6 +1,6 @@
 # Mini Mayhem – banrytm och temavärldar
 
-Uppdaterat 12 oktober 2026. **Rundan är numrerad 1–18 i `src/round.js`.** Urverkets stad (1–6) är klar. Molnskogen är hål 7–12: Skybowling, Rotravinen, Ekollonsvingen, Rotvolten, Törnkronan och Moderträdet som final och set piece. Månkarnevalen (13–18) är påbörjad: hål 13 Raketrampen är byggt, 14–18 är platshållare. Solskensöarna och Neonhamnen ligger kvar som spelbara prototyper utanför rundan.
+Uppdaterat 13 oktober 2026. **Rundan är numrerad 1–18 i `src/round.js`.** Urverkets stad (1–6) är klar. Molnskogen är hål 7–12: Skybowling, Rotravinen, Ekollonsvingen, Rotvolten, Törnkronan och Moderträdet som final och set piece. Månkarnevalen (13–18) är påbörjad: hål 13 Raketrampen och hål 14 Tyngdlösa tältet är byggda, 15–18 är platshållare. Solskensöarna och Neonhamnen ligger kvar som spelbara prototyper utanför rundan.
 
 ## Aktuellt förslag – tre världar med sex hål
 
@@ -8,7 +8,7 @@ Uppdaterat 12 oktober 2026. **Rundan är numrerad 1–18 i `src/round.js`.** Urv
 | --- | --- | --- |
 | 1–6 | **Urverkets stad** | Mässing, trä och turkos filt. Läsbara maskiner: port, rörpost, klockkontakt, därefter nya höjder och en avslutande kombination. De första fem hålen är byggda. |
 | 7–12 | **Molnskogen** | Rosa molnhimmel, rotbroar, svampar och snidade ugglor. Mer terräng: rännor, smala spänger, pendlande ekollon och rotloop. Fem befintliga skogshål kan bilda basen efter omplacering och balansering. |
-| 13–18 | **Månkarnevalen** | Ett övergivet tivoli mellan asteroider. Elfenbensvita raketer, violett rymd, turkosa lyktor och slitna röda cirkustält. Avgränsade zoner med låg gravitation, planetvallar, raketkanoner och en pariserhjulsfärja. Hål 13 är byggt. Prototypernas bästa idéer återanvänds här. |
+| 13–18 | **Månkarnevalen** | Ett övergivet tivoli mellan asteroider. Elfenbensvita raketer, violett rymd, turkosa lyktor och slitna röda cirkustält. Avgränsade zoner med låg gravitation, planetvallar, raketkanoner och en pariserhjulsfärja. Hål 13 och 14 är byggda. Prototypernas bästa idéer återanvänds här. |
 
 Sex hål per värld är användarens önskade upplägg; valet av den tredje världen är fortfarande ett förslag. Varje sexa bör börja med en lättläst regel, växla mellan placering, fart, höjd och tajmning och avsluta med två redan kända idéer i kombination. En kortare precisionsbana mitt i varje värld ger andrum. Äldre Solskensöarna och Neonhamnen finns kvar som prototyper; inget tidigare hål eller rekord har tagits bort eller numrerats om.
 
@@ -257,16 +257,28 @@ Första plattan står i hörnet efter utslaget och siktar på andra plattans mit
 
 Miljön är ett tivoli på flytande asteroider: violett rymd med stjärnor, en ringplanet, ett pariserhjul som förebådar hål 17, en lutande månraket som förebådar finalen, randiga cirkustält och ljusslingor. Spelytan är turkos filt med polkagrisrandiga sarger och glödlampor. Grafiken ligger på mellannivå inför Blender.
 
+## Månkarnevalen – hål 14: Tyngdlösa tältet
+
+**Par 4, mer varierat än hål 13.** Efter speltestet av Raketrampen bad spelaren om ett mer varierat hål. Hål 13 avgjordes nästan helt av ett enda kraftslag. Hål 14 har i stället tre olika slag: ett vallningsslag, ett svävhopp och en närputt på en upphöjd scen. Det finns också en lugnare väg runt.
+
+Utslaget går längs en rak gång mot en diagonal hörnsarg som vallar runt bollen till tältets ingång. Det är ett placeringsslag utan risk. Runt 80 procent stannar framför ingången.
+
+Inne i tältet, en åttkantig manege på 18 × 18 meter, är tyngdkraften svag. Filten har friktionen 0,45 i stället för 1,1, så bollen glider långt. Mitt i manegen finns ett öppet hål, 5 × 6 meter, utan sarger. En boll som rullar över kanten inne i tältzonen faller inte direkt. Den svävar vidare med oförändrad fart och sjunker med 2,2 m/s² (ungefär en fjärdedel av vanlig gravitation). Når den golvet på andra sidan innan den har sjunkit 0,4 meter landar den och rullar vidare. Når den golvet för lågt räknas det som att den slår i hålets kant. Har den sjunkit 1,6 meter är den förlorad. Båda fallen kostar ett pliktslag. Svävandet finns i `src/low-gravity.js` och delas av spelet och testerna.
+
+Från ingången avgör kraften: 55 procent eller mindre sjunker i hålet. Runt 60–75 procent svävar över och glider upp för en kort ramp till artistscenen, 1,2 meter upp, för en närputt och birdie. Från cirka 85 procent flyger bollen av scenens öppna bortre kant. Koppen ligger snett på scenen, så ett perfekt riktat svävhopp hamnar i koppen i mindre än tolv procent av försöken. Ringvägen glider runt hålet med sarger på yttersidan, och ett andra slag uppför scenrampen ger par.
+
+Miljön är ett slitet rödvitt cirkustält med en öppning mot rymden bakom scenen. Det har tältstänger, en svävande gravitationsring, ballonger, konfetti, sammetsridåer, strålkastare och en skylt med texten TYNGDLÖST över ingången. Ringen och ballongerna hänger högre än kameran, så sikten är fri under svävandet.
+
 ### Plan för resten av världen
 
 | Hål | Arbetsnamn | Idé | Återanvänd prototyp |
 | --- | --- | --- | --- |
 | 13 | Raketrampen | Raketplattor som booster och en startramp | Dubbelstudsen (studsplattor) |
-| 14 | Tyngdlösa tältet | Låg gravitation i ett tält: korta svävhopp och längre glid | Vippvarvet (vippbro som gungbräda) |
+| 14 | Tyngdlösa tältet | Låg gravitation i ett tält: hal filt, svävhopp över ett öppet hål och en upphöjd scen | Frostfallet (hal yta med öppna kanter) |
 | 15 | Planetvallen | Planeter som studsar bollen runt en asteroid | Neonhamnens flipperstötar |
 | 16 | Kanonkometen | Raketkanon med svängande sikte och flera landningshyllor | Kanonkurvan (kanon) |
 | 17 | Pariserhjulet | Pariserhjulsfärja mellan avsatser | Ny idé |
 | 18 | Månraketen | Final och set piece: kanon och låg gravitation i kombination | – |
 
-Neonslussens lyftport och Frostfallets isränna kan dyka upp som delmoment. Prototyperna ligger kvar som bonusbanor tills deras idéer har ersatts.
+Neonslussens lyftport och Vippvarvets vippbro kan dyka upp som delmoment. Prototyperna ligger kvar som bonusbanor tills deras idéer har ersatts.
 
