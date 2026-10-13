@@ -290,3 +290,28 @@ i[data-icon]{display:inline-flex;font-style:normal}
 [data-theme=moon] .help-step,[data-theme=moon] .help-card{background:#f0eaf8}
 .hole-card[data-world=moon]{background:linear-gradient(110deg,#ebe4fa,#f8efe2);border-color:#d7cbef}.hole-card[data-world=moon] .hole-number{color:#6c4bb0}
 .menu-world[data-world=moon] .menu-progress i.built{background:#6c4bb0}
+
+/* Stars and world runs: each world is played as its own short round. */
+.menu-lead{font-size:13px;line-height:1.45;color:#627486;margin:-4px 0 14px}
+.menu-world-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:9px}
+.world-stars{font:600 15px Fredoka,sans-serif;color:#c58a16;white-space:nowrap}
+.world-play{min-height:44px;padding:9px 16px;border:0;border-radius:12px;background:#f36b53;color:#fff;font:800 14px 'DM Sans',sans-serif;cursor:pointer;box-shadow:0 4px 0 #c94d3a}
+.world-play span{margin-left:6px}.world-play:hover{background:#f57d67}.world-play:active{transform:translateY(2px);box-shadow:0 2px 0 #c94d3a}
+.menu-world[data-world=moon] .world-play{background:#6c4bb0;box-shadow:0 4px 0 #4a3280}
+.menu-world[data-world=forest] .world-play{background:#5f8a3a;box-shadow:0 4px 0 #456628}
+.menu-world[data-world=clockwork] .world-play{background:#397165;box-shadow:0 4px 0 #26514a}
+.world-badges{display:flex;align-items:center;gap:8px}
+.win-stars{margin:-6px 0 14px}.win-stars strong{display:block;font-size:42px;letter-spacing:.08em;color:#f4b53f;line-height:1.1;text-shadow:0 3px 0 #d98f1a55}
+.win-stars small{display:block;font-size:12px;font-weight:700;color:#7d8c96}
+.scorecard-card{transform:rotate(-.5deg);max-height:calc(100vh - 32px);overflow:auto}.scorecard-card h1{font-size:clamp(40px,7vw,56px)}
+.score-table{display:grid;gap:5px;margin:0 0 14px;text-align:left}
+.score-row{display:grid;grid-template-columns:26px minmax(0,1fr) auto 26px 58px;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;background:#f3f1e8;font-size:13px}
+.score-row span{font-size:10px;font-weight:800;color:#8e9aa1}.score-row strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.score-row small{font-size:10px;color:#8e9aa1;font-weight:700}.score-row b{font:600 18px Fredoka,sans-serif;text-align:right;color:#f36b53}
+.score-row em{font-style:normal;color:#f4b53f;text-align:right;letter-spacing:.04em}.score-row.missing{opacity:.55}
+.score-totals{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.score-totals div{padding:10px;border-radius:14px;background:#fff1d9;display:grid;justify-items:center}
+.score-totals span{font-size:10px;font-weight:800;letter-spacing:.12em;color:#a98538}.score-totals strong{font:600 40px Fredoka,sans-serif;color:#f36b53;line-height:1.1}
+.score-totals small{font-size:11px;font-weight:700;color:#7d8c96}
+#scoreText{margin-bottom:14px}
+@media(max-height:700px){.menu-lead{display:none}.win-stars strong{font-size:34px}}
