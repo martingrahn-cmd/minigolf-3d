@@ -13,6 +13,7 @@ import { createBellBridgeVisuals } from './bell-bridge-visuals.js';
 import { createLiftVisuals } from './lift-visuals.js';
 import {createClockWheelVisuals,createClockBumpers} from './clock-wheel-visuals.js';
 import {createClockHandVisuals} from './clock-hand-visuals.js';
+import {createMotherTreeCourse,createMotherTree} from './mother-tree-visuals.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 import { LEVEL, CUP, CANNON, LANDING, PIPE_IN, PIPE_OUT, PIPE_DIRECTION, PIPE_ENTRY, PIPE_GUIDES, pipeWorld, SPRINGS, SPINNER, TILES, CELLS, BOUNDARIES, heightAt, heightSlope } from './layout.js';
@@ -86,7 +87,7 @@ export async function createCourse(scene) {
   if(theme.key==='clockwork'){
     floor=createClockCourse(scene,CELLS,BOUNDARIES,LEVEL,heightAt);
   }else if(theme.key==='forest'){
-    floor=(LEVEL.scenery==='crown'?createCrownCourse:LEVEL.scenery==='loop'?createLoopCourse:LEVEL.scenery==='acorn'?createAcornCourse:LEVEL.scenery==='ravine'?createRavineCourse:createForestCourse)(scene,CELLS,BOUNDARIES,heightAt);
+    floor=(LEVEL.scenery==='mothertree'?createMotherTreeCourse:LEVEL.scenery==='crown'?createCrownCourse:LEVEL.scenery==='loop'?createLoopCourse:LEVEL.scenery==='acorn'?createAcornCourse:LEVEL.scenery==='ravine'?createRavineCourse:createForestCourse)(scene,CELLS,BOUNDARIES,heightAt);
   }else{
   const vertices=[],colors=[],indices=[],sideVertices=[],sideIndices=[];
   for(const cell of CELLS){
@@ -128,6 +129,7 @@ export async function createCourse(scene) {
   const lift=createLiftVisuals(scene,LEVEL.lift);
   const clockWheel=createClockWheelVisuals(scene,LEVEL.clockWheel);
   const clockHand=createClockHandVisuals(scene,LEVEL.clockHand,CUP);
+  const motherTree=createMotherTree(scene,LEVEL);
   for(let i=0;LEVEL.hasRamp!==false&&i<4;i++){
     const x=-9.5+i*.28;
     const line=box(scene,.095,.012,4.35,x,heightAt(x,0)+.055,0,cream,false);
@@ -276,5 +278,5 @@ export async function createCourse(scene) {
     model('chest_red','red',-17+startOffset,.08+decorHeight(-17+startOffset,4.8),4.8,.48,Math.PI/4),
     model('diamond_blue','blue',-18.1+startOffset,.4+decorHeight(-18.1+startOffset,-4.8),-4.8,.5)]),
   ]);
-  return { spinner, springGlows, pipePath, bridge, bumpers, gates, carnival, pendulum, trapdoors, environment, funnel, bellBridge, lift, clockWheel, clockHand, aimSurface:floor };
+  return { spinner, springGlows, pipePath, bridge, bumpers, gates, carnival, pendulum, trapdoors, environment, funnel, bellBridge, lift, clockWheel, clockHand, motherTree, aimSurface:floor };
 }

@@ -1,6 +1,6 @@
 # Mini Mayhem – banrytm och temavärldar
 
-Uppdaterat 12 oktober 2026. **Rundan är numrerad 1–18 i `src/round.js`.** Urverkets stad (1–6) är klar. Molnskogen är hål 7–12: Skybowling, Rotravinen, Ekollonsvingen, Rotvolten, ett obyggt hål 11 och Törnkronan som final. Månkarnevalen (13–18) har bara platshållare. Solskensöarna och Neonhamnen ligger kvar som spelbara prototyper utanför rundan.
+Uppdaterat 12 oktober 2026. **Rundan är numrerad 1–18 i `src/round.js`.** Urverkets stad (1–6) är klar. Molnskogen är hål 7–12: Skybowling, Rotravinen, Ekollonsvingen, Rotvolten, Törnkronan och Moderträdet som final och set piece. Månkarnevalen (13–18) har bara platshållare. Solskensöarna och Neonhamnen ligger kvar som spelbara prototyper utanför rundan.
 
 ## Aktuellt förslag – tre världar med sex hål
 
@@ -232,3 +232,17 @@ Servicegången har sammanhängande sarger och två extra hörn. En testad väg t
 `tests/clock-hand.test.js` verifierar den synliga spelytan mot fysisk bärighet, en hel rotation utan drift eller fartökning, tajmningsfönster, fallrisk, par och birdie, den skyddade omvägen och närputtens avgränsning. Samtliga 89 tester och produktionsbygget passerar. Hål 5 länkar vidare till hål 6, som också finns i banväljaren. Äldre banor och rekordnycklar behålls.
 
 Webbläsarprov med de vanliga kontrollerna fullföljde genvägen till mål på fem slag, inklusive en för kort första närputt som korrekt stannade före koppen. Ett separat feltajmat kraftslag gav fall, ett pliktslag och återgång till upplägget framför visaren. Banväljaren visar samtliga sex urverkshål och webbläsarkonsolen var fri från fel.
+
+## Molnskogen – hål 12: Moderträdet
+
+**Par 5, världens final och set piece.** Varje värld ska sluta med ett landmärke som också är mekaniken. Törnkronan flyttades till hål 11 och Moderträdet tog finalplatsen.
+
+Ett jätteträd växer upp ur molnhavet mellan utslaget och den svävande kronön. Genom stammen går en rund tunnel, trädets öga, i flygriktningen. Ett enda slag kan kedja två redan kända idéer: rotvolten från hål 10 och studstrumman från hål 7. Volten lämnar bollen på en smal rotbro som leder rakt in på trumman. Trumman kastar bollen genom ögat mot kronön.
+
+Kraften avgör allt. Under cirka 77 procent rullar bollen tillbaka ur volten utan pliktslag. Runt 80–87 procent går kedjan hela vägen. Ett svagare hopp landar i barken eller före ön, och maxkraft seglar förbi ön och över den öppna bortre kanten. Flygningen räknas bara som lyckad genom själva tunneln. Stammen, sidogrenarna och rankridåerna inom 5,6 meter från ögat räknas som träd, så det finns ingen osynlig väg runt stammen. Fysikens öppning och den byggda tunneln provas mot varandra med strålar i testerna.
+
+Barkstigen är en sargad hängbro söder om trädet. Den kräver tre placeringsslag, ett inspel och en putt, det vill säga par. Kedjan ger inspel och putt efteråt, alltså birdie, och ett exakt inspel kan ge eagle. Vid ett misslyckat hopp återgår bollen till slagplatsen med ett pliktslag, precis som på övriga skogshål.
+
+En vid sidokamera följer flygningen så att stammen aldrig skymmer bollen. När bollen sjunker lyser ögat upp och fyra blommor runt koppen slår ut.
+
+Grafiken är medvetet på samma nivå som övriga skogshål. Alla delar som ska ersättas av Blender-modeller, med de mått som inte får ändras, finns i [BLENDER_ASSETS.md](BLENDER_ASSETS.md).

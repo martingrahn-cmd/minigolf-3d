@@ -35,7 +35,7 @@ function pinModel(white,pink,forest=false){
 }
 
 export function createCarnival(scene,level){
-  if(!level.trampoline)return null;
+  if(!level.trampoline||!level.bowlingLane)return null;
   const drum=level.trampoline,hoop=level.hoop,lane=level.bowlingLane;
   const forest=level.theme==='forest';
   const wood=color=>new THREE.MeshStandardMaterial({color,roughness:.9,flatShading:true});

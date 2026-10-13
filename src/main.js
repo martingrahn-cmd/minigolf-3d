@@ -19,6 +19,7 @@ import {createBellBridgeState,stepBellBridge,strikeBell,collideBellBridge,restor
 import {createLiftState,liftPose,tryBoardLift,stepLift,liftBarriers,restoreLift} from './lift.js';
 import {collideClockWheel,wheelSignal} from './clock-wheel.js';
 import {clockHandPose,inClockWell,supportedByClockHand,carryOnClockHand} from './clock-hand.js';
+import {crossTreeEye} from './mother-tree.js';
 import './style.css';
 
 const $=id=>document.getElementById(id);
@@ -139,7 +140,7 @@ function setPhase(phase){
 function updateUI(){
   $('strokeCount').textContent=state.strokes;
   $('bestScore').textContent=localStorage.getItem(LEVEL.recordKey)||'–';
-  const names={idle:'Sikta',power:'Välj kraft',accuracy:'Träffa grönt',moving:'Bollen rullar',looping:'Runt i roten!',cannon:'Flygtur!',pipe:'Rörpost!',funnel:'Specialleverans!',elevator:'Nästa våning!',bridgeflight:'Luft under bollen!',drumflight:'Skybowling!',falling:'Oj då!',win:'I hålet!'};
+  const names={idle:'Sikta',power:'Välj kraft',accuracy:'Träffa grönt',moving:'Bollen rullar',looping:'Runt i roten!',cannon:'Flygtur!',pipe:'Rörpost!',funnel:'Specialleverans!',elevator:'Nästa våning!',bridgeflight:'Luft under bollen!',drumflight:LEVEL.trampoline?.title||'Skybowling!',falling:'Oj då!',win:'I hålet!'};
   $('controlTitle').textContent=names[state.phase]||'Sikta';
   const actions={idle:'Starta',power:'Lås kraft',accuracy:'Slå!',moving:'Rullar…',looping:'Loopar…',cannon:'Flyger…',pipe:'Rörpost…',funnel:'På väg…',elevator:'Åker upp…',bridgeflight:'Flyger…',drumflight:'Flyger…',falling:'Vänta…',win:'Klart!'};
   $('actionText').textContent=actions[state.phase]||'Starta';
@@ -149,7 +150,7 @@ function updateUI(){
   $('app').classList.toggle('overview',cameraOverview);
   $('meter').classList.toggle('accuracy',state.phase==='accuracy');
   const touch=touchInput();
-  $('meterStatus').textContent={idle:cameraOverview?(touch?'Tryck på banan för att sikta':'Klicka på banan för att sikta'):(touch?'Dra för att sikta · ◁ ▷ finsiktar':'Dra för att sikta · A / D finjusterar'),power:touch?'Mjukt ← kraft → hårt':'Mjukt ← kraft → hårt · Esc avbryter',accuracy:state.power<.3?'Mjuk putt · större grönt fält':'Pricka mitten · hårda slag kräver precision',moving:'Nästa slag när bollen stannar',looping:'Farten avgör om du når runt',cannon:'Över gapet mot flaggan',pipe:'På väg till kanonen',bridgeflight:'Nästa stopp: flippergreen',drumflight:'Genom ringen – mot käglorna!',falling:'+1 pliktslag',win:'Flaggan är din!'}[state.phase]||'';
+  $('meterStatus').textContent={idle:cameraOverview?(touch?'Tryck på banan för att sikta':'Klicka på banan för att sikta'):(touch?'Dra för att sikta · ◁ ▷ finsiktar':'Dra för att sikta · A / D finjusterar'),power:touch?'Mjukt ← kraft → hårt':'Mjukt ← kraft → hårt · Esc avbryter',accuracy:state.power<.3?'Mjuk putt · större grönt fält':'Pricka mitten · hårda slag kräver precision',moving:'Nästa slag när bollen stannar',looping:'Farten avgör om du når runt',cannon:'Över gapet mot flaggan',pipe:'På väg till kanonen',bridgeflight:'Nästa stopp: flippergreen',drumflight:LEVEL.trampoline?.status||'Genom ringen – mot käglorna!',falling:'+1 pliktslag',win:'Flaggan är din!'}[state.phase]||'';
   if(state.phase==='funnel')$('meterStatus').textContent='Tryckluften lyfter dig till postterrassen';
   if(state.phase==='elevator')$('meterStatus').textContent='Motvikterna tar dig till balkongen';
   const putting=puttEnabled&&state.phase==='idle';
@@ -202,7 +203,7 @@ function shoot(puttingSpeed){
 function reset(full=true){
   state.x=START.x;state.z=START.z;state.vx=0;state.vz=0;state.aim=0;state.power=0;state.needle=0;state.flight=0;state.pipe=0;state.fall=0;state.boost=0;state.strokes=full?0:state.strokes;
   pipeCooldown=0;springCooldowns.fill(0);gateClocks.fill(0);bridgeAngle=LEVEL.bridge?.maxAngle||0;launch=null;shotKick=0;ball.visible=true;ballCore.quaternion.identity();
-  pinRack.reset();course?.carnival?.reset();hoopHit=false;
+  pinRack.reset();course?.carnival?.reset();course?.motherTree?.reset();hoopHit=false;
   pendulumTime=0;pendulumHitCooldown=0;crownTime=0;
   loopRide=null;loopPosition=null;state.saved={...START};
   funnelRide=null;funnelPosition=null;
@@ -243,6 +244,7 @@ function win(){
   if(SELECTION.slot?.finale)$('winText').textContent+=` Du klarade ${SELECTION.slot.world.finale}!`;
   $('win').classList.remove('hidden');
   burst(CUP.x,.6,CUP.z,0xffd264,55,1.7);burst(CUP.x,.6,CUP.z,0xf47761,30,1.2);
+  if(course?.motherTree){course.motherTree.bloom();burst(LEVEL.treeEye.x,LEVEL.treeEye.y,LEVEL.treeEye.z,0xffb3d4,60,2.2)}
   sound(440,.18,'triangle',.08,1.5);setTimeout(()=>sound(660,.25,'triangle',.08,1.6),150);setTimeout(()=>sound(880,.42,'triangle',.08,1.3),310);
 }
 
@@ -305,7 +307,7 @@ function physics(dt){
     const drumJump=trampolineFlight(state,LEVEL.trampoline);
     if(drumJump){
       launch=drumJump;state.flight=0;hoopHit=false;setPhase('drumflight');
-      course?.carnival?.bounce();toast('BOING! ✦',1300);
+      course?.carnival?.bounce();course?.motherTree?.bounce();toast('BOING! ✦',1300);
       sound(160,.4,'triangle',.12,4);burst(state.x,.2,state.z,0x96ffea,26,1.3);return;
     }
     if(LEVEL.bridge&&leavesBridge(previous,state,LEVEL.bridge)){
@@ -381,7 +383,7 @@ function physics(dt){
       const returned=loopPosition.returned,rolledBack=returned===(loopRide.entryDirection>0);
       state.x+=returned?-.03:.03;state.vx=loopRide.speed;state.vz=loopRide.sideSpeed;
       state.settle=0;state.shotAge=0;setPhase('moving');
-      toast(rolledBack?'För lite fart – tillbaka till ansatsen':'ROTVOLT! ↻ Bromsa före kanten',1800);
+      toast(rolledBack?'För lite fart – tillbaka till ansatsen':LEVEL.loop.exitToast||'ROTVOLT! ↻ Bromsa före kanten',1800);
       sound(rolledBack?140:640,.25,'triangle',.09,rolledBack?.6:1.4);
       if(!rolledBack)burst(state.x,.7,state.z,0xffd884,22,.9);
       loopRide=null;loopPosition=null;
@@ -394,6 +396,15 @@ function physics(dt){
       const contact={x:p.x,z:p.z,vx:launch.vx,vz:launch.vz};
       if(knockPin(contact,pin,pinStates[i],p.y))celebratePins([i]);
     });
+    if(fromDrum&&LEVEL.treeEye){
+      // Only the tunnel lets a flight through the Mother Tree.
+      const pass=crossTreeEye(previous,p,LEVEL.treeEye);
+      if(pass==='bark'){state.x=previous.x;state.z=previous.z;doFall(previous.y,'Rakt i barken! +1 pliktslag');return}
+      if(pass==='eye'&&!hoopHit){
+        hoopHit=true;course?.motherTree?.celebrate();toast('GENOM ÖGAT! ✦',1300);
+        sound(660,.3,'sine',.09,1.6);burst(p.x,p.y+.4,p.z,0xffd884,26,1.1);
+      }
+    }
     if(fromDrum&&!hoopHit&&throughHoop(previous,p,LEVEL.hoop)){
       hoopHit=true;course?.carnival?.celebrate();toast('RINGTRÄFF! ✦',1200);
       sound(780,.25,'sine',.09,1.5);burst(LEVEL.hoop.x,LEVEL.hoop.y,LEVEL.hoop.z,0xffd878,32,1.3);
@@ -505,7 +516,7 @@ function draw(dt){
       $('routeDetail0').textContent={green:'Öppning vid golvet',amber:'Öppningen passerar',red:'Vänta på nästa öppning'}[signal];
       $('routeDetail0').style.color={green:'#a1ecc4',amber:'#f4ca7f',red:'#edbba5'}[signal];
     }
-    course.carnival?.update(dt,elapsed,pinStates);
+    course.carnival?.update(dt,elapsed,pinStates);course.motherTree?.update(dt,elapsed);
     course.bridge?.update(bridgeAngle);course.bumpers.forEach(b=>b.update(dt));course.environment.update(elapsed,gateClocks[0]);
   }
   for(const p of particles){p.life-=dt;p.mesh.position.x+=p.vx*dt;p.mesh.position.y+=p.vy*dt;p.mesh.position.z+=p.vz*dt;p.vy-=7*dt;p.mesh.material.opacity=Math.max(0,p.life);p.mesh.scale.setScalar(Math.max(.01,p.life))}
@@ -519,6 +530,12 @@ function draw(dt){
   if(phase==='looping'&&!cameraOverview){
     desiredPosition.set(LEVEL.loop.x-5,LEVEL.loop.y+8,LEVEL.loop.z+12);
     desiredTarget.set(LEVEL.loop.x+LEVEL.loop.advance/2,LEVEL.loop.y+LEVEL.loop.radius,LEVEL.loop.z+LEVEL.loop.shift/2);
+  }
+  if(LEVEL.treeEye&&phase==='drumflight'&&!cameraOverview){
+    // A wide side view shows the tunnel, the flight and the landing together.
+    const e=LEVEL.treeEye;
+    desiredPosition.set(e.x-1,e.y+6,e.z+20);
+    desiredTarget.set((state.x+e.x)/2+2,e.y-.5,e.z);
   }
   if(phase==='elevator'&&!cameraOverview){
     const mid=(LEVEL.lift.x1+LEVEL.lift.x2)/2;
