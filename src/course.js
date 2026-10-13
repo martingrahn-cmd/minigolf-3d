@@ -14,6 +14,7 @@ import { createLiftVisuals } from './lift-visuals.js';
 import {createClockWheelVisuals,createClockBumpers} from './clock-wheel-visuals.js';
 import {createClockHandVisuals} from './clock-hand-visuals.js';
 import {createMotherTreeCourse,createMotherTree} from './mother-tree-visuals.js';
+import {createMoonCourse,createRocketPads} from './moon.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 import { LEVEL, CUP, CANNON, LANDING, PIPE_IN, PIPE_OUT, PIPE_DIRECTION, PIPE_ENTRY, PIPE_GUIDES, pipeWorld, SPRINGS, SPINNER, TILES, CELLS, BOUNDARIES, heightAt, heightSlope } from './layout.js';
@@ -86,6 +87,8 @@ export async function createCourse(scene) {
   let floor;
   if(theme.key==='clockwork'){
     floor=createClockCourse(scene,CELLS,BOUNDARIES,LEVEL,heightAt);
+  }else if(theme.key==='moon'){
+    floor=createMoonCourse(scene,CELLS,BOUNDARIES,heightAt,LEVEL);
   }else if(theme.key==='forest'){
     floor=(LEVEL.scenery==='mothertree'?createMotherTreeCourse:LEVEL.scenery==='crown'?createCrownCourse:LEVEL.scenery==='loop'?createLoopCourse:LEVEL.scenery==='acorn'?createAcornCourse:LEVEL.scenery==='ravine'?createRavineCourse:createForestCourse)(scene,CELLS,BOUNDARIES,heightAt);
   }else{
@@ -168,7 +171,8 @@ export async function createCourse(scene) {
   const spinner = SPINNER?new THREE.Group():null;
   if(spinner){spinner.position.set(SPINNER.x,.04,SPINNER.z);scene.add(spinner)}
 
-  const springGlows=SPRINGS.map(spring=>{
+  const rocketPads=theme.key==='moon'?createRocketPads(scene,SPRINGS,heightAt):null;
+  const springGlows=rocketPads?rocketPads.glows:SPRINGS.map(spring=>{
     const glow=cylinder(scene,.88,.88,.08,spring.x,.1,spring.z,mat(0xffd36f));
     torus(scene,.95,.07,spring.x,.16,spring.z,cream);
     // Painted chevrons make the outgoing boost direction visible before a shot.
@@ -265,18 +269,18 @@ export async function createCourse(scene) {
   const startOffset=LEVEL.id>=12?LEVEL.start.x+16.8:0;
   const decorHeight=(x,z)=>LEVEL.heightProfile?heightAt(x,z):0;
   // Set dressing lives behind the edge rail instead of obstructing playable turf.
-  if(!['forest','clockwork'].includes(theme.key))for(const [x,z,w] of [[(LEVEL.heightProfile?-17.2:-16)+startOffset,4.8,LEVEL.heightProfile?3:5.8],[-18+startOffset,-4.8,1.5],[LEVEL.shelf.x,LEVEL.shelf.z,1.7]]){
+  if(!['forest','clockwork','moon'].includes(theme.key))for(const [x,z,w] of [[(LEVEL.heightProfile?-17.2:-16)+startOffset,4.8,LEVEL.heightProfile?3:5.8],[-18+startOffset,-4.8,1.5],[LEVEL.shelf.x,LEVEL.shelf.z,1.7]]){
     box(scene,w,.45,1.35,x,-.20+decorHeight(x,z),z,deep);
     box(scene,w,.05,1.35,x,.05+decorHeight(x,z),z,cream);
   }
   await Promise.all([
     ...(CANNON?[model('cannon_base_red','red',CANNON.x,.05,CANNON.z,.68,Math.atan2(LANDING.x-CANNON.x,LANDING.z-CANNON.z))]:[]),
-    ...SPRINGS.map(spring=>model('spring_pad_yellow','yellow',spring.x,.08,spring.z,.68)),
+    ...(rocketPads?[]:SPRINGS.map(spring=>model('spring_pad_yellow','yellow',spring.x,.08,spring.z,.68))),
     ...LEVEL.arches.map(arch=>model('arch_wide_yellow','yellow',arch.x,.04,arch.z,.72,Math.PI/2)),
-    ...(['forest','clockwork'].includes(theme.key)?[]:[model('star_yellow','yellow',(LEVEL.heightProfile?-16:-14.2)+startOffset,.1+decorHeight(-14.2+startOffset,4.75),4.75,.60),
+    ...(['forest','clockwork','moon'].includes(theme.key)?[]:[model('star_yellow','yellow',(LEVEL.heightProfile?-16:-14.2)+startOffset,.1+decorHeight(-14.2+startOffset,4.75),4.75,.60),
     model('star_yellow','yellow',LEVEL.shelf.x,.1+decorHeight(LEVEL.shelf.x,LEVEL.shelf.z),LEVEL.shelf.z,.65),
     model('chest_red','red',-17+startOffset,.08+decorHeight(-17+startOffset,4.8),4.8,.48,Math.PI/4),
     model('diamond_blue','blue',-18.1+startOffset,.4+decorHeight(-18.1+startOffset,-4.8),-4.8,.5)]),
   ]);
-  return { spinner, springGlows, pipePath, bridge, bumpers, gates, carnival, pendulum, trapdoors, environment, funnel, bellBridge, lift, clockWheel, clockHand, motherTree, aimSurface:floor };
+  return { spinner, springGlows, pipePath, bridge, bumpers, gates, carnival, pendulum, trapdoors, environment, funnel, bellBridge, lift, clockWheel, clockHand, motherTree, rocketPads, aimSurface:floor };
 }

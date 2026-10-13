@@ -121,11 +121,22 @@ export function collidePipe(ball){
   collideCircle(ball,2.55,-4.1,.70);
 }
 
+// Boosters only fire for a ball that is not rolling back against the arrow, so a
+// ball returning down a ramp cannot ping-pong on the same pad forever.
+export function padTriggers(ball,spring){
+  if(Math.hypot(ball.x-spring.x,ball.z-spring.z)>=.84)return false;
+  if(spring.boost===undefined)return true;
+  const tx=spring.target?spring.target.x-spring.x:spring.dx,tz=spring.target?spring.target.z-spring.z:spring.dz;
+  return ball.vx*tx+ball.vz*tz>=-.3*Math.hypot(ball.vx,ball.vz)*Math.hypot(tx,tz);
+}
+
 export function springImpulse(ball,spring){
   let dx=spring.dx,dz=spring.dz;
   if(spring.target){
     dx=spring.target.x-ball.x;dz=spring.target.z-ball.z;
     const length=Math.hypot(dx,dz);dx/=length;dz/=length;
   }
-  ball.vx=dx*spring.speed;ball.vz=dz*spring.speed;
+  // A booster adds to the speed the ball brings; a plain pad sets a fixed speed.
+  const speed=spring.boost===undefined?spring.speed:Math.min(spring.maxSpeed??26.5,Math.hypot(ball.vx,ball.vz)+spring.boost);
+  ball.vx=dx*speed;ball.vz=dz*speed;
 }

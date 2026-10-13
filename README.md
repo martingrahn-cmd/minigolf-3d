@@ -13,7 +13,7 @@ npm run dev
 | --- | --- | --- |
 | 01–06 | Urverkets stad | Klar |
 | 07–12 | Molnskogen | Klar – hål 12 Moderträdet är världens set piece |
-| 13–18 | Månkarnevalen | Inte påbörjad |
+| 13–18 | Månkarnevalen | 1 av 6 byggda – hål 13 Raketrampen |
 | P | Prototyper (Solskensöarna, Neonhamnen) | Spelbara, ska byggas om |
 
 Rundans ordning och platshållarna finns i `src/round.js`. Banornas interna `id` i `src/levels.js` är oförändrade, så rekord och banspecifik logik påverkas inte av numreringen. Länkar: `/?hole=1` … `/?hole=18` för rundan och `/?proto=kanonkurvan`, `dubbelstudsen`, `vippvarvet`, `neonslussen`, `frostfallet` för prototyperna. Ett obyggt hål öppnar menyn med en notis.
@@ -59,6 +59,8 @@ Varje värld avslutas med ett **set piece**: ett landmärke som också är håle
 - **18 · Törnkronan · par 5** – Skogens portvakt före finalen. Tre rotluckor öppnar sig efter varandra över en avgrund. Grönt ljus betyder bärande lucka, gult varnar före öppning, rött betyder öppet. Efter en trygg avsats väntar en smal trägren med ett roterande törnhjul och öppna sidokanter. Två snidade ugglevakter och en stor guldkrona vaktar den lugna slutgreenen.
 
 - **12 · Moderträdet · par 5** – Molnskogens final och set piece. Ett jätteträd växer upp ur molnhavet med en tunnel, trädets öga, rakt genom stammen. Ett slag från utslaget kan ta bollen genom en rotvolt, ut på en rotbro och upp på en trumma som kastar den genom ögat till den svävande kronön. Kraftfönstret ligger runt 80–87 procent: för svagt rullar bollen tillbaka ur volten eller landar i barken, maxkraft seglar förbi ön. Allt bredvid ögat, inklusive rankridåerna, räknas som träd. Barkstigen runt trädet har sarger hela vägen och ger par; kedjan ger birdie och en chans till eagle. När bollen sjunker blommar trädet ut. Fysiken för ögat finns i `src/mother-tree.js`, grafiken i `src/mother-tree-visuals.js` och testerna i `tests/mother-tree.test.js`. [Spela hål 12](http://localhost:5173/?hole=12).
+
+- **13 · Raketrampen · par 3** – första hålet i **Månkarnevalen**, ett övergivet tivoli mellan asteroider. Raketplattor skjuter bollen vidare dit pilen pekar och lägger till extra fart (idén från prototypen Dubbelstudsen, nu som booster). Två plattor tar bollen runt två hörn och uppför en friktionssnål startramp till en upphöjd green. Utslaget avgör hur långt bollen kommer: runt 80–95 procent når greenen och ger birdiechans, svagare rullar tillbaka nerför rampen utan pliktslag, och full kraft flyger över den öppna kanten ut i rymden. En boll som rullar mot pilen passerar plattan utan att skjutas iväg. Världens miljö finns i `src/moon.js`, testerna i `tests/rocket-ramp.test.js`. [Spela hål 13](http://localhost:5173/?hole=13).
 
 Varje bana har ett eget rekord i webbläsaren.
 
