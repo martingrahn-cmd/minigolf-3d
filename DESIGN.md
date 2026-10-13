@@ -1,6 +1,6 @@
 # Mini Mayhem – banrytm och temavärldar
 
-Uppdaterat 13 oktober 2026. **Rundan är numrerad 1–18 i `src/round.js`.** Urverkets stad (1–6) är klar. Molnskogen är hål 7–12: Skybowling, Rotravinen, Ekollonsvingen, Rotvolten, Törnkronan och Moderträdet som final och set piece. Månkarnevalen (13–18) är påbörjad: hål 13 Raketrampen och hål 14 Tyngdlösa tältet är byggda, 15–18 är platshållare. Solskensöarna och Neonhamnen ligger kvar som spelbara prototyper utanför rundan.
+Uppdaterat 13 oktober 2026. **Rundan är numrerad 1–18 i `src/round.js`.** Urverkets stad (1–6) är klar. Molnskogen är hål 7–12: Skybowling, Rotravinen, Ekollonsvingen, Rotvolten, Törnkronan och Moderträdet som final och set piece. Månkarnevalen (13–18) är påbörjad: hål 13 Raketrampen, 14 Tyngdlösa tältet och 15 Svarta hålet är byggda, 16–18 är platshållare. Solskensöarna och Neonhamnen ligger kvar som spelbara prototyper utanför rundan.
 
 ## Aktuellt förslag – tre världar med sex hål
 
@@ -8,7 +8,7 @@ Uppdaterat 13 oktober 2026. **Rundan är numrerad 1–18 i `src/round.js`.** Urv
 | --- | --- | --- |
 | 1–6 | **Urverkets stad** | Mässing, trä och turkos filt. Läsbara maskiner: port, rörpost, klockkontakt, därefter nya höjder och en avslutande kombination. De första fem hålen är byggda. |
 | 7–12 | **Molnskogen** | Rosa molnhimmel, rotbroar, svampar och snidade ugglor. Mer terräng: rännor, smala spänger, pendlande ekollon och rotloop. Fem befintliga skogshål kan bilda basen efter omplacering och balansering. |
-| 13–18 | **Månkarnevalen** | Ett övergivet tivoli mellan asteroider. Elfenbensvita raketer, violett rymd, turkosa lyktor och slitna röda cirkustält. Avgränsade zoner med låg gravitation, planetvallar, raketkanoner och en pariserhjulsfärja. Hål 13 och 14 är byggda. Prototypernas bästa idéer återanvänds här. |
+| 13–18 | **Månkarnevalen** | Ett övergivet tivoli mellan asteroider. Elfenbensvita raketer, violett rymd, turkosa lyktor och slitna röda cirkustält. Avgränsade zoner med låg gravitation, planetvallar, raketkanoner och en pariserhjulsfärja. Hål 13–15 är byggda. Prototypernas bästa idéer återanvänds här. |
 
 Sex hål per värld är användarens önskade upplägg; valet av den tredje världen är fortfarande ett förslag. Varje sexa bör börja med en lättläst regel, växla mellan placering, fart, höjd och tajmning och avsluta med två redan kända idéer i kombination. En kortare precisionsbana mitt i varje värld ger andrum. Äldre Solskensöarna och Neonhamnen finns kvar som prototyper; inget tidigare hål eller rekord har tagits bort eller numrerats om.
 
@@ -269,13 +269,25 @@ Från ingången avgör kraften: 55 procent eller mindre sjunker i hålet. Runt 6
 
 Miljön är ett slitet rödvitt cirkustält med en öppning mot rymden bakom scenen. Det har tältstänger, en svävande gravitationsring, ballonger, konfetti, sammetsridåer, strålkastare och en skylt med texten TYNGDLÖST över ingången. Ringen och ballongerna hänger högre än kameran, så sikten är fri under svävandet.
 
+## Månkarnevalen – hål 15: Svarta hålet
+
+**Par 3, ett kort hål med en enda ny idé.** Platshållaren hette Planetvallen och skulle ha planeter som studsar bollen runt en asteroid. Studsar ensamma gör utfallet slumpartat. Därför fick hålet i stället en kraft man kan lära sig läsa: ett svart hål målat på filten mellan utslaget och koppen. Planeterna finns kvar som studsplaneter i de bortre hörnen.
+
+Inom den streckade ringen, 3 meter i radie, drar hålet bollen mot mitten. Dragningen är noll vid ringen och växer med ett omvänt kvadratiskt avstånd närmare mitten. Den svarta skivan, 0,6 meter i radie, är horisonten: där sugs bollen in, och det kostar ett pliktslag. Testet sveper hela steget, så en snabb boll kan inte hoppa över horisonten. Koppen ligger utanför dragningen och syns hela tiden rakt bakom hålet, så den första reflexen är att sikta rakt på den. Det slaget blir alltid uppslukat, och det lär ut regeln på första försöket.
+
+**Slungskottet.** Siktar man 1–1,5 meter förbi hålet med 80–90 procent kraft böjer dragningen banan runt hålet, och bollen slungas mot koppen. Den hamnar inom cirka 2,5 meter för en närputt och birdie, och under 6 procent av de välriktade slungskotten går rakt i. Svagare slag förbi hålet hinner inte undan och sugs in. Det är riskdelen.
+
+**Långt runt.** Siktar man 4–5 meter vid sidan av hålet med 60–70 procent kraft rullar bollen säkert längs kanten. Putten därifrån går fri från dragningen och ger par.
+
+Studsplaneterna i de bortre hörnen tar emot överslagna bollar och skickar tillbaka dem in i arenan. Bakom koppen står ett observatorium med skylten SVARTA HÅLET. Fysiken finns i `src/black-hole.js` och delas av spelet och testerna.
+
 ### Plan för resten av världen
 
 | Hål | Arbetsnamn | Idé | Återanvänd prototyp |
 | --- | --- | --- | --- |
 | 13 | Raketrampen | Raketplattor som booster och en startramp | Dubbelstudsen (studsplattor) |
 | 14 | Tyngdlösa tältet | Låg gravitation i ett tält: hal filt, svävhopp över ett öppet hål och en upphöjd scen | Frostfallet (hal yta med öppna kanter) |
-| 15 | Planetvallen | Planeter som studsar bollen runt en asteroid | Neonhamnens flipperstötar |
+| 15 | Svarta hålet (var Planetvallen) | Ett svart hål som böjer bollens bana; studsplaneter i hörnen | Neonhamnens flipperstötar |
 | 16 | Kanonkometen | Raketkanon med svängande sikte och flera landningshyllor | Kanonkurvan (kanon) |
 | 17 | Pariserhjulet | Pariserhjulsfärja mellan avsatser | Ny idé |
 | 18 | Månraketen | Final och set piece: kanon och låg gravitation i kombination | – |

@@ -22,6 +22,7 @@ import {collideClockWheel,wheelSignal} from './clock-wheel.js';
 import {clockHandPose,inClockWell,supportedByClockHand,carryOnClockHand} from './clock-hand.js';
 import {crossTreeEye} from './mother-tree.js';
 import {inLowGravity,stepFloat,floatDrop} from './low-gravity.js';
+import {blackHolePull,crossesHorizon} from './black-hole.js';
 import './style.css';
 
 const $=id=>document.getElementById(id);
@@ -238,6 +239,11 @@ function doFall(fromHeight=surfaceHeight(state.x,state.z),reason){
   sound(250,.45,'sawtooth',.035,.28);toast(reason||(LEVEL.theme==='forest'?'Ner i molnen! +1 pliktslag':LEVEL.theme==='moon'?'Ut i rymden! +1 pliktslag':'Plums! +1 pliktslag'),1800);
   burst(state.x,0,state.z,0x9ce8ef,20,1.1);
 }
+function swallow(){
+  const hole=LEVEL.blackHole;state.x=hole.x;state.z=hole.z;
+  course?.blackHole?.swallow();burst(hole.x,.3,hole.z,0xb69cff,26,1.2);
+  doFall(surfaceHeight(hole.x,hole.z),'Uppslukad av svarta hålet! +1 pliktslag');
+}
 function startCannon(){
   state.flight=0;state.vx=0;state.vz=0;setPhase('cannon');
   toast('KANONSKOTT! 🚀',1700);
@@ -306,8 +312,10 @@ function physics(dt){
     state.vz-=heightSlopeZ(state.x,state.z)*6.9*dt;
     const friction=Math.exp(-(onBridge(state.x,state.z,LEVEL.bridge)?.38:onCourse(state.x,state.z)?frictionAt(state.x,state.z):1.7)*dt);
     state.vx*=friction;state.vz*=friction;
+    if(blackHolePull(state,LEVEL.blackHole,dt)==='swallowed'){swallow();return}
     const previous={x:state.x,z:state.z};
     state.x+=state.vx*dt;state.z+=state.vz*dt;
+    if(crossesHorizon(previous,state,LEVEL.blackHole)){swallow();return}
     if(entersFunnel(previous,state,LEVEL.funnel)){
       funnelRide=startFunnelRide(state,LEVEL.funnel);funnelPosition=sampleFunnelRide(funnelRide,funnelTrack);
       tubeCameraEntry={position:cameraPosition.clone(),target:cameraTarget.clone(),up:camera.up.clone()};
@@ -361,7 +369,7 @@ function physics(dt){
       if(collideBumper(state,bumper)){
         if(course?.bumpers[i])course.bumpers[i].pulse=1;
         sound(680,.16,'sine',.09,1.7);burst(bumper.x,.65,bumper.z,0xffa7dc,12,.8);
-        toast(LEVEL.clockWheel?'KLANG!':'FLIPPER!',850);state.settle=0;
+        toast(LEVEL.bumperToast??(LEVEL.clockWheel?'KLANG!':'FLIPPER!'),850);state.settle=0;
       }
     });
     (LEVEL.pins||[]).forEach((pin,i)=>{
@@ -547,7 +555,7 @@ function draw(dt){
       $('routeDetail0').textContent={green:'Öppning vid golvet',amber:'Öppningen passerar',red:'Vänta på nästa öppning'}[signal];
       $('routeDetail0').style.color={green:'#a1ecc4',amber:'#f4ca7f',red:'#edbba5'}[signal];
     }
-    course.carnival?.update(dt,elapsed,pinStates);course.motherTree?.update(dt,elapsed);course.rocketPads?.update(dt);
+    course.carnival?.update(dt,elapsed,pinStates);course.motherTree?.update(dt,elapsed);course.rocketPads?.update(dt);course.blackHole?.update(dt,elapsed);
     course.bridge?.update(bridgeAngle);course.bumpers.forEach(b=>b.update(dt));course.environment.update(elapsed,gateClocks[0]);
   }
   for(const p of particles){p.life-=dt;p.mesh.position.x+=p.vx*dt;p.mesh.position.y+=p.vy*dt;p.mesh.position.z+=p.vz*dt;p.vy-=7*dt;p.mesh.material.opacity=Math.max(0,p.life);p.mesh.scale.setScalar(Math.max(.01,p.life))}
