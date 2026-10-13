@@ -219,6 +219,28 @@ export const LEVELS = [
     routes:[['Rotluckorna','Grönt bär · gult varnar'],['Törnhjulet','Smal gren · öppna kanter']],
   },
   {
+    // Månkarnevalen opens with one readable rule: a rocket pad sends the ball on
+    // in its arrow's direction at a fixed speed, whatever speed it arrived with.
+    id:20,theme:'moon',scenery:'rocketramp',name:'Raketrampen',title:['RAKET','RAMPEN'],par:3,recordKey:'minimayhem-moon-13-raketrampen',
+    description:'Välkommen till Månkarnevalen! Raketplattan skjuter bollen vidare dit pilen pekar och lägger till extra fart. Ta med rätt kraft från utslaget så bär två plattor dig hela vägen uppför startrampen. För lite rullar tillbaka, för mycket flyger ut i rymden.',
+    feature:'Raketplattor & startramp',hasPipe:false,hasRamp:false,start:{x:-17,z:0},cup:{x:12.6,z:-6.9},
+    cannon:null,landing:null,overview:{x:-2,z:-5,span:46,cameraX:-6,targetY:1},cameraSide:2,spinner:null,arches:[],
+    springs:[{x:-8,z:0,dx:0,dz:-1,boost:7,target:{x:-8,z:-10}},{x:-8,z:-10,dx:1,dz:0,boost:7}],
+    springToasts:['RAKETSTART! ↑','ANDRA STEGET! →'],
+    heightProfile:[{x:-21,y:0},{x:0,y:0},{x:6,y:2.2},{x:16,y:2.2}],
+    surfaces:[{x1:-6,x2:6,z1:-12,z2:-8,friction:.5},{x1:-21,x2:16,z1:-14,z2:2.2,friction:1.1}],
+    tiles:[
+      {x1:-21,x2:-6,z1:-2.2,z2:2.2,color:0x46a6a0},
+      {x1:-10,x2:-6,z1:-12,z2:-2.2,color:0x46a6a0},
+      {x1:-6,x2:6,z1:-12,z2:-8,color:0x46a6a0,surface:'rail'},
+      {x1:6,x2:16,z1:-14,z2:-5,color:0x52b3a8},
+    ],
+    openEdges:[{x:16,z1:-11,z2:-7}],
+    labels:[['TRÄFFA PLATTAN',-15.5,-1.5],['STARTRAMPEN →',-2.5,-10]],
+    supports:[],shelf:{x:14,z:-3},routeHeading:'TIVOLITS FÖRSTA ÅKTUR',
+    routes:[['Raketplattorna','Rätt kraft · två steg'],['För hand','Ett slag per sträcka']],
+  },
+  {
     // Molnskogens set piece: the root loop feeds the drum, which throws the ball
     // through the tunnel in the Mother Tree's trunk to the floating crown island.
     id:19,theme:'forest',scenery:'mothertree',worldFinale:true,name:'Moderträdet',title:['MODER','TRÄDET'],par:5,recordKey:'minimayhem-forest-12-mothertree',

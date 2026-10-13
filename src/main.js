@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { createCourse, LEVEL, LEVELS, SELECTION, START, CUP, CANNON, LANDING, PIPE_IN, PIPE_OUT, SPRINGS, SPINNER, onCourse, heightAt, heightSlope, heightSlopeZ, frictionAt } from './course.js';
-import { BALL_RADIUS, PERFECT_ZONE, perfectZone, powerAt, precisionAt, shotError, shotSpeed, shouldSink, collideWalls, collideSpinner, collidePipe, entersPipe, springImpulse, collideBumper } from './mechanics.js';
+import { padTriggers, BALL_RADIUS, PERFECT_ZONE, perfectZone, powerAt, precisionAt, shotError, shotSpeed, shouldSink, collideWalls, collideSpinner, collidePipe, entersPipe, springImpulse, collideBumper } from './mechanics.js';
 import { createLoopTrack, enterLoop, stepLoop } from './loop.js';
 import { onBridge, stepBridge, leavesBridge, bridgeFlight, flightPosition } from './bridge.js';
 import { advanceGate, collideGate } from './gates.js';
@@ -38,7 +38,7 @@ const clock=new THREE.Clock();
 const pointer=new THREE.Vector2();
 const raycaster=new THREE.Raycaster();
 const aimPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0);
-const cameraRig=LEVEL.theme==='clockwork'?{back:11,height:9,ahead:7}:LEVEL.theme==='forest'?{back:10.5,height:9.5,ahead:5.5}:{back:8.5,height:8,ahead:3.4};
+const cameraRig=LEVEL.theme==='clockwork'?{back:11,height:9,ahead:7}:['forest','moon'].includes(LEVEL.theme)?{back:10.5,height:9.5,ahead:5.5}:{back:8.5,height:8,ahead:3.4};
 const cameraTarget=new THREE.Vector3(START.x+cameraRig.ahead,.2,0);
 const cameraPosition=new THREE.Vector3(START.x-cameraRig.back,cameraRig.height,0);
 camera.position.copy(cameraPosition);
@@ -221,7 +221,7 @@ function reset(full=true){
 function doFall(fromHeight=surfaceHeight(state.x,state.z),reason){
   if(state.phase==='falling')return;
   state.fall=0;state.fallY=fromHeight;state.fallX=state.x;state.fallZ=state.z;state.vx=0;state.vz=0;setPhase('falling');
-  sound(250,.45,'sawtooth',.035,.28);toast(reason||(LEVEL.theme==='forest'?'Ner i molnen! +1 pliktslag':'Plums! +1 pliktslag'),1800);
+  sound(250,.45,'sawtooth',.035,.28);toast(reason||(LEVEL.theme==='forest'?'Ner i molnen! +1 pliktslag':LEVEL.theme==='moon'?'Ut i rymden! +1 pliktslag':'Plums! +1 pliktslag'),1800);
   burst(state.x,0,state.z,0x9ce8ef,20,1.1);
 }
 function startCannon(){
@@ -350,10 +350,10 @@ function physics(dt){
     if(LEVEL.hasPipe)collidePipe(state);
     if(CANNON&&Math.hypot(state.x-CANNON.x,state.z-CANNON.z)<1.02){startCannon();return}
     SPRINGS.forEach((spring,i)=>{
-      if(springCooldowns[i]>0||Math.hypot(state.x-spring.x,state.z-spring.z)>=.84)return;
-      springCooldowns[i]=2;state.boost=.42;springImpulse(state,spring);
+      if(springCooldowns[i]>0||!padTriggers(state,spring))return;
+      springCooldowns[i]=2;state.boost=.42;springImpulse(state,spring);course?.rocketPads?.fire(i);
       state.aim=Math.atan2(state.vz,state.vx);state.shotAge=0;state.settle=0;
-      toast(SPRINGS.length>1?`STUDS ${i+1}!`:'STUDSPLATTA!',1300);
+      toast(LEVEL.springToasts?.[i]??(SPRINGS.length>1?`STUDS ${i+1}!`:'STUDSPLATTA!'),1300);
       sound(380,.26,'sine',.1,2.8);burst(spring.x,.25,spring.z,0xffd36c,17,1.1);
     });
     if(shouldSink(state,CUP)){win();return}
@@ -519,7 +519,7 @@ function draw(dt){
       $('routeDetail0').textContent={green:'Öppning vid golvet',amber:'Öppningen passerar',red:'Vänta på nästa öppning'}[signal];
       $('routeDetail0').style.color={green:'#a1ecc4',amber:'#f4ca7f',red:'#edbba5'}[signal];
     }
-    course.carnival?.update(dt,elapsed,pinStates);course.motherTree?.update(dt,elapsed);
+    course.carnival?.update(dt,elapsed,pinStates);course.motherTree?.update(dt,elapsed);course.rocketPads?.update(dt);
     course.bridge?.update(bridgeAngle);course.bumpers.forEach(b=>b.update(dt));course.environment.update(elapsed,gateClocks[0]);
   }
   for(const p of particles){p.life-=dt;p.mesh.position.x+=p.vx*dt;p.mesh.position.y+=p.vy*dt;p.mesh.position.z+=p.vz*dt;p.vy-=7*dt;p.mesh.material.opacity=Math.max(0,p.life);p.mesh.scale.setScalar(Math.max(.01,p.life))}
@@ -811,7 +811,7 @@ async function init(){
   watchForUpdates(showUpdate);
   configureLevelUI();resize();
   try{course=await createCourse(scene)}catch(error){console.error(error);toast('Vissa modeller kunde inte läsas.');}
-  if(['forest','clockwork'].includes(LEVEL.theme)){
+  if(['forest','clockwork','moon'].includes(LEVEL.theme)){
     const {createForestRenderer}=await import('./forest-renderer.js');
     forestRenderer=createForestRenderer(renderer,scene,camera);resize();
   }

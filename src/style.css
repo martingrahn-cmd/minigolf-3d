@@ -254,3 +254,39 @@ i[data-icon]{display:inline-flex;font-style:normal}
 @media(max-width:470px){#cameraButton,.utility-bar .menu-link{width:36px}}
 .secondary-button[hidden]{display:none}
 .card-actions{display:flex}.card-actions>*{flex:1 1 0}
+
+/* Månkarnevalen: ivory panels, violet ink and turquoise fair lights. */
+[data-theme=moon]{background:#241a4d;color:#f7eedd}
+[data-theme=moon] .brand{color:#f6ecd8;text-shadow:0 2px 6px #120b30}
+[data-theme=moon] .brand-accent{color:#6fe6d6}
+[data-theme=moon] .brand-icon{background:#f2c25c;color:#3b2a6b;box-shadow:0 3px 0 #a3742b}
+[data-theme=moon] .vignette{background:radial-gradient(ellipse at 50% 40%,transparent 45%,#0d082866 100%)}
+[data-theme=moon] .hole-tag,[data-theme=moon] .icon-button,[data-theme=moon] .camera-button{background:#fbf3e6f2;border-color:#e9d8ff;color:#3b2a6b;box-shadow:0 3px 0 #2b1e5a55}
+[data-theme=moon] .hole-tag strong{color:#d5485b}
+[data-theme=moon] .levels-button{background:#c9f3ec;border-color:#e4fffa}
+[data-theme=moon] .score-card,[data-theme=moon] .route-card{background:#fbf3e6f2;color:#33255e;border:1px solid #e9d8ff;border-bottom:4px solid #6c4bb0;box-shadow:0 9px 26px #0d082855}
+[data-theme=moon] .score-title,[data-theme=moon] .score-label,[data-theme=moon] .score-bottom,[data-theme=moon] .route-eyebrow{color:#7d6ea3}
+[data-theme=moon] .score-bottom strong{color:#d5485b}
+[data-theme=moon] .world-name{color:#6c4bb0}
+[data-theme=moon] .route-line small{color:#6f6590}
+[data-theme=moon] .cannon-symbol{background:#ffe0e4;color:#d5485b}
+[data-theme=moon] .safe-symbol{background:#cdf3ed;color:#2b8f86}
+[data-theme=moon] .control-panel{background:linear-gradient(115deg,#fbf3e6f5,#efe5fbf2);border:1px solid #e9d8ff;border-bottom:4px solid #6c4bb0;color:#33255e;box-shadow:0 8px 32px #0d082866}
+[data-theme=moon] .meter-status{color:#6f6590}
+[data-theme=moon] .control-heading span{color:#2b8f86}
+[data-theme=moon] .action-button,[data-theme=moon] .play-button{background:#6c4bb0;color:#fbf3e6;box-shadow:0 4px 0 #42297d;border:1px solid #9a7fd6}
+[data-theme=moon] .action-button:hover,[data-theme=moon] .play-button:hover{background:#5d3ea0}
+[data-theme=moon] .action-button:disabled{background:#a59cbf;border-color:#bdb5d6;box-shadow:0 3px 0 #7d7499}
+[data-theme=moon] .toast{background:#33255eef;border-color:#9a7fd666;color:#fbf3e6}
+[data-theme=moon] .modal-backdrop{background:#120b3070;backdrop-filter:blur(8px)}
+[data-theme=moon] .intro-card{background:#fbf3e6;border-color:#e9d8ff;color:#33255e;box-shadow:0 12px 0 #42297d99,0 30px 80px #0d082877}
+[data-theme=moon] .intro-card h1 em{color:#d5485b}
+[data-theme=moon] .intro-kicker,[data-theme=moon] .intro-world{color:#2b8f86}
+[data-theme=moon] .intro-card p{color:#5f557f}
+[data-theme=moon] .intro-badges span{background:#e5ddf7;color:#5a3f9a}
+[data-theme=moon] .intro-badges span:nth-child(2){background:#cdf3ed;color:#2b7f77}
+[data-theme=moon] .fine-aim-button{border-color:#d9ccf2;background:#fffaf2;color:#3b2a6b}
+[data-theme=moon] .secondary-button{border-color:#e1d6f5;background:#fffaf2;color:#3b2a6b}
+[data-theme=moon] .help-step,[data-theme=moon] .help-card{background:#f0eaf8}
+.hole-card[data-world=moon]{background:linear-gradient(110deg,#ebe4fa,#f8efe2);border-color:#d7cbef}.hole-card[data-world=moon] .hole-number{color:#6c4bb0}
+.menu-world[data-world=moon] .menu-progress i.built{background:#6c4bb0}

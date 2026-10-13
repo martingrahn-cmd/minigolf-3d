@@ -29,9 +29,10 @@ test('URLs pick round holes, prototypes or the menu',()=>{
   assert.equal(resolveSelection('?hole=12').level.name,'Moderträdet');
   assert.equal(resolveSelection('?proto=kanonkurvan').level.name,'Kanonkurvan');
   assert.equal(resolveSelection('').menu,true);
-  const missing=resolveSelection('?hole=13');
+  assert.equal(resolveSelection('?hole=13').level.name,'Raketrampen');
+  const missing=resolveSelection('?hole=14');
   assert.equal(missing.menu,true);
-  assert.equal(missing.missing.hole,13);
+  assert.equal(missing.missing.hole,14);
 });
 
 test('the next hole follows the round and stops when nothing more is built',()=>{
@@ -39,7 +40,8 @@ test('the next hole follows the round and stops when nothing more is built',()=>
   const afterTen=nextInRound(10);
   assert.equal(afterTen.slot.hole,11);
   assert.deepEqual(afterTen.skipped,[]);
-  const afterTwelve=nextInRound(12);
-  assert.equal(afterTwelve.slot,null);
-  assert.deepEqual(afterTwelve.skipped.map(slot=>slot.hole),[13,14,15,16,17,18]);
+  assert.equal(nextInRound(12).slot.level.name,'Raketrampen');
+  const afterThirteen=nextInRound(13);
+  assert.equal(afterThirteen.slot,null);
+  assert.deepEqual(afterThirteen.skipped.map(slot=>slot.hole),[14,15,16,17,18]);
 });

@@ -16,14 +16,15 @@ export const WORLDS = [
   },
   {
     key:'moon',name:'Månkarnevalen',finale:'Månkarnevalens final',
-    tagline:'Ett övergivet tivoli mellan asteroider. Inte byggd ännu.',
-    slots:[
-      {name:'Raketrampen',idea:'Introduktion: en vanlig landningsbana med raketramp.'},
-      {name:'Tyngdlösa tältet',idea:'Avgränsad zon med låg gravitation.'},
-      {name:'Planetvallen',idea:'Valla runt små planeter med egen dragningskraft.'},
-      {name:'Kanonkometen',idea:'Raketkanon med svängande sikte och flera landningshyllor.'},
-      {name:'Pariserhjulet',idea:'Pariserhjulsfärja som bär bollen mellan avsatser.'},
-      {name:'Månraketen',idea:'Final: kombinerar låg gravitation och raketkanon vid den trasiga månraketen.'},
+    tagline:'Ett övergivet tivoli mellan asteroider. Raketer, tält och violett rymd.',
+    // Built holes reuse the prototypes' best ideas in new form: Dubbelstudsen's
+    // pads, Kanonkurvan's cannon, the harbour's flippers and Vippvarvet's seesaw.
+    slots:[20,
+      {name:'Tyngdlösa tältet',idea:'Låg gravitation i ett cirkustält: bollen svävar i korta hopp och glider längre. Vippbron från Vippvarvet som gungbräda.'},
+      {name:'Planetvallen',idea:'Flipperstötarna från Neonhamnen blir planeter som studsar bollen runt en asteroid.'},
+      {name:'Kanonkometen',idea:'Kanonen från Kanonkurvan som raketkanon med svängande sikte och flera landningshyllor.'},
+      {name:'Pariserhjulet',idea:'Pariserhjulsfärja som bär bollen mellan avsatser. Tajma när du kliver av.'},
+      {name:'Månraketen',idea:'Final och set piece vid den trasiga månraketen: kanon och låg gravitation i kombination.'},
     ],
   },
 ];

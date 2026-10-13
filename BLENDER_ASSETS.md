@@ -100,9 +100,26 @@ Följande räknas fram ur spelmatematiken och ska fortsätta genereras i kod:
 | 12 Moderträdet | 🟡 Finalblommor runt koppen | `bloomHead()` | Fyra blommor utanför spelytan. Blomhuvudet skalas från 0,45 till 1 vid vinst och mitten lyser. | P2 |
 | 12 Moderträdet | 🟢 Två ugglevakter vid Barkstigens slut, lyktor, molnhav | `owl()`, `lantern()`, `cloudSea()` | | P2 |
 
-## Månkarnevalen (hål 13–18, inte designad)
+## Månkarnevalen (hål 13–18, hål 13 byggt)
 
-Allt behöver formges först. Platshållarna i `src/round.js` föreslår: raketramp, tält med låg gravitation, planetvallar, raketkanon, pariserhjulsfärja och en trasig månraket som final och set piece. Bygg ett världskit och en mekanik åt gången när hålen designas, och lägg till dem här.
+**Världskit** i `src/moon.js`. **P2**, eftersom det återanvänds på alla sex hålen.
+
+| Asset | Ersätter | Krav och mått |
+|---|---|---|
+| 🟡 Polkagrisrandig sarg med glödlampsstolpar | Sarger i `createMoonCourse` | Listen ligger längs kollisionslinjen på höjden 0,2 m med radien 0,1. Stolparna är 0,55 m med en lysande lampa. Modulära bitar. Lamporna är eget lysande material. |
+| 🟢 Asteroider i 3–4 varianter | `asteroid()` | Används under banorna (skalas efter platta) och som svävande kulisser som roterar. |
+| 🟢 Månraket | `rocket()` | Ungefär 5 m hög i skala 1. Fenor och nosspets röda, kropp elfenben, ett lysande fönster. Liten version vid greenen och stor lutande version som förebådar finalen. |
+| 🟢 Pariserhjul | `ferrisWheel()` | Hjulet (radie cirka 7,5 m) roterar kring z, och korgarna är egna objekt som hålls lodräta. Förebådar hål 17, där det blir spelkritiskt. |
+| 🟢 Cirkustält | `tent()` | Röda och elfenbensvita våder, flagga på toppen. |
+| 🟢 Lyktor, ljusslingor, ringplanet, måne | `lantern()`, `stringLights()` | Lamporna är egna lysande material. |
+
+| Hål | Asset | Ersätter | Krav och mått | Prio |
+|---|---|---|---|---|
+| 13 Raketrampen | 🔴 Raketplatta | `createRocketPads` | Plattan har radien 1,0 m och ligger nästan i nivå med filten (ovansidan på 0,055 m). Bollen avfyras inom 0,84 m från mitten. Det lysande innerfältet och de målade avgasflammorna är egna objekt som blinkar när plattan avfyras. Pilarna ska peka i plattans riktning (mot nästa platta för den första). | P2 |
+| 13 Raketrampen | 🟡 Startrampens räls | Ytan `rail` i `createMoonCourse` | Elfenben med turkos mittrand. Ytan följer höjdprofilen och genereras i kod. | P3 |
+| 13 Raketrampen | 🟢 Uppskjutningstorn med blinkande fyr, nedräkningsskylt med tre lampor | `rocketRampScenery()` | Står utanför spelytan. | P3 |
+
+Hål 14–18 är platshållare. Nya mekaniker läggs till här när hålen designas, se planen i `DESIGN.md`.
 
 ## Prototyper (Solskensöarna och Neonhamnen)
 

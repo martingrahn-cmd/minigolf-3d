@@ -1,6 +1,6 @@
 # Mini Mayhem – banrytm och temavärldar
 
-Uppdaterat 12 oktober 2026. **Rundan är numrerad 1–18 i `src/round.js`.** Urverkets stad (1–6) är klar. Molnskogen är hål 7–12: Skybowling, Rotravinen, Ekollonsvingen, Rotvolten, Törnkronan och Moderträdet som final och set piece. Månkarnevalen (13–18) har bara platshållare. Solskensöarna och Neonhamnen ligger kvar som spelbara prototyper utanför rundan.
+Uppdaterat 12 oktober 2026. **Rundan är numrerad 1–18 i `src/round.js`.** Urverkets stad (1–6) är klar. Molnskogen är hål 7–12: Skybowling, Rotravinen, Ekollonsvingen, Rotvolten, Törnkronan och Moderträdet som final och set piece. Månkarnevalen (13–18) är påbörjad: hål 13 Raketrampen är byggt, 14–18 är platshållare. Solskensöarna och Neonhamnen ligger kvar som spelbara prototyper utanför rundan.
 
 ## Aktuellt förslag – tre världar med sex hål
 
@@ -8,7 +8,7 @@ Uppdaterat 12 oktober 2026. **Rundan är numrerad 1–18 i `src/round.js`.** Urv
 | --- | --- | --- |
 | 1–6 | **Urverkets stad** | Mässing, trä och turkos filt. Läsbara maskiner: port, rörpost, klockkontakt, därefter nya höjder och en avslutande kombination. De första fem hålen är byggda. |
 | 7–12 | **Molnskogen** | Rosa molnhimmel, rotbroar, svampar och snidade ugglor. Mer terräng: rännor, smala spänger, pendlande ekollon och rotloop. Fem befintliga skogshål kan bilda basen efter omplacering och balansering. |
-| 13–18 | **Månkarnevalen** | Ett övergivet tivoli mellan asteroider. Elfenbensvita raketer, violett rymd, turkosa lyktor och slitna röda cirkustält. Avgränsade zoner med låg gravitation, planetvallar, raketkanoner och en pariserhjulsfärja. Inte byggd ännu. |
+| 13–18 | **Månkarnevalen** | Ett övergivet tivoli mellan asteroider. Elfenbensvita raketer, violett rymd, turkosa lyktor och slitna röda cirkustält. Avgränsade zoner med låg gravitation, planetvallar, raketkanoner och en pariserhjulsfärja. Hål 13 är byggt. Prototypernas bästa idéer återanvänds här. |
 
 Sex hål per värld är användarens önskade upplägg; valet av den tredje världen är fortfarande ett förslag. Varje sexa bör börja med en lättläst regel, växla mellan placering, fart, höjd och tajmning och avsluta med två redan kända idéer i kombination. En kortare precisionsbana mitt i varje värld ger andrum. Äldre Solskensöarna och Neonhamnen finns kvar som prototyper; inget tidigare hål eller rekord har tagits bort eller numrerats om.
 
@@ -246,3 +246,27 @@ Barkstigen är en sargad hängbro söder om trädet. Den kräver tre placeringss
 En vid sidokamera följer flygningen så att stammen aldrig skymmer bollen. När bollen sjunker lyser ögat upp och fyra blommor runt koppen slår ut.
 
 Grafiken är medvetet på samma nivå som övriga skogshål. Alla delar som ska ersättas av Blender-modeller, med de mått som inte får ändras, finns i [BLENDER_ASSETS.md](BLENDER_ASSETS.md).
+
+## Månkarnevalen – hål 13: Raketrampen
+
+**Par 3, världens introduktion.** Spelaren valde Månkarnevalen som tredje värld, att prototypernas idéer ska återanvändas och att världen byggs ett hål i taget med speltest emellan.
+
+Hålet lär ut en enda regel: en raketplatta skjuter bollen vidare dit pilen pekar och lägger till extra fart till den fart bollen redan har. Idén kommer från Dubbelstudsens studsplattor, men där satte plattan alltid samma fart. Med en fast fart blev kedjan helt förutbestämd: varje slag som träffade plattan hamnade på samma ställe. Som booster avgör spelarens eget utslag hur långt kedjan bär.
+
+Första plattan står i hörnet efter utslaget och siktar på andra plattans mitt. Andra plattan skickar bollen uppför en friktionssnål startramp, 2,2 meter, till en upphöjd green. Runt 80–95 procent kraft når greenen och ger en närputt för birdie. Svagare slag rullar tillbaka nerför rampen utan pliktslag, och ett nytt slag uppför rampen ger par. Full kraft flyger över greenens öppna kant ut i rymden. Plattor skjuter bara iväg en boll som inte rullar mot pilen, så en boll på väg tillbaka nerför rampen kan inte pendla mellan plattorna.
+
+Miljön är ett tivoli på flytande asteroider: violett rymd med stjärnor, en ringplanet, ett pariserhjul som förebådar hål 17, en lutande månraket som förebådar finalen, randiga cirkustält och ljusslingor. Spelytan är turkos filt med polkagrisrandiga sarger och glödlampor. Grafiken ligger på mellannivå inför Blender.
+
+### Plan för resten av världen
+
+| Hål | Arbetsnamn | Idé | Återanvänd prototyp |
+| --- | --- | --- | --- |
+| 13 | Raketrampen | Raketplattor som booster och en startramp | Dubbelstudsen (studsplattor) |
+| 14 | Tyngdlösa tältet | Låg gravitation i ett tält: korta svävhopp och längre glid | Vippvarvet (vippbro som gungbräda) |
+| 15 | Planetvallen | Planeter som studsar bollen runt en asteroid | Neonhamnens flipperstötar |
+| 16 | Kanonkometen | Raketkanon med svängande sikte och flera landningshyllor | Kanonkurvan (kanon) |
+| 17 | Pariserhjulet | Pariserhjulsfärja mellan avsatser | Ny idé |
+| 18 | Månraketen | Final och set piece: kanon och låg gravitation i kombination | – |
+
+Neonslussens lyftport och Frostfallets isränna kan dyka upp som delmoment. Prototyperna ligger kvar som bonusbanor tills deras idéer har ersatts.
+

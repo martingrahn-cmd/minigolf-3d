@@ -7,12 +7,14 @@ import { createAcornScenery } from './acorn.js';
 import { createLoopScenery } from './loop-visuals.js';
 import { createMotherTreeScenery } from './mother-tree-visuals.js';
 import { CLOCK_THEME, createClockEnvironment } from './clockwork.js';
+import { MOON_THEME, createMoonEnvironment } from './moon.js';
 
 export const THEMES={
   sunset:{key:'sunset',name:'Solskensöarna',range:'PROTOTYP',sky:0x6eabc7,horizon:0xffce9e,water:0x248eaa,rail:0xffefcb,base:0x326773,accent:0xffc367},
   neon:{key:'neon',name:'Neonhamnen',range:'PROTOTYP',sky:0x151b48,horizon:0x716391,water:0x143d63,rail:0x89e7df,base:0x273452,accent:0x8af6e8},
   forest:FOREST_THEME,
   clockwork:CLOCK_THEME,
+  moon:MOON_THEME,
 };
 export const themeFor=id=>THEMES[LEVELS.find(level=>level.id===id)?.theme]||(id<=9?THEMES.sunset:THEMES.neon);
 const standard=(color,extra={})=>new THREE.MeshStandardMaterial({color,roughness:.75,...extra});
@@ -27,6 +29,7 @@ function beam(scene,a,b,r,material){
 }
 export function createEnvironment(scene,level){
   if(themeFor(level.id).key==='clockwork')return createClockEnvironment(scene,level);
+  if(themeFor(level.id).key==='moon')return createMoonEnvironment(scene,level);
   if(themeFor(level.id).key==='forest')return createForestEnvironment(scene,level.scenery==='mothertree'?createMotherTreeScenery:level.scenery==='crown'?createCrownScenery:level.scenery==='loop'?createLoopScenery:level.scenery==='acorn'?createAcornScenery:level.scenery==='ravine'?createRavineScenery:undefined);
   const night=level.id>=10,theme=themeFor(level.id),animated=[];
   let seed=137;
