@@ -6,6 +6,13 @@
     <meta name="theme-color" content="#101d36" />
     <meta name="description" content="Mini Mayhem – arkadminigolf i 3D. Tre världar med sex hål vardera: Urverkets stad, Molnskogen och Månkarnevalen." />
     <title>Mini Mayhem</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Mini Mayhem" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -83,8 +90,11 @@
             <button id="menuHelp" class="menu-secondary">Så spelar du</button>
           </div>
           <small id="menuSummary" class="menu-summary"></small>
+          <small id="menuVersion" class="menu-version"></small>
         </div>
       </div>
+      <div id="updateBanner" class="update-banner" role="status" hidden><span>Ny version av spelet finns</span><button id="updateButton">Uppdatera</button><button id="updateLater" class="update-later" aria-label="Senare">×</button></div>
+      <div id="rotateHint" class="rotate-hint"><div class="rotate-card"><div class="rotate-icon">📱</div><strong>Vrid telefonen</strong><p>Mini Mayhem spelas bäst stående.</p><button id="rotateAnyway" class="menu-secondary">Spela liggande ändå</button></div></div>
       <div id="loading" class="loading-screen"><div class="loading-orb">⛳</div><strong>Bygger banan...</strong><div class="loading-track"><span></span></div></div>
     </div>
     <script type="module" src="/src/main.js"></script>

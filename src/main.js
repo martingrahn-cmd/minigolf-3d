@@ -8,6 +8,7 @@ import { trapdoorAt, supportedByTrapdoors } from './trapdoors.js';
 import { collidePendulum } from './pendulum.js';
 import { trampolineFlight, throughHoop, createPinRack, knockPin, advancePins } from './carnival.js';
 import { themeFor } from './environment.js';
+import { APP_VERSION, watchForUpdates, applyUpdate } from './updates.js';
 import { WORLDS, ROUND, PROTOTYPES, holeLabel, builtCount, nextInRound } from './round.js';
 import { createGolfBall } from './ball.js';
 import * as activeLayout from './layout.js';
@@ -659,7 +660,7 @@ $('actionButton').addEventListener('click',action);
 $('cancelShot').addEventListener('click',()=>{if(['power','accuracy'].includes(state.phase)){state.power=0;setPhase('idle')}});
 $('puttLength').addEventListener('input',()=>{puttLength=Number($('puttLength').value);updateUI()});
 $('shotMode').addEventListener('click',()=>{puttEnabled=!puttEnabled;updateUI();$('shotMode').blur()});
-$('playButton').addEventListener('click',()=>{$('intro').classList.add('hidden');reset();toast('Sikta · välj kraft · träffa grönt',2600)});
+$('playButton').addEventListener('click',()=>{lockPortrait();$('intro').classList.add('hidden');reset();toast('Sikta · välj kraft · träffa grönt',2600)});
 $('againButton').addEventListener('click',()=>{$('win').classList.add('hidden');reset()});
 $('resetButton').addEventListener('click',()=>{if(state.phase!=='intro'){reset();$('win').classList.add('hidden')}});
 $('cameraButton').addEventListener('click',()=>{cameraOverview=!cameraOverview;$('cameraText').textContent=cameraOverview?'Spelvy':'Översikt';resize();updateUI()});
@@ -770,7 +771,18 @@ function configureNext(){
   }
 }
 
+let pendingUpdate=null;
+function showUpdate(latest){pendingUpdate=latest;$('updateBanner').hidden=false}
+$('updateButton').addEventListener('click',()=>{if(pendingUpdate)applyUpdate(pendingUpdate)});
+$('updateLater').addEventListener('click',()=>{$('updateBanner').hidden=true});
+// Phones play in portrait. Installed on Android the manifest locks it; iOS can't lock,
+// so a landscape phone gets a hint that can be dismissed.
+$('rotateAnyway').addEventListener('click',()=>{root.dataset.landscape='ok'});
+function lockPortrait(){screen.orientation?.lock?.('portrait').catch(()=>{})}
+
 async function init(){
+  $('menuVersion').textContent=`Version ${APP_VERSION.label}`;
+  watchForUpdates(showUpdate);
   configureLevelUI();resize();
   try{course=await createCourse(scene)}catch(error){console.error(error);toast('Vissa modeller kunde inte läsas.');}
   if(['forest','clockwork'].includes(LEVEL.theme)){

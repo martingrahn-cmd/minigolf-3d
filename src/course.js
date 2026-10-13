@@ -184,7 +184,7 @@ export async function createCourse(scene) {
   const loader=new GLTFLoader();
   const cache=new Map();
   async function model(name,folder,x,y,z,scale=1,rotation=0,group=scene){
-    const url=`/assets/kaykit/${folder}/${name}.gltf`;
+    const url=`${import.meta.env?.BASE_URL??"/"}assets/kaykit/${folder}/${name}.gltf`;
     if(!cache.has(url))cache.set(url,loader.loadAsync(url));
     try{
       const gltf=await cache.get(url);
