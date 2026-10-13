@@ -1,6 +1,6 @@
 # Mini Mayhem – banrytm och temavärldar
 
-Uppdaterat 13 oktober 2026. **Rundan är numrerad 1–18 i `src/round.js`.** Urverkets stad (1–6) är klar. Molnskogen är hål 7–12: Skybowling, Rotravinen, Ekollonsvingen, Rotvolten, Törnkronan och Moderträdet som final och set piece. Månkarnevalen (13–18) är påbörjad: hål 13 Raketrampen, 14 Tyngdlösa tältet och 15 Svarta hålet är byggda, 16–18 är platshållare. Solskensöarna och Neonhamnen ligger kvar som spelbara prototyper utanför rundan.
+Uppdaterat 13 oktober 2026. **Rundan är numrerad 1–18 i `src/round.js`.** Urverkets stad (1–6) är klar. Molnskogen är hål 7–12: Skybowling, Rotravinen, Ekollonsvingen, Rotvolten, Törnkronan och Moderträdet som final och set piece. Månkarnevalen (13–18) är påbörjad: hål 13 Raketrampen, 14 Tyngdlösa tältet, 15 Svarta hålet och 16 Kanonkometen är byggda, 17–18 är platshållare. Solskensöarna och Neonhamnen ligger kvar som spelbara prototyper utanför rundan.
 
 ## Aktuellt förslag – tre världar med sex hål
 
@@ -8,7 +8,7 @@ Uppdaterat 13 oktober 2026. **Rundan är numrerad 1–18 i `src/round.js`.** Urv
 | --- | --- | --- |
 | 1–6 | **Urverkets stad** | Mässing, trä och turkos filt. Läsbara maskiner: port, rörpost, klockkontakt, därefter nya höjder och en avslutande kombination. De första fem hålen är byggda. |
 | 7–12 | **Molnskogen** | Rosa molnhimmel, rotbroar, svampar och snidade ugglor. Mer terräng: rännor, smala spänger, pendlande ekollon och rotloop. Fem befintliga skogshål kan bilda basen efter omplacering och balansering. |
-| 13–18 | **Månkarnevalen** | Ett övergivet tivoli mellan asteroider. Elfenbensvita raketer, violett rymd, turkosa lyktor och slitna röda cirkustält. Avgränsade zoner med låg gravitation, planetvallar, raketkanoner och en pariserhjulsfärja. Hål 13–15 är byggda. Prototypernas bästa idéer återanvänds här. |
+| 13–18 | **Månkarnevalen** | Ett övergivet tivoli mellan asteroider. Elfenbensvita raketer, violett rymd, turkosa lyktor och slitna röda cirkustält. Avgränsade zoner med låg gravitation, planetvallar, raketkanoner och en pariserhjulsfärja. Hål 13–16 är byggda. Prototypernas bästa idéer återanvänds här. |
 
 Sex hål per värld är användarens önskade upplägg; valet av den tredje världen är fortfarande ett förslag. Varje sexa bör börja med en lättläst regel, växla mellan placering, fart, höjd och tajmning och avsluta med två redan kända idéer i kombination. En kortare precisionsbana mitt i varje värld ger andrum. Äldre Solskensöarna och Neonhamnen finns kvar som prototyper; inget tidigare hål eller rekord har tagits bort eller numrerats om.
 
@@ -287,6 +287,16 @@ Inom den streckade ringen, 3 meter i radie, drar hålet bollen mot mitten. Dragn
 
 Studsplaneterna i de bortre hörnen tar emot överslagna bollar och skickar tillbaka dem in i arenan. Bakom koppen står ett observatorium med skylten SVARTA HÅLET. Fysiken finns i `src/black-hole.js` och delas av spelet och testerna.
 
+## Månkarnevalen – hål 16: Kanonkometen
+
+**Par 3, ett tajmingshål.** De tre första hålen i världen handlar om kraft och sikte. Det här handlar om när man trycker. Kanonkurvans kanon återkommer som raketkanon, men här väljer spelaren själv när den skjuter.
+
+Utslaget är enkelt: allt från cirka 50 procent rullar in i kanonen, och ett svagare slag kan följas av ett nytt. Kanonen laddas, och pipan sveper ±40 grader med en period på 3 sekunder. Kometen flyger alltid 13,2 meter, så landningspunkten bestäms bara av pipans vinkel när spelaren trycker FYR. Att skjuta kostar inget slag.
+
+Svepet är sinusformat. Därför rör sig pipan snabbast över mitten, där greenen ligger (±7 grader, ungefär 11 procent av tiden), och stannar nästan upp vid ändarna över sidohyllorna (från 22 grader och utåt, ungefär 60 procent av tiden). Mellan hyllorna är rymden. En miss kostar ett pliktslag, och bollen laddas i kanonen igen för ett nytt försök. Greenen ger en putt för birdie, och en perfekt mittträff rullar rakt i koppen (under 4 procent av tiden). Från en sidohylla finns ingen rak putt över gapet. Två puttar runt hörnet och nerför bron ger par.
+
+Landningsbågen är markerad med ljus, turkosa över hyllorna och röda över rymden. Medan kanonen är laddad följer ett sikte bågen, så fönstren kan läsas innan man skjuter. Kanonen står på en vridbar sockel med en randig pipa. En komet med svans syns på himlen.
+
 ### Plan för resten av världen
 
 | Hål | Arbetsnamn | Idé | Återanvänd prototyp |
@@ -294,7 +304,7 @@ Studsplaneterna i de bortre hörnen tar emot överslagna bollar och skickar till
 | 13 | Raketrampen | Raketplattor som booster och en startramp | Dubbelstudsen (studsplattor) |
 | 14 | Tyngdlösa tältet | Låg gravitation i ett tält: hal filt, svävhopp över ett öppet hål och en upphöjd scen | Frostfallet (hal yta med öppna kanter) |
 | 15 | Svarta hålet (var Planetvallen) | Ett svart hål som böjer bollens bana; studsplaneter i hörnen | Neonhamnens flipperstötar |
-| 16 | Kanonkometen | Raketkanon med svängande sikte och flera landningshyllor | Kanonkurvan (kanon) |
+| 16 | Kanonkometen | Raketkanon med svepande pipa: tajma FYR mot green eller sidohylla | Kanonkurvan (kanon) |
 | 17 | Pariserhjulet | Pariserhjulsfärja mellan avsatser | Ny idé |
 | 18 | Månraketen | Final och set piece: kanon och låg gravitation i kombination | – |
 

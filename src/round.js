@@ -20,8 +20,7 @@ export const WORLDS = [
     // Built holes reuse the prototypes' best ideas in new form: Dubbelstudsen's
     // pads, Frostfallet's slippery open edges, the harbour's flippers and Kanonkurvan's
     // cannon.
-    slots:[20,21,22,
-      {name:'Kanonkometen',idea:'Kanonen från Kanonkurvan som raketkanon med svängande sikte och flera landningshyllor.'},
+    slots:[20,21,22,23,
       {name:'Pariserhjulet',idea:'Pariserhjulsfärja som bär bollen mellan avsatser. Tajma när du kliver av.'},
       {name:'Månraketen',idea:'Final och set piece vid den trasiga månraketen: kanon och låg gravitation i kombination.'},
     ],

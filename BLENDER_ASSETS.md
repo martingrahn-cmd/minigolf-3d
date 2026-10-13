@@ -100,7 +100,7 @@ Följande räknas fram ur spelmatematiken och ska fortsätta genereras i kod:
 | 12 Moderträdet | 🟡 Finalblommor runt koppen | `bloomHead()` | Fyra blommor utanför spelytan. Blomhuvudet skalas från 0,45 till 1 vid vinst och mitten lyser. | P2 |
 | 12 Moderträdet | 🟢 Två ugglevakter vid Barkstigens slut, lyktor, molnhav | `owl()`, `lantern()`, `cloudSea()` | | P2 |
 
-## Månkarnevalen (hål 13–18, hål 13–15 byggda)
+## Månkarnevalen (hål 13–18, hål 13–16 byggda)
 
 **Världskit** i `src/moon.js`. **P2**, eftersom det återanvänds på alla sex hålen.
 
@@ -130,7 +130,11 @@ Följande räknas fram ur spelmatematiken och ska fortsätta genereras i kod:
 | 15 Svarta hålet | 🔴 Studsplaneter | `createPlanetBumpers()` | Planetens radie är 0,8 m och är samma som kollisionsradien. Den står på en låg sockel. Ringen och planeten pulserar vid träff. Två stycken i de bortre hörnen (8,3, ±5,3). | P2 |
 | 15 Svarta hålet | 🟢 Observatorium med teleskop och skylten SVARTA HÅLET, lyktor | `blackHoleScenery()` | Står bakom koppen utanför spelytan. | P3 |
 
-Hål 16–18 är platshållare. Nya mekaniker läggs till här när hålen designas, se planen i `DESIGN.md`.
+| 16 Kanonkometen | 🔴 Raketkanon på vridbar sockel | `createCometCannon()` | Sockeln har radien 1,25 m och står på (−4,4, 0). Bollen laddas inom 1,1 m från mitten. Tornet vrids kring y efter `barrelAngle` (±40°). Pipan pekar längs +x lokalt, lutar uppåt, har en lysande mynning och rekylerar vid skott. | P2 |
+| 16 Kanonkometen | 🔴 Landningsbågens ljus och siktet | `createCometCannon()` | Ljusen ligger på bågen med radien 13,2 m från kanonen. Färgen kommer från spelytan under (turkos över en hylla, röd över rymden) och får inte ändras för hand. Siktet följer pipans vinkel. | P2 |
+| 16 Kanonkometen | 🟢 Komet med svans på himlen, lyktor och en liten raket | `cometScenery()` | Kulisser utanför spelytan. | P3 |
+
+Hål 17–18 är platshållare. Nya mekaniker läggs till här när hålen designas, se planen i `DESIGN.md`.
 
 ## Prototyper (Solskensöarna och Neonhamnen)
 
