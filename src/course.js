@@ -14,10 +14,10 @@ import { createLiftVisuals } from './lift-visuals.js';
 import {createClockWheelVisuals,createClockBumpers} from './clock-wheel-visuals.js';
 import {createClockHandVisuals} from './clock-hand-visuals.js';
 import {createMotherTreeCourse,createMotherTree} from './mother-tree-visuals.js';
-import {createMoonCourse,createRocketPads,createPlanetBumpers,createBlackHole} from './moon.js';
+import {createMoonCourse,createRocketPads,createPlanetBumpers,createBlackHole,createCometCannon} from './moon.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-import { LEVEL, CUP, CANNON, LANDING, PIPE_IN, PIPE_OUT, PIPE_DIRECTION, PIPE_ENTRY, PIPE_GUIDES, pipeWorld, SPRINGS, SPINNER, TILES, CELLS, BOUNDARIES, heightAt, heightSlope } from './layout.js';
+import { LEVEL, CUP, CANNON, LANDING, PIPE_IN, PIPE_OUT, PIPE_DIRECTION, PIPE_ENTRY, PIPE_GUIDES, pipeWorld, SPRINGS, SPINNER, TILES, CELLS, BOUNDARIES, heightAt, heightSlope, onCourse } from './layout.js';
 export * from './layout.js';
 
 const mat = (color, roughness = .75, metalness = 0) => new THREE.MeshStandardMaterial({ color, roughness, metalness });
@@ -78,6 +78,7 @@ export async function createCourse(scene) {
   const bridge=createBridge(scene,LEVEL.bridge);
   const bumpers=LEVEL.clockWheel?createClockBumpers(scene,LEVEL.bumpers):theme.key==='moon'?createPlanetBumpers(scene,LEVEL.bumpers):createBumpers(scene,LEVEL.bumpers);
   const blackHole=createBlackHole(scene,LEVEL.blackHole);
+  const cometCannon=createCometCannon(scene,LEVEL.cometCannon,onCourse);
   const gates=theme.key==='clockwork'?createClockGates(scene,LEVEL.gates):createGates(scene,LEVEL.gates);
   const carnival=createCarnival(scene,LEVEL);
   const pendulum=createAcornPendulum(scene,LEVEL.pendulum);
@@ -283,5 +284,5 @@ export async function createCourse(scene) {
     model('chest_red','red',-17+startOffset,.08+decorHeight(-17+startOffset,4.8),4.8,.48,Math.PI/4),
     model('diamond_blue','blue',-18.1+startOffset,.4+decorHeight(-18.1+startOffset,-4.8),-4.8,.5)]),
   ]);
-  return { spinner, springGlows, pipePath, bridge, bumpers, gates, carnival, pendulum, trapdoors, environment, funnel, bellBridge, lift, clockWheel, clockHand, motherTree, rocketPads, blackHole, aimSurface:floor };
+  return { spinner, springGlows, pipePath, bridge, bumpers, gates, carnival, pendulum, trapdoors, environment, funnel, bellBridge, lift, clockWheel, clockHand, motherTree, rocketPads, blackHole, cometCannon, aimSurface:floor };
 }

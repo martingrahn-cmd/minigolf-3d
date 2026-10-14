@@ -255,6 +255,7 @@ export function createMoonCourse(scene,cells,boundaries,heightAt,level){
   if(level.scenery==='rocketramp')rocketRampScenery(scene,heightAt);
   if(level.scenery==='zerog')zeroGStage(scene,heightAt,level);
   if(level.scenery==='blackhole')blackHoleScenery(scene,level);
+  if(level.scenery==='comet')cometScenery(scene,level);
   return floor;
 }
 
@@ -494,4 +495,55 @@ function blackHoleScenery(scene,level){
   const sign=add(scene,new THREE.PlaneGeometry(4.2,1.05),new THREE.MeshBasicMaterial({map:signTexture('SVARTA HÅLET'),transparent:true,side:THREE.DoubleSide}),cup.x+6.4,2.6,0);
   sign.rotation.y=-Math.PI/2;sign.castShadow=false;
   lantern(scene,-12.6,0,-2.9);lantern(scene,-12.6,0,2.9);lantern(scene,-8.6,0,-8.6);lantern(scene,-8.6,0,8.6);
+}
+
+// Hole 16: the comet cannon on its turntable. A string of lights along the
+// landing arc shows the windows: teal over a shelf, red over open space. A
+// reticle rides the arc with the barrel while the cannon is loaded.
+export function createCometCannon(scene,cannon,onCourse){
+  if(!cannon)return null;
+  const root=new THREE.Group();root.name='comet-cannon';root.position.set(cannon.x,0,cannon.z);scene.add(root);
+  add(root,new THREE.CylinderGeometry(1.25,1.4,.3,28),material(C.deep),0,.15,0);
+  add(root,new THREE.TorusGeometry(1.25,.07,8,40),glowMaterial(C.gold,1.1),0,.31,0).rotation.x=Math.PI/2;
+  const turret=new THREE.Group();turret.position.y=.3;root.add(turret);
+  for(const side of [-1,1])add(turret,new THREE.BoxGeometry(.9,.9,.18),material(C.ivory,{metalness:.3}),0,.45,side*.55);
+  const barrel=new THREE.Group();barrel.position.set(0,.85,0);barrel.rotation.z=.42;turret.add(barrel);
+  const tube=add(barrel,striped(new THREE.CylinderGeometry(.42,.5,2.6,16,1,true),[C.red,C.ivory],8),material(0xffffff,{vertexColors:true,side:THREE.DoubleSide}),0,0,0);
+  tube.rotation.z=-Math.PI/2;tube.position.x=.7;
+  for(const x of [-.4,.7,1.85])add(barrel,new THREE.TorusGeometry(.48,.07,8,24),material(C.gold,{metalness:.5}),x,0,0).rotation.y=Math.PI/2;
+  const mouth=add(barrel,new THREE.CircleGeometry(.4,20),glowMaterial(0xffa04a,.6),1.99,0,0);mouth.rotation.y=Math.PI/2;mouth.castShadow=false;
+  const fins=[];for(let i=0;i<3;i++){const fin=add(barrel,new THREE.BoxGeometry(.6,.05,.5),material(C.red),-.55,0,0);fin.rotation.x=i*Math.PI*2/3;fin.translateZ(.55);fins.push(fin)}
+  // Lights along the landing arc, coloured by what lies beneath.
+  const arc=[];
+  for(let a=-cannon.sweep;a<=cannon.sweep+1e-6;a+=cannon.sweep/18){
+    const x=cannon.x+Math.cos(a)*cannon.range,z=cannon.z+Math.sin(a)*cannon.range,safe=onCourse(x,z);
+    arc.push(add(scene,new THREE.SphereGeometry(.1,8,6),glowMaterial(safe?C.teal:0xff5d6c,1.4),x,safe?.12:-.15,z));
+  }
+  const reticle=new THREE.Group();reticle.name='comet-reticle';scene.add(reticle);
+  const ring=add(reticle,new THREE.TorusGeometry(.75,.07,8,32),glowMaterial(C.teal,1.8));ring.rotation.x=Math.PI/2;ring.castShadow=false;
+  const dot=add(reticle,new THREE.CircleGeometry(.18,16),glowMaterial(C.teal,1.8),0,.02,0);dot.rotation.x=-Math.PI/2;dot.castShadow=false;
+  let recoil=0;
+  return {
+    fire(){recoil=1},
+    update(dt,angle,loaded,safe){
+      recoil=Math.max(0,recoil-dt*2.5);
+      turret.rotation.y=-angle;barrel.position.x=-recoil*.35;
+      mouth.material.emissiveIntensity=(loaded?1.6:.6)+recoil*5;
+      const x=cannon.x+Math.cos(angle)*cannon.range,z=cannon.z+Math.sin(angle)*cannon.range;
+      reticle.visible=loaded;reticle.position.set(x,safe?.1:-.1,z);
+      const color=new THREE.Color(safe?C.teal:0xff5d6c);
+      for(const m of [ring.material,dot.material]){m.color.copy(color);m.emissive.copy(color)}
+    },
+  };
+}
+
+// A comet streaks across the sky above hole 16; lanterns at the tee.
+function cometScenery(scene,level){
+  const comet=new THREE.Group();comet.name='sky-comet';comet.position.set(30,26,-60);comet.rotation.z=-.35;scene.add(comet);
+  add(comet,new THREE.IcosahedronGeometry(1.6,1),glowMaterial(0xfff2c8,1.6)).castShadow=false;
+  const tail=add(comet,new THREE.ConeGeometry(1.5,16,16,1,true),new THREE.MeshBasicMaterial({color:0xffc27a,transparent:true,opacity:.28,depthWrite:false,side:THREE.DoubleSide}),8.6,0,0);
+  tail.rotation.z=Math.PI/2;tail.castShadow=false;
+  for(const [x,z] of [[-15.6,-1.9],[-15.6,1.9],[-4.4,-2.2],[-4.4,2.2]])lantern(scene,x,0,z);
+  asteroid(scene,level.cup.x+3.5,-3,0,2.4,411,material(C.rockDark)).scale.set(1,.7,2.4);
+  rocket(scene,13.6,0,8.2,.6,.05);
 }
