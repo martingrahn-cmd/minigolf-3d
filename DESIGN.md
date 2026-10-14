@@ -1,6 +1,6 @@
 # Mini Mayhem – banrytm och temavärldar
 
-Uppdaterat 13 oktober 2026. **Rundan är numrerad 1–18 i `src/round.js`.** Urverkets stad (1–6) är klar. Molnskogen är hål 7–12: Skybowling, Rotravinen, Ekollonsvingen, Rotvolten, Törnkronan och Moderträdet som final och set piece. Månkarnevalen (13–18) är påbörjad: hål 13 Raketrampen, 14 Tyngdlösa tältet, 15 Svarta hålet och 16 Kanonkometen är byggda, 17–18 är platshållare. Solskensöarna och Neonhamnen ligger kvar som spelbara prototyper utanför rundan.
+Uppdaterat 13 oktober 2026. **Rundan är numrerad 1–18 i `src/round.js`.** Urverkets stad (1–6) är klar. Molnskogen är hål 7–12: Skybowling, Rotravinen, Ekollonsvingen, Rotvolten, Törnkronan och Moderträdet som final och set piece. Månkarnevalen (13–18) är påbörjad: hål 13 Raketrampen, 14 Tyngdlösa tältet, 15 Svarta hålet och 16 Kanonkometen och 17 Pariserhjulet är byggda, hål 18 är platshållare. Solskensöarna och Neonhamnen ligger kvar som spelbara prototyper utanför rundan.
 
 ## Aktuellt förslag – tre världar med sex hål
 
@@ -8,7 +8,7 @@ Uppdaterat 13 oktober 2026. **Rundan är numrerad 1–18 i `src/round.js`.** Urv
 | --- | --- | --- |
 | 1–6 | **Urverkets stad** | Mässing, trä och turkos filt. Läsbara maskiner: port, rörpost, klockkontakt, därefter nya höjder och en avslutande kombination. De första fem hålen är byggda. |
 | 7–12 | **Molnskogen** | Rosa molnhimmel, rotbroar, svampar och snidade ugglor. Mer terräng: rännor, smala spänger, pendlande ekollon och rotloop. Fem befintliga skogshål kan bilda basen efter omplacering och balansering. |
-| 13–18 | **Månkarnevalen** | Ett övergivet tivoli mellan asteroider. Elfenbensvita raketer, violett rymd, turkosa lyktor och slitna röda cirkustält. Avgränsade zoner med låg gravitation, planetvallar, raketkanoner och en pariserhjulsfärja. Hål 13–16 är byggda. Prototypernas bästa idéer återanvänds här. |
+| 13–18 | **Månkarnevalen** | Ett övergivet tivoli mellan asteroider. Elfenbensvita raketer, violett rymd, turkosa lyktor och slitna röda cirkustält. Avgränsade zoner med låg gravitation, planetvallar, raketkanoner och en pariserhjulsfärja. Hål 13–17 är byggda. Prototypernas bästa idéer återanvänds här. |
 
 Sex hål per värld är användarens önskade upplägg; valet av den tredje världen är fortfarande ett förslag. Varje sexa bör börja med en lättläst regel, växla mellan placering, fart, höjd och tajmning och avsluta med två redan kända idéer i kombination. En kortare precisionsbana mitt i varje värld ger andrum. Äldre Solskensöarna och Neonhamnen finns kvar som prototyper; inget tidigare hål eller rekord har tagits bort eller numrerats om.
 
@@ -297,6 +297,14 @@ Svepet är sinusformat. Därför rör sig pipan snabbast över mitten, där gree
 
 Landningsbågen är markerad med ljus, turkosa över hyllorna och röda över rymden. Medan kanonen är laddad följer ett sikte bågen, så fönstren kan läsas innan man skjuter. Kanonen står på en vridbar sockel med en randig pipa. En komet med svans syns på himlen.
 
+## Månkarnevalen – hål 17: Pariserhjulet
+
+**Par 3, ett lugnt hål före finalen.** Platshållaren sa "tajma när du kliver av", men tajming med ett tryck användes redan på hål 16. Här tajmar spelaren i stället själva slaget, som vid Neonslussens lyftport: bollen ska rulla in i en gondol medan den står vid bryggan.
+
+Hjulet beter sig som ett riktigt tivolihjul. Det vrider sig ett kvarts varv på 1,4 sekunder och står sedan still i 1,6 sekunder. Fyra gondoler hänger lodrätt. Vid varje stopp står en gondol vid den nedre bryggan och en vid den övre greenen, ett halvt varv bort. En boll som rullar in i bryggans öppning medan hjulet står still går ombord, åker ett halvt varv (två steg) över toppen och tippas ut på greenen med lite fart. Därifrån ger en putt birdie. Medan hjulet snurrar är grinden stängd: en röd lampa och en bom. Då studsar bollen tillbaka, och det kostar inget pliktslag. Ungefär hälften av alla starttider når en stående gondol med ett slag på 70 procent. Genom att se hjulets rytm kan spelaren slå i rätt ögonblick.
+
+Rampen längs sidan leder 2,5 meter upp till greenen och ger par. Kanten mot rymden är öppen, så ett slag som drar åt fel håll ramlar av. Hjulets geometri (nav, radie och var gondolerna hänger) delas av fysiken och grafiken i `src/ferris.js`. Testerna kontrollerar att gondolernas golv ligger i nivå med båda däcken.
+
 ### Plan för resten av världen
 
 | Hål | Arbetsnamn | Idé | Återanvänd prototyp |
@@ -305,7 +313,7 @@ Landningsbågen är markerad med ljus, turkosa över hyllorna och röda över ry
 | 14 | Tyngdlösa tältet | Låg gravitation i ett tält: hal filt, svävhopp över ett öppet hål och en upphöjd scen | Frostfallet (hal yta med öppna kanter) |
 | 15 | Svarta hålet (var Planetvallen) | Ett svart hål som böjer bollens bana; studsplaneter i hörnen | Neonhamnens flipperstötar |
 | 16 | Kanonkometen | Raketkanon med svepande pipa: tajma FYR mot green eller sidohylla | Kanonkurvan (kanon) |
-| 17 | Pariserhjulet | Pariserhjulsfärja mellan avsatser | Ny idé |
+| 17 | Pariserhjulet | Pariserhjulsfärja: rulla in när hjulet stannar, åk till greenen | Neonslussens lyftport (tajma grinden) |
 | 18 | Månraketen | Final och set piece: kanon och låg gravitation i kombination | – |
 
 Neonslussens lyftport och Vippvarvets vippbro kan dyka upp som delmoment. Prototyperna ligger kvar som bonusbanor tills deras idéer har ersatts.

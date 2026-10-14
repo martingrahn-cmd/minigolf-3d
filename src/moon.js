@@ -256,6 +256,7 @@ export function createMoonCourse(scene,cells,boundaries,heightAt,level){
   if(level.scenery==='zerog')zeroGStage(scene,heightAt,level);
   if(level.scenery==='blackhole')blackHoleScenery(scene,level);
   if(level.scenery==='comet')cometScenery(scene,level);
+  if(level.scenery==='ferris')ferrisScenery(scene,heightAt);
   return floor;
 }
 
@@ -560,4 +561,52 @@ function cometScenery(scene,level){
   tail.rotation.z=Math.PI/2;tail.castShadow=false;
   for(const [x,z] of [[-15.6,-1.9],[-15.6,1.9],[-4.4,-2.2],[-4.4,2.2]])lantern(scene,x,0,z);
   rocket(scene,13.6,0,8.2,.6,.05);
+}
+
+// Hole 17: the playable Ferris wheel. Its gondolas hang level from pivots on the
+// rim, exactly where `ferris.js` carries the ball. A gate with a lamp at the dock
+// shows when a gondola stands ready (green) or the wheel is turning (red).
+export function createGondolaWheel(scene,wheel){
+  if(!wheel)return null;
+  const root=new THREE.Group();root.name='ferris-ferry';root.position.set(wheel.x,0,wheel.z);scene.add(root);
+  const steel=material(C.ivory,{metalness:.3}),red=material(C.red),hub=new THREE.Vector3(0,wheel.hubY,0);
+  for(const side of [-1,1])for(const dx of [-2.6,2.6])beam(root,[dx,-3.2,side*1.9],[0,wheel.hubY,side*1.55],.14,steel);
+  asteroid(root,0,-4.4,0,2.6,505,material(C.rockDark)).rotation.set(0,0,0);
+  beam(root,[0,wheel.hubY,-1.7],[0,wheel.hubY,1.7],.2,material(C.gold,{metalness:.5}));
+  const spin=new THREE.Group();spin.position.copy(hub);root.add(spin);
+  for(const z of [-1.4,1.4])add(spin,new THREE.TorusGeometry(wheel.radius,.11,8,64),red,0,0,z);
+  for(let i=0;i<16;i++){const a=i/16*Math.PI*2;for(const z of [-1.4,1.4])beam(spin,[0,0,z],[Math.cos(a)*wheel.radius,Math.sin(a)*wheel.radius,z],.04,steel)}
+  const bulb=glowMaterial(C.gold,1.4);
+  for(let i=0;i<32;i++){const a=i/32*Math.PI*2;for(const z of [-1.52,1.52])add(spin,new THREE.SphereGeometry(.08,6,5),bulb,Math.cos(a)*wheel.radius,Math.sin(a)*wheel.radius,z).castShadow=false}
+  const gondolas=[];
+  for(let k=0;k<wheel.gondolas;k++){
+    const g=new THREE.Group();root.add(g);
+    const colour=material(k%2?C.teal:C.red);
+    add(g,new THREE.BoxGeometry(1.3,.1,2.2),material(C.ivory),0,-wheel.hang+.0,0);
+    for(const z of [-1.1,1.1])add(g,new THREE.BoxGeometry(1.3,.42,.08),colour,0,-wheel.hang+.2,z);
+    add(g,new THREE.BoxGeometry(.08,.42,2.2),colour,.65,-wheel.hang+.2,0);
+    beam(g,[0,0,-1.1],[0,-wheel.hang,-1.1],.04,steel);beam(g,[0,0,1.1],[0,-wheel.hang,1.1],.04,steel);
+    beam(g,[0,0,-1.45],[0,0,1.45],.05,steel);
+    gondolas.push(g);
+  }
+  // The dock gate: a striped bar across the slot and a signal lamp.
+  const gate=new THREE.Group();gate.position.set(wheel.dockX-.25-wheel.x,0,-wheel.slot-.35);root.add(gate);
+  beam(gate,[0,0,0],[0,1.6,0],.07,material(C.deep));
+  const lamp=add(gate,new THREE.SphereGeometry(.2,12,8),glowMaterial(0xff5d6c,1.8),0,1.8,0);lamp.castShadow=false;
+  const bar=new THREE.Group();bar.position.y=.45;gate.add(bar);
+  add(bar,striped(new THREE.CylinderGeometry(.06,.06,2*wheel.slot+.5,8,1,true),[C.red,C.ivory],4),material(0xffffff,{vertexColors:true,side:THREE.DoubleSide}),0,0,(2*wheel.slot+.5)/2).rotation.x=Math.PI/2;
+  const green=new THREE.Color(0x6fe3a0),stop=new THREE.Color(0xff5d6c);
+  return {update(turn,open){
+    spin.rotation.z=-turn;
+    gondolas.forEach((g,k)=>{const a=wheel.dockAngle+k*wheel.step-turn;g.position.set(Math.cos(a)*wheel.radius,wheel.hubY+Math.sin(a)*wheel.radius,0)});
+    const c=open?green:stop;lamp.material.color.copy(c);lamp.material.emissive.copy(c);
+    bar.rotation.x+=((open?-1.35:0)-bar.rotation.x)*.2;
+  }};
+}
+
+// Hole 17 dressing: lanterns at the tee and string lights along the ramp.
+function ferrisScenery(scene,heightAt){
+  for(const [x,z] of [[-16.5,-2.9],[-16.5,2.9],[-4.6,-2.9]])lantern(scene,x,0,z);
+  stringLights(scene,[-4,2.2,8.9],[4,heightAt(4,8.9)+2.2,8.9],.6,14);
+  rocket(scene,13.6,2.5,-3.9,.55,.05);
 }
