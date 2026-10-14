@@ -131,6 +131,7 @@ Följande räknas fram ur spelmatematiken och ska fortsätta genereras i kod:
 | 15 Svarta hålet | 🟢 Observatorium med teleskop och skylten SVARTA HÅLET, lyktor | `blackHoleScenery()` | Står bakom koppen utanför spelytan. | P3 |
 
 | 16 Kanonkometen | 🔴 Raketkanon på vridbar sockel | `createCometCannon()` | Sockeln har radien 1,25 m och står på (−4,4, 0). Bollen laddas inom 1,1 m från mitten. Tornet vrids kring y efter `barrelAngle` (±40°). Pipan pekar längs +x lokalt, lutar uppåt, har en lysande mynning och rekylerar vid skott. | P2 |
+| 16 Kanonkometen | 🔴 Laddningstratt och glasrör | `createCometCannon()` | Tratten ligger i banans nivå på (−6,6, 0), och bollen fångas inom 0,9 m. Glasröret följer punkterna i `feed` upp i kanonens mitt. Röret måste vara genomskinligt, eftersom bollen syns på väg upp. Styrsargerna före tratten är kollisionslinjer (banks). | P2 |
 | 16 Kanonkometen | 🔴 Landningsbågens ljus och siktet | `createCometCannon()` | Ljusen ligger på bågen med radien 13,2 m från kanonen. Färgen kommer från spelytan under (turkos över en hylla, röd över rymden) och får inte ändras för hand. Siktet följer pipans vinkel. | P2 |
 | 16 Kanonkometen | 🟢 Komet med svans på himlen, lyktor och en liten raket | `cometScenery()` | Kulisser utanför spelytan. | P3 |
 
