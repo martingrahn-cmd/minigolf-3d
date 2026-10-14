@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {layout,cannon,shot,fire,fireAt} from '../scripts/probe-comet.mjs';
-import {barrelAngle,cometPose,cometLanding} from '../src/comet-cannon.js';
+import {barrelAngle,cometPose,cometLanding,feedPose} from '../src/comet-cannon.js';
 import {puttSpeed} from '../src/putting.js';
 
 const S=layout.START,C=layout.CUP,deg=Math.PI/180;
@@ -22,6 +22,10 @@ test('any firm tee shot rolls into the cannon; a soft one can try again',()=>{
   for(const p of [.5,.6,.8,1])assert.ok(shot(S,p,{x:cannon.x,z:0}).loaded,`${p}: loads the cannon`);
   const soft=shot(S,.3,{x:cannon.x,z:0});assert.ok(!soft.loaded&&!soft.fell);
   assert.ok(shot(soft,.4,{x:cannon.x,z:0}).loaded);
+  for(const z of [-1.3,1.3])assert.ok(shot(S,.7,{x:cannon.x,z}).loaded,`aimed at ${z}: the guide rails steer it into the funnel`);
+  const start=feedPose(cannon,0),end=feedPose(cannon,cannon.feedTime);
+  assert.ok(Math.hypot(start.x-cannon.hopper.x,start.z-cannon.hopper.z)<1e-9&&Math.hypot(end.x-cannon.x,end.z-cannon.z)<1e-9&&end.done,'The feed tube runs from the funnel into the cannon');
+  assert.ok(feedPose(cannon,cannon.feedTime/2).y>1,'up through the glass tube');
 });
 
 test('the middle of the sweep lands on the green, the ends on the side shelves, between them is space',()=>{

@@ -489,7 +489,8 @@ export function createPlanetBumpers(scene,bumpers=[]){
 // The arena: an observatory dome behind the cup and lanterns at the tee.
 function blackHoleScenery(scene,level){
   const cup=level.cup;
-  asteroid(scene,cup.x+6.5,-4,0,3.2,301,material(C.rockDark)).scale.set(1,.7,1.6);
+  // asteroid() turns rocks at random; keep this one level so it stays below the dome.
+  const base=asteroid(scene,cup.x+6.5,-4,0,3.2,301,material(C.rockDark));base.rotation.set(0,0,0);base.scale.set(1,.7,1.6);
   const dome=add(scene,new THREE.SphereGeometry(2.2,24,12,0,Math.PI*2,0,Math.PI/2),material(C.ivory,{flatShading:false}),cup.x+6.5,-.6,0);dome.name='observatory';
   const scope=beam(scene,[cup.x+6.5,.6,0],[cup.x+5,2.6,0],.28,material(C.deep,{metalness:.4}),12);scope.name='telescope';
   const sign=add(scene,new THREE.PlaneGeometry(4.2,1.05),new THREE.MeshBasicMaterial({map:signTexture('SVARTA HÅLET'),transparent:true,side:THREE.DoubleSide}),cup.x+6.4,2.6,0);
@@ -522,11 +523,25 @@ export function createCometCannon(scene,cannon,onCourse){
   const reticle=new THREE.Group();reticle.name='comet-reticle';scene.add(reticle);
   const ring=add(reticle,new THREE.TorusGeometry(.75,.07,8,32),glowMaterial(C.teal,1.8));ring.rotation.x=Math.PI/2;ring.castShadow=false;
   const dot=add(reticle,new THREE.CircleGeometry(.18,16),glowMaterial(C.teal,1.8),0,.02,0);dot.rotation.x=-Math.PI/2;dot.castShadow=false;
+  // The loading funnel in the lane and the glass feed tube up into the breech.
+  let suck=0,funnelGlow=null;
+  if(cannon.hopper){
+    const funnel=new THREE.Group();funnel.name='comet-funnel';funnel.position.set(cannon.hopper.x,0,cannon.hopper.z);scene.add(funnel);
+    const collar=add(funnel,new THREE.CylinderGeometry(.95,1.05,.08,32,1,true),material(C.ivory,{metalness:.3,side:THREE.DoubleSide}),0,.08,0);collar.castShadow=false;
+    const mouth=add(funnel,new THREE.CircleGeometry(.62,32),new THREE.MeshBasicMaterial({color:0x07030f}),0,.055,0);mouth.rotation.x=-Math.PI/2;mouth.castShadow=false;
+    funnelGlow=add(funnel,new THREE.TorusGeometry(.72,.06,8,32),glowMaterial(C.gold,1.2));funnelGlow.rotation.x=Math.PI/2;funnelGlow.position.y=.1;funnelGlow.castShadow=false;
+    const path=new THREE.CatmullRomCurve3(cannon.feed.map(([x,y,z])=>new THREE.Vector3(x,y,z)),false,'centripetal');
+    const glass=add(scene,new THREE.TubeGeometry(path,40,.21,14,false),new THREE.MeshStandardMaterial({color:0xbfefff,transparent:true,opacity:.28,roughness:.1,metalness:.1,depthWrite:false,side:THREE.DoubleSide}));
+    glass.castShadow=false;glass.name='feed-tube';
+    for(const t of [.25,.55,.85]){const p=path.getPoint(t),ring=add(scene,new THREE.TorusGeometry(.24,.04,6,20),material(C.gold,{metalness:.5}),p.x,p.y,p.z);ring.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),path.getTangent(t))}
+  }
   let recoil=0;
   return {
     fire(){recoil=1},
+    suck(){suck=1},
     update(dt,angle,loaded,safe){
-      recoil=Math.max(0,recoil-dt*2.5);
+      recoil=Math.max(0,recoil-dt*2.5);suck=Math.max(0,suck-dt*1.2);
+      if(funnelGlow)funnelGlow.material.emissiveIntensity=(loaded?.6:1.2+Math.sin(performance.now()/300)*.4)+suck*4;
       turret.rotation.y=-angle;barrel.position.x=-recoil*.35;
       mouth.material.emissiveIntensity=(loaded?1.6:.6)+recoil*5;
       const x=cannon.x+Math.cos(angle)*cannon.range,z=cannon.z+Math.sin(angle)*cannon.range;
@@ -544,6 +559,5 @@ function cometScenery(scene,level){
   const tail=add(comet,new THREE.ConeGeometry(1.5,16,16,1,true),new THREE.MeshBasicMaterial({color:0xffc27a,transparent:true,opacity:.28,depthWrite:false,side:THREE.DoubleSide}),8.6,0,0);
   tail.rotation.z=Math.PI/2;tail.castShadow=false;
   for(const [x,z] of [[-15.6,-1.9],[-15.6,1.9],[-4.4,-2.2],[-4.4,2.2]])lantern(scene,x,0,z);
-  asteroid(scene,level.cup.x+3.5,-3,0,2.4,411,material(C.rockDark)).scale.set(1,.7,2.4);
   rocket(scene,13.6,0,8.2,.6,.05);
 }

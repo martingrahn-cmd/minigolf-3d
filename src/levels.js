@@ -258,7 +258,10 @@ export const LEVELS = [
     description:'Rulla in bollen i raketkanonen. Kanonen svänger fram och tillbaka – tryck FYR när siktet pekar dit du vill. Mitten är greenen med koppen, men där sveper kanonen snabbast. Sidohyllorna är lättare att träffa men längre från koppen. Missar du flyger kometen ut i rymden.',
     feature:'Svängande raketkanon & landningshyllor',hasPipe:false,hasRamp:false,start:{x:-13,z:0},cup:{x:11.2,z:0},
     cannon:null,landing:null,overview:{x:2,z:0,span:36,cameraX:-5,targetY:.3},cameraSide:2,spinner:null,arches:[],springs:[],
-    cometCannon:{x:-4.4,z:0,heading:0,sweep:40*Math.PI/180,period:3,range:13.2,flight:1.1,apex:5,carry:3,catch:1.1},
+    cometCannon:{x:-4.4,z:0,heading:0,sweep:40*Math.PI/180,period:3,range:13.2,flight:1.1,apex:5,carry:3,catch:.9,
+      hopper:{x:-6.6,z:0},feed:[[-6.6,-.15,0],[-6.2,.5,0],[-5.6,1.3,0],[-4.9,1.45,0],[-4.4,1.15,0]],feedTime:.9},
+    // Guide rails narrow the lane into the loading funnel, so no ball rolls past it.
+    banks:[{ax:-9.5,az:1.5,bx:-6.6,bz:.62,nx:-.29,nz:-.957},{ax:-9.5,az:-1.5,bx:-6.6,bz:-.62,nx:-.29,nz:.957}],
     surfaces:[{x1:-17,x2:13,z1:-9,z2:9,friction:1.1}],
     tiles:[
       {x1:-16,x2:-3,z1:-1.5,z2:1.5,color:0x46a6a0},
@@ -268,7 +271,7 @@ export const LEVELS = [
       {x1:4.5,x2:12.6,z1:-8.5,z2:-5,color:0x46a6a0},
       {x1:4.5,x2:12.6,z1:5,z2:8.5,color:0x46a6a0},
     ],
-    labels:[['IN I KANONEN →',-12.5,-1.1],['GREEN',8.4,-1.2],['SIDOHYLLA',6.5,7.9],['SIDOHYLLA',6.5,-5.6]],
+    labels:[['IN I TRATTEN →',-13,-1.1],['GREEN',8.4,-1.2],['SIDOHYLLA',6.5,7.9],['SIDOHYLLA',6.5,-5.6]],
     supports:[],shelf:{x:12,z:-9},routeHeading:'TAJMA KOMETEN',
     routes:[['Mitten','Greenen · snabbast svep'],['Sidohyllan','Lätt att träffa · en putt till']],
   },
