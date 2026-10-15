@@ -12,7 +12,7 @@ Prioritet: **P1** först (världsfinaler och delar som syns på varje hål), **P
 
 ## Status
 
-Fas 1 är byggd: Blender-pipelinen (`blender/build.py`, `blender/lib.py`, en modul per värld i `blender/assets/`), flagga och kopp för alla hål samt Månkarnevalens kit (raket, tre asteroider, lykta och tält). Rader märkta ✅ nedan finns som `.glb`. Nästa faser: Molnskogens kit, Urverkets kit och sedan världsfinalernas set pieces.
+Fas 1 och 2 är byggda: Blender-pipelinen (`blender/build.py`, `blender/lib.py`, en modul per värld i `blender/assets/`), flagga och kopp för alla hål, Månkarnevalens kit (raket, tre asteroider, lykta och tält) och Molnskogens växter (tre träd, svamp och ormbunke). Rader märkta ✅ nedan finns som `.glb`. Nästa faser: Urverkets kit och sedan världsfinalernas set pieces.
 
 ## Gemensamma regler för export
 
@@ -72,8 +72,8 @@ Följande räknas fram ur spelmatematiken och ska fortsätta genereras i kod:
 
 | Asset | Ersätter | Krav och mått |
 |---|---|---|
-| 🟢 Träd i 3 varianter | `tree()` | Ungefär 6,6 m högt i skala 1. Kronorna är egna objekt som vajar, och de måste kunna tonas ut när de skymmer bollen. |
-| 🟢 Ormbunke, svamp, kristall, sten | `fern()`, `mushroom()`, `crystal()` | |
+| 🟢 ✅ Träd i 3 varianter (`forest/tree-0…2.glb`, kronorna heter `canopy-0…2`) | `tree()` | Ungefär 6,6 m högt i skala 1. Kronorna är egna objekt som vajar, och de måste kunna tonas ut när de skymmer bollen. |
+| 🟢 Ormbunke (✅ `forest/fern.glb`), svamp (✅ `forest/mushroom.glb`, materialet `Cap` färgas per svamp), kristall, sten | `fern()`, `mushroom()`, `crystal()` | |
 | 🟡 Sargkit: stolpe, rep, list | Staket i varje `create…Course` | Listen ligger längs kollisionslinjen på höjden 0,16 m. Stolpen är 0,95 m och repet sitter på 0,66 m. Modulära bitar om 1,7–1,8 m. |
 | 🟡 Trädäck och bro | Plankor, rep och balkar under träytor | Ovansidan får inte gå över 0,04 m, där spelytan ligger. |
 | 🟢 Lyktor i 2–3 varianter | `lantern()` i flera filer | Ljuskroppen är eget objekt. |

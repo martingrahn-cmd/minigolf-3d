@@ -16,7 +16,7 @@ import {createClockHandVisuals} from './clock-hand-visuals.js';
 import {createMotherTreeCourse,createMotherTree} from './mother-tree-visuals.js';
 import {createMoonCourse,createRocketPads,createPlanetBumpers,createBlackHole,createCometCannon,createGondolaWheel,createMoonRocket} from './moon.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { preloadModels, modelInstance, tintMaterials, COMMON_MODELS, MOON_MODELS } from './models.js';
+import { preloadModels, modelInstance, tintMaterials, COMMON_MODELS, FOREST_MODELS, MOON_MODELS } from './models.js';
 
 import { LEVEL, CUP, CANNON, LANDING, PIPE_IN, PIPE_OUT, PIPE_DIRECTION, PIPE_ENTRY, PIPE_GUIDES, pipeWorld, SPRINGS, SPINNER, TILES, CELLS, BOUNDARIES, heightAt, heightSlope, onCourse } from './layout.js';
 export * from './layout.js';
@@ -75,7 +75,7 @@ function makeLabel(scene, text, x, z, color = '#203e52') {
 }
 
 export async function createCourse(scene) {
-  await preloadModels([...COMMON_MODELS,...(theme.key==='moon'?MOON_MODELS:[])]);
+  await preloadModels([...COMMON_MODELS,...({moon:MOON_MODELS,forest:FOREST_MODELS}[theme.key]??[])]);
   const environment=createEnvironment(scene,LEVEL);
   const bridge=createBridge(scene,LEVEL.bridge);
   const bumpers=LEVEL.clockWheel?createClockBumpers(scene,LEVEL.bumpers):theme.key==='moon'?createPlanetBumpers(scene,LEVEL.bumpers):createBumpers(scene,LEVEL.bumpers);

@@ -14,8 +14,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path[:0] = [HERE, os.path.join(HERE, 'assets')]
 
 import common  # noqa: E402
+import forest  # noqa: E402
 import moon  # noqa: E402
 
-for module in (common, moon):
+for module in (common, forest, moon):
     print(f'{module.__name__}:')
     module.build()

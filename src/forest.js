@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { modelInstance, tintMaterials } from './models.js';
 
 export const FOREST_THEME={key:'forest',name:'Molnskogen',range:'HÅL 07–12',sky:0xef79b9,horizon:0xffacd7,rail:0xa76b37,base:0x986344,accent:0x96ca50};
 const palette={bark:0x76503a,wood:0xb17c43,cut:0xeac082,moss:0x557d2c,leaf:0x69a72c,leafLight:0x92c83b,rock:0xb99973};
@@ -53,6 +54,18 @@ function island(parent,outline,depth=5.8,seed=23,topY=.015){
 
 function tree(parent,x,y,z,scale,seed,animated){
   const random=randomSource(seed),root=new THREE.Group();root.position.set(x,y,z);root.scale.setScalar(scale);root.rotation.y=random()*Math.PI*2;parent.add(root);
+  const model=modelInstance(`forest/tree-${Math.abs(seed)%3}`);
+  if(model){
+    root.add(model);
+    model.traverse(o=>{if(/^canopy-/.test(o.name))animated.push({object:o,phase:random()*6,type:'canopy'})});
+    // Trees in the open fade when they hide the ball; each needs its own materials.
+    if(parent.isScene)root.traverse(o=>{
+      if(!o.isMesh)return;
+      o.material=Array.isArray(o.material)?o.material.map(m=>Object.assign(m.clone(),{transparent:true})):Object.assign(o.material.clone(),{transparent:true});
+      o.userData.forestOccluder=true;
+    });
+    return root;
+  }
   const bark=material(palette.bark),litBark=material(0xa07349),darkLeaf=material(0x426d2a),leaf=material(palette.leaf),lightLeaf=material(palette.leafLight);
   const lean=.4+random()*.8;
   const trunk=[[0,0,0],[.18,1.9,.08],[lean*.6,4,-.08],[lean,6.6,.1]];
@@ -78,8 +91,12 @@ function tree(parent,x,y,z,scale,seed,animated){
   return root;
 }
 
+// Small props are merged into a few draw calls by batchForestMeshes.
+const batched=object=>{object.traverse(o=>{if(o.isMesh)o.userData.forestStatic=true});return object};
 function fern(parent,x,y,z,scale,seed){
   const random=randomSource(seed),group=new THREE.Group();group.position.set(x,y,z);group.scale.setScalar(scale);group.rotation.y=random()*6;parent.add(group);
+  const model=modelInstance('forest/fern');
+  if(model){group.add(batched(model));return}
   const geometry=new THREE.BufferGeometry(),vertices=[];
   for(let i=0;i<7;i++){
     const a=i*Math.PI*2/7,length=.6+random()*.6,dx=Math.cos(a),dz=Math.sin(a);
@@ -93,6 +110,8 @@ function fern(parent,x,y,z,scale,seed){
 }
 function mushroom(parent,x,y,z,size,color=0xdd8256){
   const group=new THREE.Group();group.position.set(x,y,z);group.scale.setScalar(size);parent.add(group);
+  const model=modelInstance('forest/mushroom');
+  if(model){group.rotation.y=x*1.7+z;group.add(batched(tintMaterials(model,{Cap:color})));return}
   add(group,new THREE.CylinderGeometry(.1,.15,.6,7),material(0xf1d8aa),0,.3,0);
   const cap=add(group,new THREE.SphereGeometry(.46,9,5,0,Math.PI*2,0,Math.PI/2),material(color),0,.58,0);cap.scale.y=.58;
   add(group,new THREE.CylinderGeometry(.45,.3,.04,9),material(0xf6dca6),0,.58,0);
