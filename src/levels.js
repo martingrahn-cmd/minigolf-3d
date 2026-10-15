@@ -251,6 +251,28 @@ export const LEVELS = [
     routes:[['Svävhoppet','Rakt över hålet · rätt fart'],['Ringvägen','Glid runt hålet · ett slag till']],
   },
   {
+    // The fair's big wheel works as a ferry over open space: it stops with a
+    // gondola at the dock, and a ball rolled in then rides half a turn to the green.
+    id:24,theme:'moon',scenery:'ferris',name:'Pariserhjulet',title:['PARISER','HJULET'],par:3,recordKey:'minimayhem-moon-17-pariserhjulet',
+    description:'Pariserhjulet är en färja över rymden. När hjulet stannar står en gondol vid bryggan och grinden lyser grönt – rulla in bollen då, så åker den ett halvt varv upp till greenen. Medan hjulet snurrar är grinden stängd och bollen studsar tillbaka. Den långa rampen runt tar dig också upp, men den har en öppen kant.',
+    feature:'Pariserhjulsfärja & ramp',hasPipe:false,hasRamp:false,start:{x:-14,z:0},cup:{x:10.5,z:-1.2},
+    cannon:null,landing:null,overview:{x:-1,z:2,span:38,cameraX:-5,targetY:1.2},cameraSide:2,spinner:null,arches:[],springs:[],
+    ferris:{x:0,z:0,dockX:-4,slot:1,hubY:1.95,radius:Math.hypot(4,1.25),hang:.7,dockAngle:Math.PI+Math.atan2(1.25,4),
+      step:Math.PI/2,move:1.4,period:3,boardMargin:.15,gondolas:4,exitX:4.6,exitPush:2.2},
+    heightProfile:[{x:-17,y:0},{x:-4,y:0},{x:4,y:2.5},{x:14,y:2.5}],
+    surfaces:[{x1:-4,x2:4,z1:6,z2:8.5,friction:.8},{x1:-17,x2:14,z1:-4,z2:9,friction:1.1}],
+    tiles:[
+      {x1:-17,x2:-4,z1:-2.5,z2:2.5,color:0x46a6a0},
+      {x1:-11,x2:-4,z1:2.5,z2:8.5,color:0x46a6a0},
+      {x1:-4,x2:4,z1:6,z2:8.5,color:0x46a6a0,surface:'rail'},
+      {x1:4,x2:14,z1:-3.5,z2:8.5,color:0x52b3a8},
+    ],
+    openEdges:[{x:-4,z1:-1,z2:1},{x1:-4,x2:4,z:6}],
+    labels:[['TILL GONDOLEN →',-13,-1.9],['RAMPEN ↑',-8.8,4.2],['GREEN',7,-2.7]],
+    supports:[],shelf:{x:13,z:-4},routeHeading:'ÅK PARISERHJULET',
+    routes:[['Gondolen','Rulla in när grinden är grön'],['Rampen','Längre väg · öppen kant']],
+  },
+  {
     // The comet cannon fires every ball the same distance. Its barrel sweeps: it
     // lingers over the side shelves and crosses the green fast, so the timing of
     // the shot decides between birdie, par and a trip into space.

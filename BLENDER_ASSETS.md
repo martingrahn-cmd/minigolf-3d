@@ -100,7 +100,7 @@ Följande räknas fram ur spelmatematiken och ska fortsätta genereras i kod:
 | 12 Moderträdet | 🟡 Finalblommor runt koppen | `bloomHead()` | Fyra blommor utanför spelytan. Blomhuvudet skalas från 0,45 till 1 vid vinst och mitten lyser. | P2 |
 | 12 Moderträdet | 🟢 Två ugglevakter vid Barkstigens slut, lyktor, molnhav | `owl()`, `lantern()`, `cloudSea()` | | P2 |
 
-## Månkarnevalen (hål 13–18, hål 13–16 byggda)
+## Månkarnevalen (hål 13–18, hål 13–17 byggda)
 
 **Världskit** i `src/moon.js`. **P2**, eftersom det återanvänds på alla sex hålen.
 
@@ -135,7 +135,11 @@ Följande räknas fram ur spelmatematiken och ska fortsätta genereras i kod:
 | 16 Kanonkometen | 🔴 Landningsbågens ljus och siktet | `createCometCannon()` | Ljusen ligger på bågen med radien 13,2 m från kanonen. Färgen kommer från spelytan under (turkos över en hylla, röd över rymden) och får inte ändras för hand. Siktet följer pipans vinkel. | P2 |
 | 16 Kanonkometen | 🟢 Komet med svans på himlen, lyktor och en liten raket | `cometScenery()` | Kulisser utanför spelytan. | P3 |
 
-Hål 17–18 är platshållare. Nya mekaniker läggs till här när hålen designas, se planen i `DESIGN.md`.
+| 17 Pariserhjulet | 🔴 Spelbart pariserhjul med fyra gondoler | `createGondolaWheel()` | Navet sitter på (0, 1,95, 0) och radien är 4,19 m i x–y-planet. Gondolens golv hänger 0,7 m under sin upphängningspunkt och måste ligga i nivå med bryggan (y = 0 vid x = −4) och greenen (y = 2,5 vid x = 4) när hjulet står still. Gondolen är 2,2 m bred längs z. Hjulet vrider sig medurs i kvarts varv. | P2 |
+| 17 Pariserhjulet | 🔴 Grind vid bryggan | `createGondolaWheel()` | En lampa (grön eller röd) och en bom över öppningen z −1…1 vid x = −4. Grön betyder att hjulet står still och att det går att gå ombord. | P2 |
+| 17 Pariserhjulet | 🟢 Ljusslinga längs rampen, lyktor och en liten raket | `ferrisScenery()` | Står utanför spelytan. | P3 |
+
+Hål 18 är platshållare. Nya mekaniker läggs till här när hålen designas, se planen i `DESIGN.md`.
 
 ## Prototyper (Solskensöarna och Neonhamnen)
 
