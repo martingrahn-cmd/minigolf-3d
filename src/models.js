@@ -7,6 +7,7 @@ const loader=new GLTFLoader(),library=new Map();
 const url=name=>`${import.meta.env?.BASE_URL??'/'}assets/models/${name}.glb`;
 
 export const COMMON_MODELS=['common/flag'];
+export const CLOCK_MODELS=['clockwork/lantern','clockwork/cuckoo-house',...[12,16,18,20,24,25,28,32,34,36,44,48].map(t=>`clockwork/gear-${t}`)];
 export const FOREST_MODELS=['forest/tree-0','forest/tree-1','forest/tree-2','forest/mushroom','forest/fern'];
 export const MOON_MODELS=['moon/rocket','moon/asteroid-0','moon/asteroid-1','moon/asteroid-2','moon/lantern','moon/tent'];
 
