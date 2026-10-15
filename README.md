@@ -74,6 +74,18 @@ Varje värld avslutas med ett **set piece**: ett landmärke som också är håle
 
 Varje bana har ett eget rekord i webbläsaren.
 
+## Blender-modeller
+
+Modellerna byggs med Python-skript i `blender/` och exporteras som `.glb` till `public/assets/models/<värld>/`. Varje modell är kod, så den kan byggas om, granskas i git och öppnas i Blender för finputs.
+
+```bash
+npm run models          # blender -b -P blender/build.py: bygger och exporterar alla modeller
+npm run models:preview  # renderar förhandsbilder till blender/previews/
+```
+
+Utan Blender-appen fungerar samma skript med Python-modulen `bpy` (`pip install bpy`, sedan `python blender/build.py`). Spelet laddar modellerna i `src/models.js` innan ett hål byggs. Om en modell saknas används den gamla kodgrafiken. Mått, pivot och namn följer [BLENDER_ASSETS.md](BLENDER_ASSETS.md).
+
+
 Prototyperna Kanonkurvan (Solskensöarna) och Dubbelstudsen, Vippvarvet, Neonslussen och Frostfallet (Neonhamnen) ligger utanför rundan. Molnskogen använder skulpterade klippöar, höga träd, ormbunkar, svamp, fjärilar, en kristallgrotta och träbroar mot rosa molnhimmel. Efterforskning och plan för hela rundan finns i [DESIGN.md](DESIGN.md).
 
 Kameran följer bollen snett ovanifrån. Dra musen i sidled för att sikta eller finjustera med A/D. Shift ger extra precision. Tryck mellanslag tre gånger för att starta mätaren, välja kraft och välja precision; skärmknappen gör samma sak. Det gröna fältet ger ett rakt slag: 28 procent brett vid högst 20 procent kraft, sedan gradvis smalare till 10 procent vid halv kraft. Maxkraften är 26,5, men korta puttar behåller låg känslighet. Hårda slag utanför grönt avviker nu upp till 15 grader. Felet växer linjärt från grönzonens kant; en träff vid 75 procent av precisionsmätaren ger ungefär 6,7 graders fel vid maxkraft. Vid 20 procent kraft är maximalt riktningsfel nu cirka 1,9 grader. Koppens fångstradie växer mjukt från 32 till 38 cm för långsamma bollar. Den högsta fångstfarten är fortsatt 3,6; snabba puttar bromsas inte automatiskt för att räddas. Riktningen låses när mätaren startas, och Esc avbryter. I översikten klickar du på banan för att sikta. Hjälp finns under ?.

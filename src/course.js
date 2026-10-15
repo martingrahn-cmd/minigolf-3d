@@ -16,6 +16,7 @@ import {createClockHandVisuals} from './clock-hand-visuals.js';
 import {createMotherTreeCourse,createMotherTree} from './mother-tree-visuals.js';
 import {createMoonCourse,createRocketPads,createPlanetBumpers,createBlackHole,createCometCannon,createGondolaWheel,createMoonRocket} from './moon.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { preloadModels, modelInstance, tintMaterials, COMMON_MODELS, FOREST_MODELS, MOON_MODELS } from './models.js';
 
 import { LEVEL, CUP, CANNON, LANDING, PIPE_IN, PIPE_OUT, PIPE_DIRECTION, PIPE_ENTRY, PIPE_GUIDES, pipeWorld, SPRINGS, SPINNER, TILES, CELLS, BOUNDARIES, heightAt, heightSlope, onCourse } from './layout.js';
 export * from './layout.js';
@@ -74,6 +75,7 @@ function makeLabel(scene, text, x, z, color = '#203e52') {
 }
 
 export async function createCourse(scene) {
+  await preloadModels([...COMMON_MODELS,...({moon:MOON_MODELS,forest:FOREST_MODELS}[theme.key]??[])]);
   const environment=createEnvironment(scene,LEVEL);
   const bridge=createBridge(scene,LEVEL.bridge);
   const bumpers=LEVEL.clockWheel?createClockBumpers(scene,LEVEL.bumpers):theme.key==='moon'?createPlanetBumpers(scene,LEVEL.bumpers):createBumpers(scene,LEVEL.bumpers);
@@ -163,13 +165,19 @@ export async function createCourse(scene) {
   const cupHeight=heightAt(CUP.x,CUP.z);
   cylinder(scene,.49,.49,.03,CUP.x,cupHeight+.05,CUP.z,dark,40);
   cylinder(scene,.35,.35,.015,CUP.x,cupHeight+.073,CUP.z,mat(0x071b2a),40);
-  torus(scene,.47,.055,CUP.x,cupHeight+.085,CUP.z,cream);
   torus(scene,.83,.025,CUP.x,cupHeight+.04,CUP.z,new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.6}));
-  // The flagpole now goes into the actual cup.
+  // The flagpole now goes into the actual cup. The Blender pin replaces the
+  // procedural pole, rim and pennant when it has loaded.
+  const flagColor=theme.key==='forest'?0xffc35c:0xed6655,pin=modelInstance('common/flag');
+  if(pin){
+    tintMaterials(pin,{Flag:flagColor});pin.position.set(CUP.x,cupHeight,CUP.z);pin.rotation.y=-.35;scene.add(pin);
+  }else{
+  torus(scene,.47,.055,CUP.x,cupHeight+.085,CUP.z,cream);
   cylinder(scene,.032,.032,2.7,CUP.x,cupHeight+1.38,CUP.z,cream,12);
   const pennant=new THREE.Shape();pennant.moveTo(0,0);pennant.lineTo(1.05,-.18);pennant.lineTo(0,-.57);pennant.closePath();
-  const flag=new THREE.Mesh(new THREE.ShapeGeometry(pennant),new THREE.MeshStandardMaterial({color:theme.key==='forest'?0xffc35c:0xed6655,side:THREE.DoubleSide,roughness:.65}));
+  const flag=new THREE.Mesh(new THREE.ShapeGeometry(pennant),new THREE.MeshStandardMaterial({color:flagColor,side:THREE.DoubleSide,roughness:.65}));
   flag.position.set(CUP.x,cupHeight+2.62,CUP.z);flag.rotation.y=-.35;flag.castShadow=true;scene.add(flag);
+  }
 
   const spinner = SPINNER?new THREE.Group():null;
   if(spinner){spinner.position.set(SPINNER.x,.04,SPINNER.z);scene.add(spinner)}
