@@ -34,9 +34,8 @@ test('URLs pick round holes, prototypes or the menu',()=>{
   assert.equal(resolveSelection('?hole=15').level.name,'Svarta hålet');
   assert.equal(resolveSelection('?hole=16').level.name,'Kanonkometen');
   assert.equal(resolveSelection('?hole=17').level.name,'Pariserhjulet');
-  const missing=resolveSelection('?hole=18');
-  assert.equal(missing.menu,true);
-  assert.equal(missing.missing.hole,18);
+  assert.equal(resolveSelection('?hole=18').level.name,'Månraketen');
+  assert.equal(resolveSelection('?hole=19').menu,true);
 });
 
 test('the next hole follows the round and stops when nothing more is built',()=>{
@@ -49,7 +48,8 @@ test('the next hole follows the round and stops when nothing more is built',()=>
   assert.equal(nextInRound(14).slot.level.name,'Svarta hålet');
   assert.equal(nextInRound(15).slot.level.name,'Kanonkometen');
   assert.equal(nextInRound(16).slot.level.name,'Pariserhjulet');
-  const afterSeventeen=nextInRound(17);
-  assert.equal(afterSeventeen.slot,null);
-  assert.deepEqual(afterSeventeen.skipped.map(slot=>slot.hole),[18]);
+  assert.equal(nextInRound(17).slot.level.name,'Månraketen');
+  const afterFinale=nextInRound(18);
+  assert.equal(afterFinale.slot,null);
+  assert.deepEqual(afterFinale.skipped,[],'All 18 holes are built');
 });

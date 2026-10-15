@@ -100,7 +100,7 @@ Följande räknas fram ur spelmatematiken och ska fortsätta genereras i kod:
 | 12 Moderträdet | 🟡 Finalblommor runt koppen | `bloomHead()` | Fyra blommor utanför spelytan. Blomhuvudet skalas från 0,45 till 1 vid vinst och mitten lyser. | P2 |
 | 12 Moderträdet | 🟢 Två ugglevakter vid Barkstigens slut, lyktor, molnhav | `owl()`, `lantern()`, `cloudSea()` | | P2 |
 
-## Månkarnevalen (hål 13–18, hål 13–17 byggda)
+## Månkarnevalen (hål 13–18, alla byggda)
 
 **Världskit** i `src/moon.js`. **P2**, eftersom det återanvänds på alla sex hålen.
 
@@ -139,7 +139,12 @@ Följande räknas fram ur spelmatematiken och ska fortsätta genereras i kod:
 | 17 Pariserhjulet | 🔴 Grind vid bryggan | `createGondolaWheel()` | En lampa (grön eller röd) och en bom över öppningen z −1…1 vid x = −4. Grön betyder att hjulet står still och att det går att gå ombord. | P2 |
 | 17 Pariserhjulet | 🟢 Ljusslinga längs rampen, lyktor och en liten raket | `ferrisScenery()` | Står utanför spelytan. | P3 |
 
-Hål 18 är platshållare. Nya mekaniker läggs till här när hålen designas, se planen i `DESIGN.md`.
+| 18 Månraketen | 🔴 **Set piece:** den trasiga månraketen på startplatta | `createMoonRocket()`, `rocket()` | Raketen står på (−8, 0) och är cirka 12 m hög. Bollen skjuts ut från nosen på y = 12 (`launchY`). Lappar, hängande kablar och en flamma under raketen när den skjuter. Startplattan har radien 2,2 m. Laddningstratten och glasröret är samma som på hål 16 (`loadingFunnel()`). | **P1** |
+| 18 Månraketen | 🔴 Startbord med kraftmätare | `createMoonRocket()` | Mätaren fylls i takt med `cometRange` (8–33 m på 3,2 s). Den är turkos när landningen är säker och röd över rymden. | P2 |
+| 18 Månraketen | 🔴 Kratern | `moonRocketScenery()` | Kratern x 12…16, z −3…3 är helt öppen, utan kanter, för bollen svävar över den. Glöden i botten ligger under spelytan. | P2 |
+| 18 Månraketen | 🟢 Fyrverkerimörsare, skylten MÅNRAKETEN, ljusslingor och lyktor | `moonRocketScenery()` | Utanför spelytan. Fyrverkeriet skjuts upp vid vinst. | P3 |
+
+Alla sex hål är byggda.
 
 ## Prototyper (Solskensöarna och Neonhamnen)
 

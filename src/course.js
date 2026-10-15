@@ -14,7 +14,7 @@ import { createLiftVisuals } from './lift-visuals.js';
 import {createClockWheelVisuals,createClockBumpers} from './clock-wheel-visuals.js';
 import {createClockHandVisuals} from './clock-hand-visuals.js';
 import {createMotherTreeCourse,createMotherTree} from './mother-tree-visuals.js';
-import {createMoonCourse,createRocketPads,createPlanetBumpers,createBlackHole,createCometCannon,createGondolaWheel} from './moon.js';
+import {createMoonCourse,createRocketPads,createPlanetBumpers,createBlackHole,createCometCannon,createGondolaWheel,createMoonRocket} from './moon.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 import { LEVEL, CUP, CANNON, LANDING, PIPE_IN, PIPE_OUT, PIPE_DIRECTION, PIPE_ENTRY, PIPE_GUIDES, pipeWorld, SPRINGS, SPINNER, TILES, CELLS, BOUNDARIES, heightAt, heightSlope, onCourse } from './layout.js';
@@ -78,7 +78,7 @@ export async function createCourse(scene) {
   const bridge=createBridge(scene,LEVEL.bridge);
   const bumpers=LEVEL.clockWheel?createClockBumpers(scene,LEVEL.bumpers):theme.key==='moon'?createPlanetBumpers(scene,LEVEL.bumpers):createBumpers(scene,LEVEL.bumpers);
   const blackHole=createBlackHole(scene,LEVEL.blackHole);
-  const cometCannon=createCometCannon(scene,LEVEL.cometCannon,onCourse);
+  const cometCannon=LEVEL.scenery==='moonrocket'?createMoonRocket(scene,LEVEL.cometCannon,onCourse):createCometCannon(scene,LEVEL.cometCannon,onCourse);
   const ferris=createGondolaWheel(scene,LEVEL.ferris);
   const gates=theme.key==='clockwork'?createClockGates(scene,LEVEL.gates):createGates(scene,LEVEL.gates);
   const carnival=createCarnival(scene,LEVEL);

@@ -23,14 +23,22 @@ export function feedPose(cannon,time){
   return {x:a[0]+(b[0]-a[0])*k,y:a[1]+(b[1]-a[1])*k,z:a[2]+(b[2]-a[2])*k,done:t>=1};
 }
 
-export function cometLanding(cannon,angle){
-  return {x:cannon.x+Math.cos(angle)*cannon.range,z:cannon.z+Math.sin(angle)*cannon.range};
+// A cannon with a thrust gauge instead of a sweeping barrel (the moon rocket):
+// its range climbs steadily from rangeMin to rangeMax, then starts over.
+export function cometRange(cannon,time){
+  if(cannon.rangeMax===undefined)return cannon.range;
+  return cannon.rangeMin+(cannon.rangeMax-cannon.rangeMin)*((time%cannon.period)/cannon.period);
 }
 
-// Position along the flight, with a parabolic height for drawing.
-export function cometPose(cannon,angle,time){
-  const t=Math.min(1,time/cannon.flight),to=cometLanding(cannon,angle);
-  return {x:cannon.x+(to.x-cannon.x)*t,z:cannon.z+(to.z-cannon.z)*t,y:4*cannon.apex*t*(1-t),done:t>=1};
+export function cometLanding(cannon,angle,range=cannon.range){
+  return {x:cannon.x+Math.cos(angle)*range,z:cannon.z+Math.sin(angle)*range};
+}
+
+// Position along the flight, with a parabolic height for drawing. A rocket
+// launches from its nose (launchY) and comes down to the floor.
+export function cometPose(cannon,angle,time,range=cannon.range){
+  const t=Math.min(1,time/cannon.flight),to=cometLanding(cannon,angle,range);
+  return {x:cannon.x+(to.x-cannon.x)*t,z:cannon.z+(to.z-cannon.z)*t,y:(cannon.launchY??0)*(1-t)+4*cannon.apex*t*(1-t),done:t>=1};
 }
 
 // The ball keeps a little of its speed along the barrel when it lands.

@@ -20,9 +20,7 @@ export const WORLDS = [
     // Built holes reuse the prototypes' best ideas in new form: Dubbelstudsen's
     // pads, Frostfallet's slippery open edges, the harbour's flippers and Kanonkurvan's
     // cannon.
-    slots:[20,21,22,23,24,
-      {name:'Månraketen',idea:'Final och set piece vid den trasiga månraketen: kanon och låg gravitation i kombination.'},
-    ],
+    slots:[20,21,22,23,24,25],
   },
 ];
 
