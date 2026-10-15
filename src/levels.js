@@ -251,6 +251,32 @@ export const LEVELS = [
     routes:[['Svävhoppet','Rakt över hålet · rätt fart'],['Ringvägen','Glid runt hålet · ett slag till']],
   },
   {
+    // Månkarnevalen's finale and set piece. The broken moon rocket is a cannon
+    // with a thrust gauge: the timing of FYR sets how far it throws the ball.
+    // The moon base beyond is weightless, so from there the ball floats over the
+    // crater to the summit green, or glides the long way round it.
+    id:25,theme:'moon',scenery:'moonrocket',worldFinale:true,name:'Månraketen',title:['MÅN','RAKETEN'],par:4,recordKey:'minimayhem-moon-18-manraketen',
+    description:'Månkarnevalens final! Rulla in bollen i den trasiga månraketen. Kraftmätaren laddas upp om och om igen – tryck FYR när siktet står där du vill landa. Månbasen är lätt att träffa, toppen med koppen är svårare. På basen är tyngdkraften svag: sväva över kratern med rätt fart eller glid den långa vägen runt.',
+    feature:'Raketkraft & låg gravitation',hasPipe:false,hasRamp:false,start:{x:-19,z:0},cup:{x:18.6,z:1.4},
+    cannon:null,landing:null,overview:{x:1,z:0,span:50,cameraX:-8,targetY:2},cameraSide:2.5,spinner:null,arches:[],springs:[],
+    cometCannon:{x:-8,z:0,heading:0,sweep:0,period:3.2,rangeMin:8,rangeMax:33,range:20,flight:1.7,apex:5,launchY:12,carry:.8,catch:.9,
+      hopper:{x:-11.4,z:0},feed:[[-11.4,-.15,0],[-10.9,.6,0],[-10,1.2,0],[-8.9,1.4,0],[-8,1.2,0]],feedTime:.9},
+    lowGravity:[{x1:2,x2:16,z1:-6,z2:6}],
+    surfaces:[{x1:2,x2:16,z1:-6,z2:6,friction:.45},{x1:-23,x2:22,z1:-7,z2:7,friction:1.1}],
+    banks:[{ax:-14.5,az:2,bx:-11.4,bz:.62,nx:-.407,nz:-.914},{ax:-14.5,az:-2,bx:-11.4,bz:-.62,nx:-.407,nz:.914}],
+    tiles:[
+      {x1:-22,x2:-10.2,z1:-2,z2:2,color:0x46a6a0},
+      {x1:2,x2:12,z1:-6,z2:6,color:0x52b3a8,surface:'ring'},
+      {x1:12,x2:16,z1:3,z2:6,color:0x52b3a8,surface:'ring'},
+      {x1:12,x2:16,z1:-6,z2:-3,color:0x52b3a8,surface:'ring'},
+      {x1:16,x2:21,z1:-6,z2:6,color:0x52b3a8},
+    ],
+    openEdges:[{x:12,z1:-3,z2:3},{x:16,z1:-3,z2:3},{x1:12,x2:16,z:-3},{x1:12,x2:16,z:3}],
+    labels:[['IN I RAKETEN →',-20,-1.5],['MÅNBASEN',5,-5],['KRATERN',14,-2.5],['TOPPEN',18.6,-5]],
+    supports:[],shelf:{x:20,z:-6.5},routeHeading:'MÅNKARNEVALENS FINAL',
+    routes:[['Toppen','Rätt kraft · direkt till koppen'],['Månbasen','Sväva över kratern eller glid runt']],
+  },
+  {
     // The fair's big wheel works as a ferry over open space: it stops with a
     // gondola at the dock, and a ball rolled in then rides half a turn to the green.
     id:24,theme:'moon',scenery:'ferris',name:'Pariserhjulet',title:['PARISER','HJULET'],par:3,recordKey:'minimayhem-moon-17-pariserhjulet',

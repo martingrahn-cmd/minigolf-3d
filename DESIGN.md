@@ -1,6 +1,6 @@
 # Mini Mayhem – banrytm och temavärldar
 
-Uppdaterat 13 oktober 2026. **Rundan är numrerad 1–18 i `src/round.js`.** Urverkets stad (1–6) är klar. Molnskogen är hål 7–12: Skybowling, Rotravinen, Ekollonsvingen, Rotvolten, Törnkronan och Moderträdet som final och set piece. Månkarnevalen (13–18) är påbörjad: hål 13 Raketrampen, 14 Tyngdlösa tältet, 15 Svarta hålet och 16 Kanonkometen och 17 Pariserhjulet är byggda, hål 18 är platshållare. Solskensöarna och Neonhamnen ligger kvar som spelbara prototyper utanför rundan.
+Uppdaterat 15 oktober 2026. **Rundan är numrerad 1–18 i `src/round.js`.** Urverkets stad (1–6) är klar. Molnskogen är hål 7–12: Skybowling, Rotravinen, Ekollonsvingen, Rotvolten, Törnkronan och Moderträdet som final och set piece. Månkarnevalen (13–18) är klar: Raketrampen, Tyngdlösa tältet, Svarta hålet, Kanonkometen, Pariserhjulet och finalen Månraketen. Alla 18 hål i rundan är byggda. Solskensöarna och Neonhamnen ligger kvar som spelbara prototyper utanför rundan.
 
 ## Aktuellt förslag – tre världar med sex hål
 
@@ -8,7 +8,7 @@ Uppdaterat 13 oktober 2026. **Rundan är numrerad 1–18 i `src/round.js`.** Urv
 | --- | --- | --- |
 | 1–6 | **Urverkets stad** | Mässing, trä och turkos filt. Läsbara maskiner: port, rörpost, klockkontakt, därefter nya höjder och en avslutande kombination. De första fem hålen är byggda. |
 | 7–12 | **Molnskogen** | Rosa molnhimmel, rotbroar, svampar och snidade ugglor. Mer terräng: rännor, smala spänger, pendlande ekollon och rotloop. Fem befintliga skogshål kan bilda basen efter omplacering och balansering. |
-| 13–18 | **Månkarnevalen** | Ett övergivet tivoli mellan asteroider. Elfenbensvita raketer, violett rymd, turkosa lyktor och slitna röda cirkustält. Avgränsade zoner med låg gravitation, planetvallar, raketkanoner och en pariserhjulsfärja. Hål 13–17 är byggda. Prototypernas bästa idéer återanvänds här. |
+| 13–18 | **Månkarnevalen** | Ett övergivet tivoli mellan asteroider. Elfenbensvita raketer, violett rymd, turkosa lyktor och slitna röda cirkustält. Avgränsade zoner med låg gravitation, planetvallar, raketkanoner och en pariserhjulsfärja. Alla sex hål är byggda. Prototypernas bästa idéer återanvänds här. |
 
 Sex hål per värld är användarens önskade upplägg; valet av den tredje världen är fortfarande ett förslag. Varje sexa bör börja med en lättläst regel, växla mellan placering, fart, höjd och tajmning och avsluta med två redan kända idéer i kombination. En kortare precisionsbana mitt i varje värld ger andrum. Äldre Solskensöarna och Neonhamnen finns kvar som prototyper; inget tidigare hål eller rekord har tagits bort eller numrerats om.
 
@@ -305,6 +305,19 @@ Hjulet beter sig som ett riktigt tivolihjul. Det vrider sig ett kvarts varv på 
 
 Rampen längs sidan leder 2,5 meter upp till greenen och ger par. Kanten mot rymden är öppen, så ett slag som drar åt fel håll ramlar av. Hjulets geometri (nav, radie och var gondolerna hänger) delas av fysiken och grafiken i `src/ferris.js`. Testerna kontrollerar att gondolernas golv ligger i nivå med båda däcken.
 
+## Månkarnevalen – hål 18: Månraketen (final)
+
+**Par 4, världens final och set piece.** Finalen följer samma regel som de andra världarnas finaler: två idéer som spelaren redan känner kombineras. Här är det kanonen från hål 16 och den låga gravitationen från hål 14.
+
+Den trasiga månraketen, ungefär 12 meter hög och lappad, står på en startplatta bredvid ett gammalt startbord med en kraftmätare. Utslaget rullar ner i samma laddningstratt som på hål 16, och bollen blåses upp i raketen. Raketen sveper inte. I stället laddas kraftmätaren upp linjärt från 8 till 33 meter på 3,2 sekunder och börjar sedan om. FYR avgör alltså längden, inte riktningen. Svepet är linjärt i stället för sinusformat som på hål 16, så varje fönster är lika långt i tid som det är brett. Medan raketen är laddad byter kameran till översikt, eftersom raketkroppen annars skymmer flyglinjen. Ljus längs linjen och ett sikte visar var bollen landar.
+
+- Under 10 meter och över cirka 29 meter hamnar bollen i rymden. Det ger ett pliktslag, och raketen laddas om.
+- Månbasen (10–20 meter, cirka 35 procent av tiden) är bred. Landar bollen nära kratern kan den glida ner i den.
+- Kratern ligger mellan 20 och 24 meter.
+- Toppen med koppen (24–29 meter, cirka 20 procent av tiden) ger en putt för eagle.
+
+Månbasen är en zon med svag gravitation och hal filt. Ett slag på 45–65 procent från basen svävar över kratern och landar på toppen. Toppen har sarger, så ett för hårt slag studsar i bakre sargen och rullar tillbaka ner i kratern. Därför valdes sargen framför en öppen kant: överfart straffas på ett sätt som syns. Vägen runt kratern glider utan att sväva och når också toppen. Vägen via basen ger birdie och marginal för par. När bollen sjunker skjuts fyrverkerier upp över toppen. Skylten MÅNRAKETEN, fyrverkerimörsare, en glödande kraterbotten och ljusslingor ramar in finalen.
+
 ### Plan för resten av världen
 
 | Hål | Arbetsnamn | Idé | Återanvänd prototyp |
@@ -314,7 +327,7 @@ Rampen längs sidan leder 2,5 meter upp till greenen och ger par. Kanten mot rym
 | 15 | Svarta hålet (var Planetvallen) | Ett svart hål som böjer bollens bana; studsplaneter i hörnen | Neonhamnens flipperstötar |
 | 16 | Kanonkometen | Raketkanon med svepande pipa: tajma FYR mot green eller sidohylla | Kanonkurvan (kanon) |
 | 17 | Pariserhjulet | Pariserhjulsfärja: rulla in när hjulet stannar, åk till greenen | Neonslussens lyftport (tajma grinden) |
-| 18 | Månraketen | Final och set piece: kanon och låg gravitation i kombination | – |
+| 18 | Månraketen | Final och set piece: raketens kraftmätare och svävhopp i låg gravitation | Kanonkometen och Tyngdlösa tältet |
 
 Neonslussens lyftport och Vippvarvets vippbro kan dyka upp som delmoment. Prototyperna ligger kvar som bonusbanor tills deras idéer har ersatts.
 

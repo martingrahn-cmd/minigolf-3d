@@ -257,6 +257,7 @@ export function createMoonCourse(scene,cells,boundaries,heightAt,level){
   if(level.scenery==='blackhole')blackHoleScenery(scene,level);
   if(level.scenery==='comet')cometScenery(scene,level);
   if(level.scenery==='ferris')ferrisScenery(scene,heightAt);
+  if(level.scenery==='moonrocket')moonRocketScenery(scene,level);
   return floor;
 }
 
@@ -499,6 +500,22 @@ function blackHoleScenery(scene,level){
   lantern(scene,-12.6,0,-2.9);lantern(scene,-12.6,0,2.9);lantern(scene,-8.6,0,-8.6);lantern(scene,-8.6,0,8.6);
 }
 
+// The loading funnel in the lane and the glass feed tube up into the breech,
+// shared by the comet cannon and the moon rocket.
+function loadingFunnel(scene,cannon){
+  if(!cannon.hopper)return null;
+  const funnel=new THREE.Group();funnel.name='comet-funnel';funnel.position.set(cannon.hopper.x,0,cannon.hopper.z);scene.add(funnel);
+  const collar=add(funnel,new THREE.CylinderGeometry(.95,1.05,.08,32,1,true),material(C.ivory,{metalness:.3,side:THREE.DoubleSide}),0,.08,0);collar.castShadow=false;
+  const mouth=add(funnel,new THREE.CircleGeometry(.62,32),new THREE.MeshBasicMaterial({color:0x07030f}),0,.055,0);mouth.rotation.x=-Math.PI/2;mouth.castShadow=false;
+  const glow=add(funnel,new THREE.TorusGeometry(.72,.06,8,32),glowMaterial(C.gold,1.2));glow.rotation.x=Math.PI/2;glow.position.y=.1;glow.castShadow=false;
+  const path=new THREE.CatmullRomCurve3(cannon.feed.map(([x,y,z])=>new THREE.Vector3(x,y,z)),false,'centripetal');
+  const glass=add(scene,new THREE.TubeGeometry(path,40,.21,14,false),new THREE.MeshStandardMaterial({color:0xbfefff,transparent:true,opacity:.28,roughness:.1,metalness:.1,depthWrite:false,side:THREE.DoubleSide}));
+  glass.castShadow=false;glass.name='feed-tube';
+  for(const t of [.25,.55,.85]){const q=path.getPoint(t),ring=add(scene,new THREE.TorusGeometry(.24,.04,6,20),material(C.gold,{metalness:.5}),q.x,q.y,q.z);ring.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),path.getTangent(t))}
+  let suck=0;
+  return {suck(){suck=1},update(dt,loaded){suck=Math.max(0,suck-dt*1.2);glow.material.emissiveIntensity=(loaded?.6:1.2+Math.sin(performance.now()/300)*.4)+suck*4}};
+}
+
 // Hole 16: the comet cannon on its turntable. A string of lights along the
 // landing arc shows the windows: teal over a shelf, red over open space. A
 // reticle rides the arc with the barrel while the cannon is loaded.
@@ -524,25 +541,13 @@ export function createCometCannon(scene,cannon,onCourse){
   const reticle=new THREE.Group();reticle.name='comet-reticle';scene.add(reticle);
   const ring=add(reticle,new THREE.TorusGeometry(.75,.07,8,32),glowMaterial(C.teal,1.8));ring.rotation.x=Math.PI/2;ring.castShadow=false;
   const dot=add(reticle,new THREE.CircleGeometry(.18,16),glowMaterial(C.teal,1.8),0,.02,0);dot.rotation.x=-Math.PI/2;dot.castShadow=false;
-  // The loading funnel in the lane and the glass feed tube up into the breech.
-  let suck=0,funnelGlow=null;
-  if(cannon.hopper){
-    const funnel=new THREE.Group();funnel.name='comet-funnel';funnel.position.set(cannon.hopper.x,0,cannon.hopper.z);scene.add(funnel);
-    const collar=add(funnel,new THREE.CylinderGeometry(.95,1.05,.08,32,1,true),material(C.ivory,{metalness:.3,side:THREE.DoubleSide}),0,.08,0);collar.castShadow=false;
-    const mouth=add(funnel,new THREE.CircleGeometry(.62,32),new THREE.MeshBasicMaterial({color:0x07030f}),0,.055,0);mouth.rotation.x=-Math.PI/2;mouth.castShadow=false;
-    funnelGlow=add(funnel,new THREE.TorusGeometry(.72,.06,8,32),glowMaterial(C.gold,1.2));funnelGlow.rotation.x=Math.PI/2;funnelGlow.position.y=.1;funnelGlow.castShadow=false;
-    const path=new THREE.CatmullRomCurve3(cannon.feed.map(([x,y,z])=>new THREE.Vector3(x,y,z)),false,'centripetal');
-    const glass=add(scene,new THREE.TubeGeometry(path,40,.21,14,false),new THREE.MeshStandardMaterial({color:0xbfefff,transparent:true,opacity:.28,roughness:.1,metalness:.1,depthWrite:false,side:THREE.DoubleSide}));
-    glass.castShadow=false;glass.name='feed-tube';
-    for(const t of [.25,.55,.85]){const p=path.getPoint(t),ring=add(scene,new THREE.TorusGeometry(.24,.04,6,20),material(C.gold,{metalness:.5}),p.x,p.y,p.z);ring.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),path.getTangent(t))}
-  }
+  const funnel=loadingFunnel(scene,cannon);
   let recoil=0;
   return {
     fire(){recoil=1},
-    suck(){suck=1},
+    suck(){funnel?.suck()},
     update(dt,angle,loaded,safe){
-      recoil=Math.max(0,recoil-dt*2.5);suck=Math.max(0,suck-dt*1.2);
-      if(funnelGlow)funnelGlow.material.emissiveIntensity=(loaded?.6:1.2+Math.sin(performance.now()/300)*.4)+suck*4;
+      recoil=Math.max(0,recoil-dt*2.5);funnel?.update(dt,loaded);
       turret.rotation.y=-angle;barrel.position.x=-recoil*.35;
       mouth.material.emissiveIntensity=(loaded?1.6:.6)+recoil*5;
       const x=cannon.x+Math.cos(angle)*cannon.range,z=cannon.z+Math.sin(angle)*cannon.range;
@@ -609,4 +614,68 @@ function ferrisScenery(scene,heightAt){
   for(const [x,z] of [[-16.5,-2.9],[-16.5,2.9],[-4.6,-2.9]])lantern(scene,x,0,z);
   stringLights(scene,[-4,2.2,8.9],[4,heightAt(4,8.9)+2.2,8.9],.6,14);
   rocket(scene,13.6,2.5,-3.9,.55,.05);
+}
+
+// Hole 18, the finale: the broken moon rocket is the cannon. It stands on its
+// launch pad beside a gantry whose thrust gauge climbs while the rocket is
+// loaded; lights along the flight line show where a landing is safe.
+export function createMoonRocket(scene,cannon,onCourse){
+  const root=new THREE.Group();root.name='moon-rocket-cannon';root.position.set(cannon.x,0,cannon.z);scene.add(root);
+  add(root,new THREE.CylinderGeometry(2.2,2.5,.5,32),material(C.deep),0,-.2,0);
+  add(root,new THREE.TorusGeometry(2.2,.08,8,48),glowMaterial(C.gold,1.1),0,.06,0).rotation.x=Math.PI/2;
+  asteroid(root,0,-3.2,0,3.4,808,material(C.rockDark)).rotation.set(0,0,0);
+  const body=rocket(root,0,0,0,2.55,0);
+  // Battle scars: a riveted patch, a dented fin collar and dangling cables.
+  add(body,new THREE.BoxGeometry(.5,.7,.06),material(0x9a8f86,{metalness:.4}),.42,2.2,.66).rotation.y=.6;
+  for(const [a,len] of [[.4,1.6],[1.3,1.1],[2.2,1.9]]){const x=Math.cos(a)*.85,z=Math.sin(a)*.85;beam(body,[x,3.4,z],[x*1.15,3.4-len,z*1.15],.025,material(C.deep))}
+  // The gantry and its thrust gauge.
+  const gantry=new THREE.Group();gantry.position.set(-1,0,-3.4);root.add(gantry);
+  const steel=material(C.ivory,{metalness:.3}),red=material(C.red);
+  for(const [x,z] of [[-.7,-.7],[.7,-.7],[-.7,.7],[.7,.7]])beam(gantry,[x,0,z],[x,10,z],.08,steel);
+  for(let y=0;y<10;y+=1.6){beam(gantry,[-.7,y,.7],[.7,y+1.6,.7],.04,red);beam(gantry,[.7,y,-.7],[-.7,y+1.6,-.7],.04,red)}
+  beam(gantry,[0,8.5,.7],[1,8.5,2.2],.07,steel);
+  add(gantry,new THREE.BoxGeometry(.5,6.4,.12),material(C.deep),0,4.2,.86);
+  const fill=add(gantry,new THREE.BoxGeometry(.36,6,.08),glowMaterial(C.teal,1.6),0,1.2,.94);fill.geometry.translate(0,3,0);fill.castShadow=false;
+  // Lights along the flight line and the landing reticle.
+  const span=cannon.rangeMax-cannon.rangeMin;
+  for(let r=cannon.rangeMin;r<=cannon.rangeMax+1e-6;r+=span/40){
+    const x=cannon.x+r,z=cannon.z,safe=onCourse(x,z);
+    add(scene,new THREE.SphereGeometry(.1,8,6),glowMaterial(safe?C.teal:0xff5d6c,1.4),x,safe?.12:-.15,z+2.4).castShadow=false;
+  }
+  const reticle=new THREE.Group();reticle.name='rocket-reticle';scene.add(reticle);
+  const ring=add(reticle,new THREE.TorusGeometry(.8,.08,8,32),glowMaterial(C.teal,1.8));ring.rotation.x=Math.PI/2;ring.castShadow=false;
+  // Exhaust that flares when the rocket fires.
+  const flame=add(root,new THREE.ConeGeometry(1.1,3.2,18,1,true),new THREE.MeshBasicMaterial({color:0xffa04a,transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide}),0,-.4,0);
+  flame.rotation.x=Math.PI;flame.castShadow=false;
+  const funnel=loadingFunnel(scene,cannon);
+  let blast=0;
+  return {
+    fire(){blast=1},suck(){funnel?.suck()},
+    update(dt,angle,loaded,safe,range){
+      blast=Math.max(0,blast-dt*1.3);funnel?.update(dt,loaded);
+      flame.material.opacity=blast*.85;flame.scale.set(1+blast*.4,1+blast*1.4,1+blast*.4);
+      body.position.x=blast?Math.sin(performance.now()/22)*.06*blast:0;
+      const k=(range-cannon.rangeMin)/span;fill.scale.y=loaded?Math.max(.02,k):.02;
+      const color=new THREE.Color(safe?C.teal:0xff5d6c);
+      for(const m of [fill.material,ring.material]){m.color.copy(color);m.emissive.copy(color)}
+      reticle.visible=loaded;reticle.position.set(cannon.x+range,safe?.1:-.1,cannon.z);
+    },
+  };
+}
+
+// The moon base: a glowing crater, a summit flag and fireworks mortars.
+function moonRocketScenery(scene,level){
+  const glowCanvas=document.createElement('canvas');glowCanvas.width=glowCanvas.height=128;const g=glowCanvas.getContext('2d');
+  const gradient=g.createRadialGradient(64,64,4,64,64,64);gradient.addColorStop(0,'rgba(255,190,120,.9)');gradient.addColorStop(.45,'rgba(200,110,255,.35)');gradient.addColorStop(1,'rgba(40,20,90,0)');
+  g.fillStyle=gradient;g.fillRect(0,0,128,128);const tex=new THREE.CanvasTexture(glowCanvas);tex.colorSpace=THREE.SRGBColorSpace;
+  const crater=add(scene,new THREE.PlaneGeometry(7,8),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}),14,-2.4,0);
+  crater.rotation.x=-Math.PI/2;crater.castShadow=false;crater.name='crater-glow';
+  for(let i=0;i<10;i++){const a=i/10*Math.PI*2;asteroid(scene,14+Math.cos(a)*2.6,-1.6,Math.sin(a)*3.4,.7,700+i,material(C.rockDark)).castShadow=false}
+  const cup=level.cup;
+  beam(scene,[21.6,0,-6.4],[21.6,5.5,-6.4],.07,material(C.ivory,{metalness:.4}));
+  const banner=add(scene,new THREE.PlaneGeometry(3.2,.9),new THREE.MeshBasicMaterial({map:signTexture('MÅNRAKETEN'),transparent:true,side:THREE.DoubleSide}),21.7,4.9,-4.8);
+  banner.rotation.y=-Math.PI/2;banner.castShadow=false;
+  for(const z of [-7.2,7.2])for(const x of [17,20]){add(scene,new THREE.CylinderGeometry(.22,.28,.7,10),material(C.red),x,.35,z);add(scene,new THREE.TorusGeometry(.22,.04,6,14),material(C.gold),x,.72,z).rotation.x=Math.PI/2}
+  for(const [x,z] of [[-21.5,-2.6],[-21.5,2.6],[-12,-2.6],[-12,2.6],[2,-6.6],[2,6.6]])lantern(scene,x,0,z);
+  stringLights(scene,[2,2.6,-6.6],[21.6,4.4,-6.4],1.4,26);
 }
