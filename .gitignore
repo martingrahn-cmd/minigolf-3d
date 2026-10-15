@@ -1,3 +1,7 @@
 node_modules/
 dist/
 .DS_Store
+blender/previews/
+blender/blend/
+blender/__pycache__/
+blender/assets/__pycache__/

@@ -7,7 +7,9 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "test": "node --test"
+    "test": "node --test",
+    "models": "blender -b -P blender/build.py",
+    "models:preview": "blender -b -P blender/preview.py"
   },
   "dependencies": {
     "three": "^0.180.0"

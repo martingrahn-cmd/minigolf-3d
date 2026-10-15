@@ -10,6 +10,10 @@ All grafik i spelet är i dag procedurell Three.js-geometri på mellannivå, plu
 
 Prioritet: **P1** först (världsfinaler och delar som syns på varje hål), **P3** sist.
 
+## Status
+
+Fas 1 är byggd: Blender-pipelinen (`blender/build.py`, `blender/lib.py`, en modul per värld i `blender/assets/`), flagga och kopp för alla hål samt Månkarnevalens kit (raket, tre asteroider, lykta och tält). Rader märkta ✅ nedan finns som `.glb`. Nästa faser: Molnskogens kit, Urverkets kit och sedan världsfinalernas set pieces.
+
 ## Gemensamma regler för export
 
 - **Enhet:** 1 Blender-enhet = 1 meter = 1 enhet i spelet. Exportera glTF 2.0 (`.glb`) med +Y upp.
@@ -38,8 +42,8 @@ Följande räknas fram ur spelmatematiken och ska fortsätta genereras i kod:
 | Asset | Ersätter | Krav och mått | Prio |
 |---|---|---|---|
 | 🔴 Golfboll | `src/ball.js` | Radie 0,31 m (`BALL_RADIUS`) med gropar. Rullningen styrs av kod. | P3 |
-| 🔴 Kopp med kant | `src/course.js`, kopp och flagga | Synlig kant med ytterradie 0,49 m. Hålet fångar bollen inom 0,32–0,38 m. Ovansidan ligger på 0,05–0,085 m. | P2 |
-| 🟡 Flaggstång med vimpel | `src/course.js` | Stång 2,7 m hög från koppens mitt. Vimpeln är ett eget objekt så att den kan vaja. Färg per värld. | P2 |
+| 🔴 ✅ Kopp med kant (`common/flag.glb`) | `src/course.js`, kopp och flagga | Synlig kant med ytterradie 0,49 m. Hålet fångar bollen inom 0,32–0,38 m. Ovansidan ligger på 0,05–0,085 m. | P2 |
+| 🟡 ✅ Flaggstång med vimpel (`common/flag.glb`, materialet `Flag` färgas per värld) | `src/course.js` | Stång 2,7 m hög från koppens mitt. Vimpeln är ett eget objekt så att den kan vaja. Färg per värld. | P2 |
 | 🟡 Skyltbräda | `makeLabel` i `src/course.js` | Bara ramen, 3,5 × 0,88 m, ligger plant. Texten ritas i kod. | P3 |
 
 ## Urverkets stad (hål 1–6)
@@ -107,11 +111,11 @@ Följande räknas fram ur spelmatematiken och ska fortsätta genereras i kod:
 | Asset | Ersätter | Krav och mått |
 |---|---|---|
 | 🟡 Polkagrisrandig sarg med glödlampsstolpar | Sarger i `createMoonCourse` | Listen ligger längs kollisionslinjen på höjden 0,2 m med radien 0,1. Stolparna är 0,55 m med en lysande lampa. Modulära bitar. Lamporna är eget lysande material. |
-| 🟢 Asteroider i 3–4 varianter | `asteroid()` | Används under banorna (skalas efter platta) och som svävande kulisser som roterar. |
-| 🟢 Månraket | `rocket()` | Ungefär 5 m hög i skala 1. Fenor och nosspets röda, kropp elfenben, ett lysande fönster. Liten version vid greenen och stor lutande version som förebådar finalen. |
+| 🟢 ✅ Asteroider i 3 varianter (`moon/asteroid-0…2.glb`) | `asteroid()` | Används under banorna (skalas efter platta) och som svävande kulisser som roterar. |
+| 🟢 ✅ Månraket (`moon/rocket.glb`) | `rocket()` | Ungefär 5 m hög i skala 1. Fenor och nosspets röda, kropp elfenben, ett lysande fönster. Liten version vid greenen och stor lutande version som förebådar finalen. |
 | 🟢 Pariserhjul | `ferrisWheel()` | Hjulet (radie cirka 7,5 m) roterar kring z, och korgarna är egna objekt som hålls lodräta. Förebådar hål 17, där det blir spelkritiskt. |
-| 🟢 Cirkustält | `tent()` | Röda och elfenbensvita våder, flagga på toppen. |
-| 🟢 Lyktor, ljusslingor, ringplanet, måne | `lantern()`, `stringLights()` | Lamporna är egna lysande material. |
+| 🟢 ✅ Cirkustält (`moon/tent.glb`, normaliserat till radie 1 och höjd 1) | `tent()` | Röda och elfenbensvita våder, flagga på toppen. |
+| 🟢 Lyktor (✅ `moon/lantern.glb`), ljusslingor, ringplanet, måne | `lantern()`, `stringLights()` | Lamporna är egna lysande material. |
 
 | Hål | Asset | Ersätter | Krav och mått | Prio |
 |---|---|---|---|---|

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { profileHeight } from './terrain.js';
+import { modelInstance, tintMaterials } from './models.js';
 
 // Månkarnevalen: an abandoned fun fair drifting between asteroids. Mid-level
 // procedural stand-ins, listed in BLENDER_ASSETS.md for later Blender models.
@@ -36,6 +37,14 @@ function striped(geometry,colors,segments){
 }
 
 export function asteroid(parent,x,y,z,r,seed=1,mat=material(C.rock)){
+  // The Blender rock sits inside a wrapper so callers can still set its scale
+  // and rotation as if it were the old mesh of radius r.
+  const model=modelInstance(`moon/asteroid-${Math.abs(Math.round(seed))%3}`);
+  if(model){
+    const random=randomSource(seed),wrapper=new THREE.Group();wrapper.position.set(x,y,z);parent.add(wrapper);
+    model.scale.setScalar(r);if(mat.color.getHex()!==new THREE.Color(C.rock).getHex())tintMaterials(model,{'*':mat.color.getHex()});
+    wrapper.add(model);wrapper.rotation.set(random()*3,random()*3,random()*3);return wrapper;
+  }
   const random=randomSource(seed),geometry=new THREE.IcosahedronGeometry(r,1),p=geometry.attributes.position;
   const bumps=Array.from({length:4},()=>[random()*6,random()*6,random()*6]);
   for(let i=0;i<p.count;i++){
@@ -50,6 +59,8 @@ export function asteroid(parent,x,y,z,r,seed=1,mat=material(C.rock)){
 
 export function rocket(parent,x,y,z,size=1,tilt=0){
   const group=new THREE.Group();group.name='moon-rocket';group.position.set(x,y,z);group.scale.setScalar(size);group.rotation.z=tilt;parent.add(group);
+  const model=modelInstance('moon/rocket');
+  if(model){group.add(model);return group}
   const profile=[[0,0],[.55,.05],[.78,.6],[.86,1.8],[.8,3],[.62,3.8],[.34,4.4],[0,4.75]].map(([r,h])=>new THREE.Vector2(r,h));
   add(group,new THREE.LatheGeometry(profile,24),material(C.ivory,{flatShading:false,roughness:.5}));
   const nose=add(group,new THREE.ConeGeometry(.42,.9,24),material(C.red,{flatShading:false}),0,4.6,0);nose.scale.y=.9;
@@ -66,6 +77,8 @@ export function rocket(parent,x,y,z,size=1,tilt=0){
 
 function tent(parent,x,y,z,r,h){
   const group=new THREE.Group();group.name='circus-tent';group.position.set(x,y,z);parent.add(group);
+  const model=modelInstance('moon/tent');
+  if(model){model.scale.set(r,h,r);group.add(model);return group}
   const colors=[C.red,C.ivory],vertex=material(0xffffff,{vertexColors:true});
   add(group,striped(new THREE.CylinderGeometry(r,r*1.04,h*.45,16,1,true),colors,16),vertex,0,h*.225,0).material.side=THREE.DoubleSide;
   add(group,striped(new THREE.ConeGeometry(r*1.12,h*.55,16),colors,16),vertex,0,h*.45+h*.275,0);
@@ -95,6 +108,8 @@ function ferrisWheel(parent,x,y,z,r){
 }
 
 export function lantern(parent,x,y,z,h=2.2){
+  const model=modelInstance('moon/lantern');
+  if(model){model.position.set(x,y,z);model.scale.set(1,h/2.2,1);parent.add(model);return}
   beam(parent,[x,y,z],[x,y+h,z],.06,material(C.deep));
   add(parent,new THREE.SphereGeometry(.24,12,8),glowMaterial(C.teal,1.6),x,y+h+.2,z);
   add(parent,new THREE.ConeGeometry(.3,.22,8),material(C.ivory),x,y+h+.5,z);

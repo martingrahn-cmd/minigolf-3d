@@ -26,6 +26,7 @@ import {blackHolePull,crossesHorizon} from './black-hole.js';
 import {barrelAngle,cometRange,loadsCannon,feedPose,cometPose,landingVelocity,cometLanding} from './comet-cannon.js';
 import {wheelTurn,docked,crossesDock,ridePose} from './ferris.js';
 import {starsFor,starText,bestStars,worldStars,startWorldRun,activeRun,recordRunHole,endWorldRun,nextRunHole,runScorecard} from './progress.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import './style.css';
 
 const $=id=>document.getElementById(id);
@@ -37,6 +38,9 @@ renderer.outputColorSpace=THREE.SRGBColorSpace;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure=LEVEL.theme==='forest'?1:1.1;
 const scene=new THREE.Scene();
+// A soft studio environment gives metals, glass and lacquer something to reflect.
+const environmentMap=new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(),.04).texture;
+scene.environment=environmentMap;scene.environmentIntensity=.16;
 const camera=new THREE.PerspectiveCamera(54,1,.08,200);
 const overviewCamera=new THREE.OrthographicCamera(-25,25,14,-14,.1,200);
 const clock=new THREE.Clock();
