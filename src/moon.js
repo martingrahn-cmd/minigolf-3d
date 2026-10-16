@@ -645,10 +645,13 @@ export function createMoonRocket(scene,cannon,onCourse){
   for(const [a,len] of [[.4,1.6],[1.3,1.1],[2.2,1.9]]){const x=Math.cos(a)*.85,z=Math.sin(a)*.85;beam(body,[x,3.4,z],[x*1.15,3.4-len,z*1.15],.025,material(C.deep))}
   // The gantry and its thrust gauge.
   const gantry=new THREE.Group();gantry.position.set(-1,0,-3.4);root.add(gantry);
-  const steel=material(C.ivory,{metalness:.3}),red=material(C.red);
-  for(const [x,z] of [[-.7,-.7],[.7,-.7],[-.7,.7],[.7,.7]])beam(gantry,[x,0,z],[x,10,z],.08,steel);
-  for(let y=0;y<10;y+=1.6){beam(gantry,[-.7,y,.7],[.7,y+1.6,.7],.04,red);beam(gantry,[.7,y,-.7],[-.7,y+1.6,-.7],.04,red)}
-  beam(gantry,[0,8.5,.7],[1,8.5,2.2],.07,steel);
+  const steel=material(C.ivory,{metalness:.3}),red=material(C.red),tower=modelInstance('moon/gantry');
+  if(tower){tower.rotation.y=Math.PI;gantry.add(tower)}
+  else{
+    for(const [x,z] of [[-.7,-.7],[.7,-.7],[-.7,.7],[.7,.7]])beam(gantry,[x,0,z],[x,10,z],.08,steel);
+    for(let y=0;y<10;y+=1.6){beam(gantry,[-.7,y,.7],[.7,y+1.6,.7],.04,red);beam(gantry,[.7,y,-.7],[-.7,y+1.6,-.7],.04,red)}
+    beam(gantry,[0,8.5,.7],[1,8.5,2.2],.07,steel);
+  }
   add(gantry,new THREE.BoxGeometry(.5,6.4,.12),material(C.deep),0,4.2,.86);
   const fill=add(gantry,new THREE.BoxGeometry(.36,6,.08),glowMaterial(C.teal,1.6),0,1.2,.94);fill.geometry.translate(0,3,0);fill.castShadow=false;
   // Lights along the flight line and the landing reticle.
