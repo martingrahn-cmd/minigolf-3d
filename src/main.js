@@ -27,6 +27,7 @@ import {barrelAngle,cometRange,loadsCannon,feedPose,cometPose,landingVelocity,co
 import {wheelTurn,docked,crossesDock,ridePose} from './ferris.js';
 import {starsFor,starText,bestStars,worldStars,startWorldRun,activeRun,recordRunHole,endWorldRun,nextRunHole,runScorecard} from './progress.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { createAmbience } from './ambience.js';
 import './style.css';
 
 const $=id=>document.getElementById(id);
@@ -126,6 +127,15 @@ function burst(x,y,z,color=0xffdb77,count=16,force=1){
     const a=Math.random()*Math.PI*2;
     particles.push({mesh,vx:Math.cos(a)*(1.2+Math.random()*3)*force,vy:(1+Math.random()*3)*force,vz:Math.sin(a)*(1.2+Math.random()*3)*force,life:.55+Math.random()*.5,max:1});
   }
+}
+// The world's background sound starts with the first tap (browsers need a gesture).
+let ambience=null;
+function startAmbience(){
+  try{
+    audioContext??=new (window.AudioContext||window.webkitAudioContext)();
+    if(audioContext.state==='suspended')audioContext.resume();
+    ambience??=createAmbience(audioContext,LEVEL.theme);ambience?.setEnabled(audioEnabled);
+  }catch{}
 }
 function sound(freq=440,duration=.13,type='sine',vol=.055,slide=1){
   if(!audioEnabled)return;
@@ -784,12 +794,13 @@ $('actionButton').addEventListener('click',action);
 $('cancelShot').addEventListener('click',()=>{if(['power','accuracy'].includes(state.phase)){state.power=0;setPhase('idle')}});
 $('puttLength').addEventListener('input',()=>{puttLength=Number($('puttLength').value);updateUI()});
 $('shotMode').addEventListener('click',()=>{puttEnabled=!puttEnabled;updateUI();$('shotMode').blur()});
-$('playButton').addEventListener('click',()=>{lockPortrait();$('intro').classList.add('hidden');reset();startPreview()});
+$('playButton').addEventListener('click',()=>{lockPortrait();startAmbience();$('intro').classList.add('hidden');reset();startPreview()});
 $('againButton').addEventListener('click',()=>{$('win').classList.add('hidden');reset()});
 $('resetButton').addEventListener('click',()=>{if(state.phase!=='intro'){reset();$('win').classList.add('hidden')}});
 $('cameraButton').addEventListener('click',()=>{preview=0;setOverview(!cameraOverview)});
-$('soundButton').addEventListener('click',()=>{audioEnabled=!audioEnabled;$('soundButton').classList.toggle('off',!audioEnabled);setIcon($('soundIcon'),audioEnabled?'sound':'mute')});
+$('soundButton').addEventListener('click',()=>{audioEnabled=!audioEnabled;if(audioEnabled)startAmbience();else ambience?.setEnabled(false);$('soundButton').classList.toggle('off',!audioEnabled);setIcon($('soundIcon'),audioEnabled?'sound':'mute')});
 window.addEventListener('resize',resize);
+document.addEventListener('visibilitychange',()=>ambience?.setEnabled(audioEnabled&&!document.hidden));
 
 const recordText=level=>{const best=localStorage.getItem(level.recordKey);return best?`${starText(bestStars(localStorage,level))} · Bästa ${best}`:'Inget rekord'};
 function openLevels(){

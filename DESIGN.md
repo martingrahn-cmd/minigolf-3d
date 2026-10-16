@@ -18,6 +18,18 @@ Efter speltestet av hål 14 kom frågan om vem som orkar spela 18 hål. Rundan s
 
 Stjärnorna översätter slag till samma skala på alla hål: ★★★ för birdie eller bättre, ★★ för par, ★ för bogey och ingen stjärna för sämre. Spelaren föreslog den skalan. Stjärnorna från varje håls bästa resultat syns i banväljaren och summeras per värld, till exempel 6/9 ★. Ett hål med tomma stjärnor är en tydlig inbjudan att spela om. Nästa steg är flera spelare på samma telefon.
 
+## Liv i Molnskogen
+
+Efter grafikuppiffningen kändes miljöerna sterila: allt stod still, ytorna var för rena, ljuset var jämnt och det var tyst. Molnskogen fick först en livsrunda i `src/forest-life.js`, gemensam för alla sex hålen och placerad utifrån varje håls plattor:
+
+- En fågelflock cirklar och glider över banan.
+- Två fåglar hoppar och pickar på filten och flyger till en annan plats när bollen kommer inom cirka 3 meter.
+- Löv och rosa kronblad faller, snurrar, landar på filten och tonas bort.
+- Gräs och vildblommor växer längs alla sargkanter som inte är öppna, och de vajar i vinden via en vertex-shader.
+- Solstrålar faller snett ner över banan.
+
+Inget av detta påverkar bollen. `src/ambience.js` spelar vind och fågelsång, syntetiserat med Web Audio. Ljudet startar vid första trycket, följer ljudknappen och pausas när fliken döljs. Om spelaren valt reducerad rörelse står livet still.
+
 ## Efterforskning och slutsatser
 
 - **Walkabout Mini Golf:** Mighty Coconut beskriver tematiska 18-hålsbanor med sammanhängande miljöer, utforskande och egna trickslag. Tillämpning här: en tydlig värld per nio hål och en trovärdig plats även utanför sargen. [Utvecklarens spelbeskrivning](https://www.mightycoconut.com/minigolf).
