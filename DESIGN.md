@@ -28,7 +28,7 @@ Efter grafikuppiffningen kändes miljöerna sterila: allt stod still, ytorna var
 - Gräs och vildblommor växer längs alla sargkanter som inte är öppna, och de vajar i vinden via en vertex-shader.
 - Solstrålar faller snett ner över banan.
 
-Inget av detta påverkar bollen. Om spelaren valt reducerad rörelse står livet still. `src/ambience.js` innehåller vind och fågelsång, men ljudet är parkerat (`AMBIENCE=false` i `main.js`) tills spelaren vill ta upp ljud igen.
+Inget av detta påverkar bollen. Om spelaren valt reducerad rörelse står livet still. Vind och fågelsång ligger i ljudmotorn, se *Ljud* nedan.
 
 **Byn.** Spelaren ville ha en mysig stämning med fler öar och en bebyggd närmiljö utanför banan. `src/forest-village.js` lägger därför en ring av upp till åtta små svävande öar runt varje skogshål, cirka 7,5 meter utanför banan. Öarna ligger aldrig på tee-sidan där kameran står, och lite lägre än filten så att de ramar in banan i stället för att skymma den. Öarna turas om att vara olika sorters platser:
 - **Hem:** en stuga med halmtak där fönstren lyser varmt och det ryker ur skorstenen, en brunn eller en väderkvarn med snurrande vingar, trädgårdsland, vitt staket, en tvättlina med fladdrande kläder och en lykta.
@@ -83,7 +83,25 @@ Modellerna byggs i `blender/assets/carnival.py`: utomjording, kättingflygare, r
 
 ## Efterforskning och slutsatser
 
-- **Walkabout Mini Golf:** Mighty Coconut beskriver tematiska 18-hålsbanor med sammanhängande miljöer, utforskande och egna trickslag. Tillämpning här: en tydlig värld per nio hål och en trovärdig plats även utanför sargen. [Utvecklarens spelbeskrivning](https://www.mightycoconut.com/minigolf).
+- **Walkabout Mini Golf:** Mighty Coconut beskrive## Ljud
+
+Allt ljud syntetiseras med Web Audio i `src/audio.js`, så spelet behöver inga ljudfiler. Ljudet startar vid första tryckningen, eftersom webbläsare kräver det. Ljudknappen stänger av allt, och när fliken döljs pausas ljudet så att det inte drar batteri. Allt går genom en mjuk kompressor och lite rumsklang: lång klang på månen, ett verkstadsrum i Urverket och öppen skog i Molnskogen.
+
+**Spelljud**
+- Puttslaget är ett klickande *tock* med en kropp som följer slagets kraft.
+- Bollen rasslar när den rullar, och ljudet blir starkare och ljusare ju fortare den går.
+- När bollen slår i sargen låter det olika i varje värld: trä i skogen, en mässingsklang i Urverket och en gummistuds på månen. Ljudet följer hur hårt bollen slår.
+- I koppen klonkar och rasslar bollen innan den landar.
+- Efter hålet spelas en fanfar på världens eget instrument: marimba i skogen, speldosa i Urverket och klockspel på månen. Fanfaren blir längre ju fler stjärnor man fick.
+- Ett fall låter som en fallande vissling och ett sus.
+- De övriga händelseljuden har fått mjukare toner med lite klang.
+
+**Ljudmiljöer**
+- *Molnskogen:* vinden i löven sveper fram och tillbaka och fåglarna sjunger.
+- *Urverkets stad:* tre klockor tickar i olika takt från olika håll i rummet. Göken gal ibland. Leksakståget tuffar förbi i stereo och visslar, speldosan på karusellen spelar sin vals, fontänen porlar och katten spinner då och då.
+- *Månkarnevalen:* en kalliopvals hörs från tivolit och rymden surrar mjukt. Åkattraktionerna ger glada tjut och folkmassan sorlar. Fyrverkerierna smäller en stund efter att de syns, från rätt håll.
+
+r tematiska 18-hålsbanor med sammanhängande miljöer, utforskande och egna trickslag. Tillämpning här: en tydlig värld per nio hål och en trovärdig plats även utanför sargen. [Utvecklarens spelbeskrivning](https://www.mightycoconut.com/minigolf).
 - **Golf With Your Friends, Bouncy Castle:** Team17:s officiella presentation kopplar 18 hål till ett lekfullt tema, hinder och trickslag. Tillämpning här: temat ska synas i hur hindren fungerar. Neonhamnen får ljussignaler, flipperstötar och mekaniska bryggor. [Team17, 21 juni 2022](https://www.team17.com/news/golf-with-your-friends-bouncy-castle-and-more-out-now).
 - **Cursed to Golf:** spelregissören beskriver genvägar, olika vägar, översiktskamera och återkommande utmaningar som går att lära sig. Tillämpning här: en synlig, riskfylld genväg och en tryggare väg runt. Förklarliga missar gör det meningsfullt att försöka igen. [Utvecklarintervju på PlayStation Blog, 18 augusti 2022](https://blog.playstation.com/2022/08/18/cursed-to-golf-is-out-today-on-ps5-and-ps4/).
 

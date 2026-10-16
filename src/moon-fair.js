@@ -229,7 +229,7 @@ export function createMoonFair(scene,level,kit){
     if(nextShell<=0){nextShell=2.2+Math.random()*2.6;shells.push({p:new THREE.Vector3(cx+(Math.random()-.5)*70,-4,minZ-30-Math.random()*30),vy:18+Math.random()*5,fuse:1.1+Math.random()*.4,color:Math.floor(Math.random()*3)})}
     for(let i=shells.length-1;i>=0;i--){
       const s=shells[i];s.fuse-=dt;s.p.y+=s.vy*dt;trail.emit(s.p.x,s.p.y,s.p.z,0,-1,0);
-      if(s.fuse<=0){for(let k=0;k<60;k++){v.randomDirection().multiplyScalar(5+Math.random()*2.5);sparks[s.color].emit(s.p.x,s.p.y,s.p.z,v.x,v.y,v.z)}shells.splice(i,1)}
+      if(s.fuse<=0){window.dispatchEvent(new CustomEvent('fair-burst',{detail:{x:s.p.x-cx}}));for(let k=0;k<60;k++){v.randomDirection().multiplyScalar(5+Math.random()*2.5);sparks[s.color].emit(s.p.x,s.p.y,s.p.z,v.x,v.y,v.z)}shells.splice(i,1)}
     }
     for(const s of sparks)s.update(dt);trail.update(dt);
     for(const l of searchlights){l.pivot.rotation.set(Math.sin(time*.23+l.phase)*.5,0,Math.cos(time*.19+l.phase)*.45-.15)}
