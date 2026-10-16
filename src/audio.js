@@ -112,6 +112,32 @@ export function createAudio(theme){
       run.forEach((n,i)=>struck(t+i*.13,NOTE(n),.16,kind,{wet:.4}));
       const end=t+run.length*.13;[72,76,79].forEach(n=>struck(end+.05,NOTE(n+12),.08,kind,{wet:.5}));
     },
+    // The sink celebration: a slow-motion whoosh, the ball plinking on the bottom,
+    // and the critter popping up, gulping and munching.
+    swoosh(){
+      if(!live())return;const t=ctx.currentTime;
+      hiss(t,'lowpass',3200,.8,.22,.15,1.3,{wet:.5},260);osc(t,'sine',140,55,.25,.1,1.2,{wet:.4});
+    },
+    plink(k=1){
+      if(!live())return;const t=ctx.currentTime;
+      osc(t,'sine',1650,1550,.16*k,.001,.09,{wet:.35});hiss(t,'bandpass',4200,3,.12*k,.001,.025,{wet:.3});osc(t,'sine',220,140,.25*k,.002,.12,{wet:.2});
+    },
+    critter(event){
+      if(!live())return;const t=ctx.currentTime;
+      if(event==='pop'){
+        osc(t,'sine',280,950,.3,.005,.13,{wet:.3});
+        if(theme==='forest')[0,.14].forEach(d=>osc(t+.18+d,'sine',1350,1850,.12,.01,.09,{wet:.3}));
+        else if(theme==='clockwork')[[NOTE(79),0],[NOTE(75),.3]].forEach(([f,d])=>{const o=osc(t+.15+d,'triangle',f,f*.98,.16,.02,.24,{wet:.4});lfo(o.frequency,6,5)});
+        else{const o=osc(t+.15,'square',600,1300,.05,.01,.18,{wet:.5});osc(t+.38,'square',1000,420,.05,.01,.2,{wet:.5});lfo(o.frequency,18,40)}
+      }
+      if(event==='gulp'){osc(t,'sine',420,110,.4,.01,.22,{wet:.2});osc(t+.18,'sine',300,520,.12,.01,.08,{wet:.3})}
+      if(event==='munch')for(let i=0;i<5;i++)hiss(t+i*.13,'bandpass',1800+Math.random()*900,2,.18,.002,.05,{wet:.15});
+      if(event==='dig')for(let i=0;i<6;i++)hiss(t+i*.09,'lowpass',900+Math.random()*500,1,.22,.003,.07,{wet:.15});
+      if(event==='meow'){const o=osc(t,'sawtooth',520,760,.05,.04,.22,{wet:.3});osc(t+.26,'sawtooth',760,560,.05,.01,.3,{wet:.3});lfo(o.frequency,7,6)}
+      if(event==='boop'){osc(t,'sine',500,1500,.12,.005,.12,{wet:.4});osc(t+.13,'sine',1500,800,.1,.005,.12,{wet:.4})}
+      if(event==='tap'){hiss(t,'bandpass',2200,2,.3,.001,.03,{wet:.15});osc(t,'sine',240,160,.25,.002,.08,{wet:.15})}
+      if(event==='duck'){osc(t,'sine',700,180,.2,.01,.28,{wet:.3});hiss(t,'lowpass',2000,.7,.1,.01,.25,{wet:.3},300)}
+    },
     fall(){
       if(!live())return;const t=ctx.currentTime;
       osc(t,'sine',900,180,.18,.02,.75,{wet:.4});

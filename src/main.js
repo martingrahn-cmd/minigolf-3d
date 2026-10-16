@@ -28,6 +28,7 @@ import {wheelTurn,docked,crossesDock,ridePose} from './ferris.js';
 import {starsFor,starText,bestStars,worldStars,startWorldRun,activeRun,recordRunHole,endWorldRun,nextRunHole,runScorecard} from './progress.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { createAudio } from './audio.js';
+import { SINK, SLOW_MOTION, sinkPose, RESCUE, onTheLip } from './cup-celebration.js';
 import './style.css';
 
 const $=id=>document.getElementById(id);
@@ -81,6 +82,10 @@ const gates=LEVEL.gates||[];
 const gateClocks=gates.map(()=>0);
 let pendulumTime=0,pendulumHitCooldown=0,crownTime=0,cometTime=0,wheelTime=0;
 let elapsed=0;
+// The sink celebration: slow motion, a close-up and the cup critter.
+let sink=null,timeScale=1,realDt=0;
+// A friend who helps a ball that stopped right on the lip of the cup.
+let rescue=null;
 let accumulator=0;
 let bridgeAngle=LEVEL.bridge?.maxAngle||0;
 let launch=null;
@@ -101,6 +106,8 @@ const state={phase:'intro',x:START.x,z:START.z,vx:0,vz:0,aim:0,power:0,needle:0,
 const ball=new THREE.Group();
 const ballCore=createGolfBall();
 ball.add(ballCore);scene.add(ball);
+// Drawn after the cup's hole so the ball can be seen inside it.
+ball.traverse(o=>{o.renderOrder=3});
 const rollAxis=new THREE.Vector3();
 const ballShadow=new THREE.Mesh(new THREE.CircleGeometry(.33,32),new THREE.MeshBasicMaterial({color:0x255665,transparent:true,opacity:.13,depthWrite:false}));
 ballShadow.rotation.x=-Math.PI/2;scene.add(ballShadow);
@@ -222,6 +229,7 @@ function shoot(puttingSpeed){
 function reset(full=true){
   state.x=START.x;state.z=START.z;state.vx=0;state.vz=0;state.aim=0;state.power=0;state.needle=0;state.flight=0;state.pipe=0;state.fall=0;state.boost=0;state.strokes=full?0:state.strokes;
   pipeCooldown=0;springCooldowns.fill(0);gateClocks.fill(0);bridgeAngle=LEVEL.bridge?.maxAngle||0;launch=null;shotKick=0;ball.visible=true;ballCore.quaternion.identity();
+  sink=null;rescue=null;course?.lipRescuer?.hide();timeScale=1;ball.scale.setScalar(1);course?.cupCritter?.hide();if(course?.flagstick){course.flagstick.position.y=course.cupHeight;course.flagstick.rotation.z=0}
   pinRack.reset();course?.carnival?.reset();course?.motherTree?.reset();hoopHit=false;
   pendulumTime=0;pendulumHitCooldown=0;crownTime=0;
   loopRide=null;loopPosition=null;state.saved={...START,aim:0};
@@ -270,6 +278,44 @@ function startPipe(){
   toast('RÖRPOST! ✦',1500);sound(380,.36,'sine',.07,1.8);
   burst(PIPE_IN.x,.5,PIPE_IN.z,0x66dbed,19,1);
 }
+function startRescue(){
+  const dx=CUP.x-state.x,dz=CUP.z-state.z,d=Math.hypot(dx,dz)||1;
+  rescue={t:0,ball:{x:state.x,z:state.z},dir:{x:dx/d,z:dz/d},events:new Set()};setPhase('rescue');
+  toast(LEVEL.theme==='forest'?'På kanten! Mullvaden kommer…':LEVEL.theme==='clockwork'?'På kanten! Katten har sett den…':'På kanten! Något hoppar hitåt…',1800);
+  if(cameraOverview){cameraOverview=false;$('cameraText').textContent='Översikt';setIcon($('cameraIcon'),'map')}
+}
+function updateRescue(dt){
+  const t=(rescue.t+=dt),once=(name,at)=>t>=at&&!rescue.events.has(name)&&rescue.events.add(name);
+  if(once('hello',.3))audio.critter(LEVEL.theme==='forest'?'dig':LEVEL.theme==='clockwork'?'meow':'boop');
+  if(once('look',RESCUE.arrive+.1)&&LEVEL.theme!=='forest')audio.critter(LEVEL.theme==='clockwork'?'meow':'boop');
+  if(once('tap',RESCUE.tap)&&state.phase==='rescue'){
+    // The nudge: just enough to roll over the lip.
+    audio.critter('tap');state.vx=rescue.dir.x*1.8;state.vz=rescue.dir.z*1.8;state.settle=0;setPhase('moving');
+  }
+  if(t>=RESCUE.gone){course?.lipRescuer?.hide();rescue=null}
+}
+function startSink(){
+  sink={t:0,entry:{x:state.x-CUP.x,z:state.z-CUP.z,vx:state.vx,vz:state.vz},y:0,events:new Set()};
+  state.vx=0;state.vz=0;setPhase('sinking');audio.swoosh();
+  if(cameraOverview){cameraOverview=false;$('cameraText').textContent='Översikt';setIcon($('cameraIcon'),'map')}
+}
+function updateSink(dt){
+  const t=(sink.t+=dt),once=(name,at)=>t>=at&&!sink.events.has(name)&&sink.events.add(name);
+  if(t<SINK.settle){const p=sinkPose(t,sink.entry);state.x=CUP.x+p.x;state.z=CUP.z+p.z;sink.y=p.y}
+  if(once('drop',SINK.drop)){audio.plink(1);audio.cup()}
+  if(once('bounce',SINK.drop+.12))audio.plink(.5);
+  const critter=course?.cupCritter;
+  if(critter){
+    if(once('pop',SINK.settle+.05)){audio.critter('pop');burst(CUP.x,course.cupHeight+.3,CUP.z,0xffffff,10,.5)}
+    if(once('gulp',SINK.gulp)){audio.critter('gulp')}
+    if(once('munch',SINK.swallowed)){audio.critter('munch');toast(LEVEL.theme==='forest'?'MUMS! sa mullvaden ✦':LEVEL.theme==='clockwork'?'KUKU! Gött! ✦':'BLIPP! Smaskens ✦',1600);burst(CUP.x,course.cupHeight+1.1,CUP.z,0xffd264,28,1.2)}
+    if(once('duck',SINK.duck))audio.critter('duck');
+  }
+  if(t>=(critter?SINK.done:SINK.settle+.25))finishSink();
+}
+function finishSink(){
+  if(!sink)return;sink=null;timeScale=1;course?.cupCritter?.hide();rescue=null;course?.lipRescuer?.hide();ball.visible=false;win();
+}
 function win(){
   setPhase('win');state.vx=0;state.vz=0;
   const best=Number(localStorage.getItem(LEVEL.recordKey))||Infinity;
@@ -290,7 +336,7 @@ function win(){
     burst(CUP.x-4+i*1.6,7+(i%3)*1.8,CUP.z+(i%2?-3:3),color,46,2.4);audio.boom(-4+i*1.6);
   },250+i*420));
   if(course?.motherTree){course.motherTree.bloom();burst(LEVEL.treeEye.x,LEVEL.treeEye.y,LEVEL.treeEye.z,0xffb3d4,60,2.2)}
-  audio.cup();audio.fanfare(stars);
+  audio.fanfare(stars);
 }
 
 function celebratePins(indices){
@@ -304,6 +350,9 @@ function celebratePins(indices){
   if(count===pinStates.length)course?.carnival?.celebrate();
 }
 function physics(dt){
+  if(rescue)updateRescue(dt);
+  if(state.phase==='sinking'){updateSink(dt);return}
+  if(state.phase==='rescue')return;
   stepBellBridge(bellBridgeState,dt,LEVEL.bellBridge);
   if(['idle','power','accuracy','moving'].includes(state.phase)&&tryBoardLift(state,liftState,LEVEL.lift,dt)){
     setPhase('elevator');toast('NÄSTA VÅNING! ↑',1800);sound(165,.6,'triangle',.07,1.8);return;
@@ -418,10 +467,10 @@ function physics(dt){
       toast(LEVEL.springToasts?.[i]??(SPRINGS.length>1?`STUDS ${i+1}!`:'STUDSPLATTA!'),1300);
       sound(380,.26,'sine',.1,2.8);burst(spring.x,.25,spring.z,0xffd36c,17,1.1);
     });
-    if(shouldSink(state,CUP)){win();return}
+    if(shouldSink(state,CUP)){startSink();return}
     if(Math.hypot(state.vx,state.vz)<.23){
       state.settle+=dt;
-      if(state.settle>.45){state.vx=0;state.vz=0;setPhase('idle');toast('Din tur igen',1000)}
+      if(state.settle>.45){state.vx=0;state.vz=0;if(onTheLip(state,CUP)&&course?.lipRescuer){startRescue();return}setPhase('idle');toast('Din tur igen',1000)}
     }else state.settle=0;
     if(state.shotAge>14){state.vx=0;state.vz=0;setPhase('idle')}
   }else if(state.phase==='floating'){
@@ -565,8 +614,17 @@ function draw(dt){
   if(phase==='riding')extraY=ridePose(LEVEL.ferris,state.ride,wheelTime).y-ballHeight;
   if(phase==='loading')extraY=feedPose(LEVEL.cometCannon,state.feed).y-ballHeight-.04-BALL_RADIUS;
   if(phase==='comet')extraY=cometPose(LEVEL.cometCannon,state.cometAngle,state.flight,state.cometRange).y;
+  if(phase==='sinking'&&sink)extraY=sink.y;
   ball.position.set(state.x,ballHeight+.04+BALL_RADIUS+extraY,state.z);
-  ball.visible=phase!=='loaded';
+  ball.visible=phase!=='loaded'&&phase!=='win';ball.scale.setScalar(1);
+  if(rescue)course?.lipRescuer?.update(rescue.t,rescue.ball,rescue.dir,camera);
+  if(phase==='sinking'&&sink){
+    // The flag comes out of the cup, and the critter takes the ball in its mouth.
+    const lift=THREE.MathUtils.smoothstep(sink.t,0,.25);
+    if(course?.flagstick){course.flagstick.position.y=course.cupHeight+2.2*lift;course.flagstick.rotation.z=.3*lift}
+    const held=course?.cupCritter?.update(sink.t,camera);
+    if(held){ball.position.copy(held.ball);ball.scale.setScalar(held.scale/.75*.75);ball.visible=held.scale>.01}
+  }
   const rollingSpeed=Math.hypot(state.vx,state.vz);
   audio.roll(phase==='moving'?rollingSpeed:0);
   trail.forEach(m=>{m.material.opacity=Math.max(0,m.material.opacity-dt*1.8);m.scale.multiplyScalar(Math.exp(-dt*2))});
@@ -578,7 +636,7 @@ function draw(dt){
     rollAxis.set(state.vz,0,-state.vx).normalize();
     ballCore.rotateOnWorldAxis(rollAxis,rollingSpeed*dt/BALL_RADIUS);
   }
-  ballShadow.position.set(state.x,ballHeight+.08,state.z);ballShadow.visible=phase!=='looping'&&phase!=='bridgeflight'&&phase!=='drumflight'&&phase!=='cannon'&&phase!=='comet'&&phase!=='loaded'&&phase!=='loading'&&phase!=='riding'&&phase!=='falling'&&phase!=='pipe';
+  ballShadow.position.set(state.x,ballHeight+.08,state.z);ballShadow.visible=phase!=='sinking'&&phase!=='win'&&phase!=='looping'&&phase!=='bridgeflight'&&phase!=='drumflight'&&phase!=='cannon'&&phase!=='comet'&&phase!=='loaded'&&phase!=='loading'&&phase!=='riding'&&phase!=='falling'&&phase!=='pipe';
   if(phase==='funnel')ballShadow.visible=false;
   halo.position.set(state.x,ballHeight+.085,state.z);halo.visible=phase==='idle'||phase==='power'||phase==='accuracy';
   if(LEVEL.heightProfile){
@@ -656,6 +714,19 @@ function draw(dt){
     desiredTarget.set(state.x+2,.1,state.z);
   }
   let desiredFov=54;
+  if(rescue&&phase!=='sinking'&&phase!=='win'&&!cameraOverview&&!reducedCameraMotion){
+    // A side view of the ball, the cup and the helper.
+    const mx=(rescue.ball.x+CUP.x)/2,mz=(rescue.ball.z+CUP.z)/2,h=course?.cupHeight??0;
+    let px=-rescue.dir.z,pz=rescue.dir.x;if(px*(cameraPosition.x-mx)+pz*(cameraPosition.z-mz)<0){px=-px;pz=-pz}
+    desiredPosition.set(mx+px*3.4-rescue.dir.x*1.2,h+1.8,mz+pz*3.4-rescue.dir.z*1.2);desiredTarget.set(mx-rescue.dir.x*.3,h+.3,mz-rescue.dir.z*.3);desiredFov=46;
+  }
+  if(phase==='sinking'&&sink&&!cameraOverview&&!reducedCameraMotion){
+    // Down to the cup, looking along the line the ball came in on.
+    const speed=Math.hypot(sink.entry.vx,sink.entry.vz),bx=speed>.01?-sink.entry.vx/speed:-Math.cos(state.aim),bz=speed>.01?-sink.entry.vz/speed:-Math.sin(state.aim);
+    const up=sink.t>SINK.settle?1:0,h=course?.cupHeight??0;
+    desiredPosition.set(CUP.x+bx*3.1-bz*.8,h+1.55+up*.35,CUP.z+bz*3.1+bx*.8);
+    desiredTarget.set(CUP.x,h-.1+up*.6,CUP.z);desiredFov=44;
+  }
   if(phase==='funnel'&&!cameraOverview&&!reducedCameraMotion){
     const chase=tubeCameraPose(tubeCameraRail,funnelPosition.progress),blend=tubeCameraBlend(funnelRide.time);
     // Interpolate along the rail, not across corners: the camera fits inside the tube.
@@ -667,11 +738,11 @@ function draw(dt){
   }else{
     if(phase==='funnel'&&reducedCameraMotion){desiredPosition.set(-16,10,13);desiredTarget.set(-5,1.6,-2)}
     tubeCameraRecovery=Math.max(0,tubeCameraRecovery-dt);
-    const smoothing=1-Math.exp(-(tubeCameraRecovery>0?2.7:5.2)*dt);
+    const smoothing=1-Math.exp(-(tubeCameraRecovery>0?2.7:phase==='sinking'?3.2:5.2)*(phase==='sinking'?realDt:dt));
     cameraPosition.lerp(desiredPosition,smoothing);cameraTarget.lerp(desiredTarget,smoothing);
     camera.up.lerp(new THREE.Vector3(0,1,0),1-Math.exp(-5*dt)).normalize();
   }
-  shotKick=Math.max(0,shotKick-dt*2);camera.fov=THREE.MathUtils.lerp(camera.fov,desiredFov+shotKick*2,1-Math.exp(-7*dt));camera.updateProjectionMatrix();
+  shotKick=Math.max(0,shotKick-dt*2);camera.fov=THREE.MathUtils.lerp(camera.fov,desiredFov+shotKick*2,1-Math.exp(-7*(phase==='sinking'?realDt:dt)));camera.updateProjectionMatrix();
   camera.position.copy(cameraPosition);camera.lookAt(cameraTarget);
   const activeCamera=cameraOverview?overviewCamera:camera;
   course?.environment.updateView?.(activeCamera,ball.position,dt,cameraOverview);
@@ -685,7 +756,9 @@ function draw(dt){
 }
 function frame(){
   requestAnimationFrame(frame);
-  const dt=Math.min(clock.getDelta(),.05);elapsed+=dt;
+  realDt=Math.min(clock.getDelta(),.05);
+  const slow=sink&&sink.t<SINK.settle&&!reducedCameraMotion?SLOW_MOTION:1;timeScale+=(slow-timeScale)*Math.min(1,realDt*8);
+  const dt=realDt*timeScale;elapsed+=dt;
   if(preview>0){preview-=dt;if(preview<=0)finishPreview()}
   if(state.phase==='idle'){
     const direction=Number(aimKeys.has('KeyD')||aimKeys.has('ArrowRight'))-Number(aimKeys.has('KeyA')||aimKeys.has('ArrowLeft'));
@@ -721,6 +794,7 @@ function overviewAim(ev,activeCamera=overviewCamera){
 }
 canvas.addEventListener('pointerdown',e=>{
   if(endPreview())return;
+  if(state.phase==='sinking'){finishSink();return}
   if(state.phase==='loaded'){fireComet();return}
   if(state.phase!=='idle')return;
   draggingAim=true;lastPointerX=e.clientX;pointerDownX=e.clientX;pointerDownY=e.clientY;canvas.setPointerCapture(e.pointerId);
@@ -746,6 +820,7 @@ window.addEventListener('keydown',e=>{
   if($('helpPanel').open||$('levelPanel').open)return;
   if(e.target instanceof HTMLInputElement&&['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(e.code))return;
   if(e.code==='Space'||e.code==='Enter'){
+    if(state.phase==='sinking'){e.preventDefault();finishSink();return}
     if(state.phase==='intro'||state.phase==='win')return;
     if(e.target instanceof HTMLElement&&e.target.closest('button')&&e.target.id!=='actionButton')return;
     e.preventDefault();if(!e.repeat)action();

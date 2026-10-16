@@ -83,7 +83,34 @@ Modellerna byggs i `blender/assets/carnival.py`: utomjording, kättingflygare, r
 
 ## Efterforskning och slutsatser
 
-- **Walkabout Mini Golf:** Mighty Coconut beskrive## Ljud
+- **Walkabout Mini Golf:** Mighty Coconut beskrive## När putten sänks
+
+Att sänka putten ska kännas som en belöning, inte bara som konfetti. Allt ligger i `src/cup-celebration.js`.
+
+**Ett riktigt hål.** Koppen är nu ett riktigt hål i filten. En osynlig skiva vid kanten nollställer djupbufferten där filten syns, så att hålets insida och bollen kan ritas genom den. Överst sitter en ljus kopp, längre ner blir det mörk jord: violett på månen och mässing i Urverket.
+
+**Sänkningen**
+- Spelet går över i slowmotion och kameran sänker sig ner till koppen. Den tittar längs linjen bollen kom in på.
+- Flaggan lyfts ur hålet.
+- Bollen rullar ett halvt varv runt kanten i den riktning den rullade och tippar över. Den faller ner och studsar mot botten med ett *plink*.
+
+**Kopphålets invånare.** När bollen ligger på botten tittar världens figur upp ur hålet med bollen i munnen. Den sväljer, tuggar, vinkar och dyker ner igen innan resultatkortet visas.
+- Molnskogen: en mullvad med bygghjälm och pannlampa.
+- Urverkets stad: en gök på en fjäder.
+- Månkarnevalen: en utomjording.
+
+Ett tryck hoppar över firandet. Om spelaren valt reducerad rörelse blir det ingen slowmotion och ingen kameraåkning.
+
+**Precis på kanten.** Om bollen stannar precis vid kanten, närmare än 0,85 m från hålets mitt, kommer en hjälpare och knuffar ner den. Slaget räknas som sänkt.
+- Molnskogen: mullvaden gräver upp sig ur en jordhög bredvid bollen, tittar sig omkring med pannlampan och knackar ner bollen.
+- Urverkets stad: en katt kommer gående, sätter sig, tittar in i kameran och puttar ner bollen med tassen, som katter gör.
+- Månkarnevalen: en utomjording hoppar fram och boopar bollen.
+
+Kameran visar bollen, koppen och hjälparen från sidan. Sedan följer den vanliga sänkningen.
+
+Modellerna byggs i `blender/assets/critters.py`: mullvad, gök och katt. Utomjordingen återanvänds från karnevalen.
+
+## Ljud
 
 Allt ljud syntetiseras med Web Audio i `src/audio.js`, så spelet behöver inga ljudfiler. Ljudet startar vid första tryckningen, eftersom webbläsare kräver det. Ljudknappen stänger av allt, och när fliken döljs pausas ljudet så att det inte drar batteri. Allt går genom en mjuk kompressor och lite rumsklang: lång klang på månen, ett verkstadsrum i Urverket och öppen skog i Molnskogen.
 
