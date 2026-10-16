@@ -54,6 +54,33 @@ Spelaren ville att Urverket skulle bli en levande stad och kännas mer som ett r
 
 Allt står på golvet långt under filten och påverkar aldrig bollen. Husen håller avstånd till banan och till kugghjulen, gökurshusen och rören som redan fanns i rummet. Modellerna byggs i `blender/assets/town.py`: tre stadshus, klocktorn, lok, två vagnar, stadsbo, duva, luftskepp, katt, karusell, fontän, böcker, tekopp, mus, krukväxt och taklampa.
 
+## Månkarnevalen som levande tivoli
+
+Månkarnevalen var en ödslig bana bland asteroider. Nu ligger en ring av svävande tivoliöar runt varje månhål, och varje ö har sin egen attraktion. Allt byggs i `src/moon-fair.js`.
+
+**Öarna.** Varje ö har en klippig undersida och ett däck med stjärnmönster. Kanten är av guld med lampor som blinkar i jagande takt. Lampslingor med samma blinkande ljus hänger mellan grannöarna. Höga attraktioner står bakom banan och låga framför, så att översiktskameran alltid ser filten.
+
+**Attraktionerna:**
+- ett fritt fall-torn som hissas upp långsamt, väntar, faller och studsar
+- ett pariserhjul (på hål 17, som redan har ett, blir det i stället en kättingflygare till)
+- en kättingflygare vars stolar svänger ut när den snurrar
+- cirkustältet
+- kiosker med popcorn och randiga markiser
+- spelstånd med ringkastning och en slagmaskin där puckan skjuts upp mot klockan
+- en raketkarusell vars raketer åker upp och ner
+- en liten berg-och-dalbana med tre vagnar som saktar i uppförsbackarna
+
+Åkattraktionerna går en stund, saktar in, står still och startar igen.
+
+**Livet:**
+- Enögda utomjordingar i olika färger hoppar omkring på öarna och stannar och tittar på banan.
+- Ballonger stiger mot himlen.
+- Fyrverkerier smäller långt bakom banan.
+- Två strålkastare sveper över himlen.
+- Ett UFO med dragstråle kryssar förbi, och ibland drar ett stjärnfall över himlen.
+
+Modellerna byggs i `blender/assets/carnival.py`: utomjording, kättingflygare, raketkarusell, kiosk, spelstånd, fritt fall-torn, UFO och berg-och-dalbanevagn. Besökarna ritas med instansering. Öarnas fasta delar och likadana material slås ihop med hjälpfunktionerna i `src/life-kit.js`, som Urverkets stad också använder. Ingenting påverkar bollen.
+
 ## Efterforskning och slutsatser
 
 - **Walkabout Mini Golf:** Mighty Coconut beskriver tematiska 18-hålsbanor med sammanhängande miljöer, utforskande och egna trickslag. Tillämpning här: en tydlig värld per nio hål och en trovärdig plats även utanför sargen. [Utvecklarens spelbeskrivning](https://www.mightycoconut.com/minigolf).

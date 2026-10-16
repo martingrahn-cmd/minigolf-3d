@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { profileHeight } from './terrain.js';
 import { modelInstance, tintMaterials } from './models.js';
+import { createMoonFair } from './moon-fair.js';
 
 // Månkarnevalen: an abandoned fun fair drifting between asteroids. Mid-level
 // procedural stand-ins, listed in BLENDER_ASSETS.md for later Blender models.
@@ -163,20 +164,26 @@ export function createMoonEnvironment(scene,level,dress){
     const rock=asteroid(scene,cx+Math.cos(a)*d,-14+random()*26,(minZ+maxZ)/2+Math.sin(a)*d,1.5+random()*4,i+3,material(i%3?C.rock:C.rockDark));
     rock.castShadow=false;animated.push({object:rock,type:'spin',speed:.02+random()*.05});
   }
-  const fair=new THREE.Group();fair.name='moon-fair-backdrop';scene.add(fair);
-  asteroid(fair,cx+6,-12.5,minZ-24,5,41).scale.set(1.3,.45,.8);
-  const wheel=ferrisWheel(fair,cx+6,-10,minZ-24,7.5);animated.push({type:'wheel',...wheel});
-  asteroid(fair,minX-14,-9,minZ-10,4.5,52).scale.set(1.3,.6,1.1);
-  rocket(fair,minX-14,-6.2,minZ-10,2.1,-.28);
-  asteroid(fair,maxX+10,-8,maxZ+4,6,63).scale.set(1.4,.55,1.2);
-  tent(fair,maxX+10,-4.6,maxZ+4,3.4,5.5);
-  asteroid(fair,minX-6,-8,maxZ+9,5,74).scale.set(1.3,.55,1.1);
-  tent(fair,minX-6,-4.8,maxZ+9,2.6,4.4);
-  stringLights(fair,[minX-6,-.2,maxZ+9],[maxX+10,.6,maxZ+4],2.5,22);
-  stringLights(fair,[minX-14,2,minZ-10],[cx+6,3,minZ-24],3,24);
+  // The living fair round the course; the older static backdrop stands in when
+  // the models could not be loaded.
+  const livingFair=createMoonFair(scene,level,{asteroid,tent,ferrisWheel,lantern,material,glowMaterial});
+  if(!livingFair){
+    const fair=new THREE.Group();fair.name='moon-fair-backdrop';scene.add(fair);
+    asteroid(fair,cx+6,-12.5,minZ-24,5,41).scale.set(1.3,.45,.8);
+    const wheel=ferrisWheel(fair,cx+6,-10,minZ-24,7.5);animated.push({type:'wheel',...wheel});
+    asteroid(fair,minX-14,-9,minZ-10,4.5,52).scale.set(1.3,.6,1.1);
+    rocket(fair,minX-14,-6.2,minZ-10,2.1,-.28);
+    asteroid(fair,maxX+10,-8,maxZ+4,6,63).scale.set(1.4,.55,1.2);
+    tent(fair,maxX+10,-4.6,maxZ+4,3.4,5.5);
+    asteroid(fair,minX-6,-8,maxZ+9,5,74).scale.set(1.3,.55,1.1);
+    tent(fair,minX-6,-4.8,maxZ+9,2.6,4.4);
+    stringLights(fair,[minX-6,-.2,maxZ+9],[maxX+10,.6,maxZ+4],2.5,22);
+    stringLights(fair,[minX-14,2,minZ-10],[cx+6,3,minZ-24],3,24);
+  }
   (dress??{zerog:zeroGTent}[level.scenery])?.(scene,animated,level);
   const reducedMotion=typeof window!=='undefined'&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   return {theme:MOON_THEME,update(time){
+    livingFair?.update(time);
     if(reducedMotion)return;
     starMaterial.opacity=.8+Math.sin(time*.7)*.1;
     for(const entry of animated){
