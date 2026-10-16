@@ -39,6 +39,21 @@ Inget av detta påverkar bollen. Om spelaren valt reducerad rörelse står livet
 
 Repbroar hänger mellan grannöarna, och en lapptäcksfärgad luftballong driver sakta runt himlen. Alla modeller byggs i `blender/assets/village.py`: stuga, väderkvarn, brunn, ballong, stånd, bikupa, pumpa, kål, höbal, vedtrave, bänk, vägvisare, får, höna och anka. Ingenting i byn påverkar bollen.
 
+## Urverkets stad som ett rum
+
+Spelaren ville att Urverket skulle bli en levande stad och kännas mer som ett rum. Banan står nu på pelare i en urmakares verkstad, och på golvet runt banan har någon byggt en miniatyrstad av urverk. Allt byggs i `src/clock-town.js`.
+
+**Rummet.** Rummet har tre väggar med tapet med små mässingskugghjul. Längs väggarna finns boaserad panel och golvlist. I vänsterväggen sitter ett högt fönster med sammetsgardiner och solstrålar. Högerväggen har en plankdörr. Bakväggen har hyllor med burkar, trådrullar och böcker, och på vänsterväggen hänger tavlor. Två taklampor hänger över staden. Under staden ligger en rund matta.
+
+**Staden.** Två rader smala hus står runt banan. Raden närmast banan är lite mindre så att taken stannar under filten. Husen har lysande fönster som flimrar och skorstenar som ryker. Ett klocktorn har visare som går. Framför banan ligger ett torg med en fontän som sprutar, en karusell som snurrar och duvor som pickar och hoppar omkring. Utöver det rör sig följande:
+- Ett uppdragbart leksakståg kör runt banan och ryker ur skorstenen.
+- Sexton uppdragbara stadsbor promenerar på trottoaren, stannar och ser sig om, och nyckeln på ryggen snurrar.
+- Ett luftskepp kryssar bakom banan.
+
+**Det stora i rummet.** En stor rödrandig katt sover på en kudde. Den andas, viftar med svansen och snarkar små z. På en bokhög står en tekopp som ångar. Där finns också en krukväxt, och en urverksmus springer längs golvlisten.
+
+Allt står på golvet långt under filten och påverkar aldrig bollen. Husen håller avstånd till banan och till kugghjulen, gökurshusen och rören som redan fanns i rummet. Modellerna byggs i `blender/assets/town.py`: tre stadshus, klocktorn, lok, två vagnar, stadsbo, duva, luftskepp, katt, karusell, fontän, böcker, tekopp, mus, krukväxt och taklampa.
+
 ## Efterforskning och slutsatser
 
 - **Walkabout Mini Golf:** Mighty Coconut beskriver tematiska 18-hålsbanor med sammanhängande miljöer, utforskande och egna trickslag. Tillämpning här: en tydlig värld per nio hål och en trovärdig plats även utanför sargen. [Utvecklarens spelbeskrivning](https://www.mightycoconut.com/minigolf).

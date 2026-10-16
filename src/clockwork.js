@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { gatePose } from './gates.js';
 import { modelInstance } from './models.js';
+import { createClockTown, wallpaper } from './clock-town.js';
 
 export const CLOCK_THEME={key:'clockwork',name:'Urverkets stad',range:'HÅL 01–06',sky:0x1e333c,horizon:0xc6a279,rail:0xc49a58,base:0x392a29,accent:0xe8bd70};
 const mat=(color,extra={})=>new THREE.MeshStandardMaterial({color,roughness:.65,...extra});
@@ -226,10 +227,10 @@ export function createClockEnvironment(scene,level){
   const blue=new THREE.DirectionalLight(0x8ac4d1,1.2);blue.position.set(8,14,20);scene.add(blue);
   const wall=mat(0x354949),plaster=mat(0x68817c),floorMat=mat(0x342b2b);
   // A great clock cabinet, open toward the camera. Its ribs enclose the whole city.
-  box(statics,105,1,90,0,-7.6,0,floorMat);box(statics,94,30,1,0,7,-32,wall);
+  box(statics,105,1,90,0,-7.6,0,floorMat);box(statics,94,30,1,0,7,-32,mat(0xffffff,{map:wallpaper(15.7,5),roughness:.85}));
   for(let x=-42;x<45;x+=7){box(statics,.8,31,1.5,x,7,-31.2,wood);box(statics,6.1,.15,.15,x+3.5,-3,-30.6,copper)}
   for(const y of [-5,1,13,21])box(statics,94,.45,1.5,0,y,-30.7,woodLight);
-  box(statics,1,39,92,45,11,0,wall);
+  box(statics,1,39,92,45,11,0,mat(0xffffff,{map:wallpaper(15,6.5),roughness:.85}));
   for(let z=-35;z<43;z+=7)box(statics,1.5,39,.65,44.3,11,z,wood);
   for(const y of [-5,6,17,28])box(statics,1.5,.45,90,44.3,y,0,woodLight);
   // Glowing cathedral-like clock window, with radial spokes and a brass frame.
@@ -242,9 +243,11 @@ export function createClockEnvironment(scene,level){
   ring(eastWindow,7,.28,0,0,.1,brass);
   for(let i=0;i<12;i++){const a=i*Math.PI/6;rod(eastWindow,[0,0,.2],[Math.sin(a)*7,Math.cos(a)*7,.2],.09,wood)}
   // Massive toothed wheels sit in the cabinet rather than masquerading as islands.
-  for(const [x,y,z,r,teeth,speed] of [[-19,4,-17,5.6,44,.06],[-9.1,4,-17,4.3,34,-.06*44/34],[21,3,-20,6.2,48,-.045],[31,3,-20,4.1,32,.045*48/32],[-27,-1,9,4.2,32,.055]]){
+  // What already stands in the room, so the town below keeps clear of it.
+  const obstacles=[];
+  for(const [x,y,z,r,teeth,speed] of [[-19,4,-17,5.6,44,.06],[-9.1,4,-17,4.3,34,-.06*44/34],[21,3,-20,6.2,48,-.045],[31,3,-20,4.1,32,.045*48/32],[-27,.5,9,4.2,32,.055]]){
     const gear=createGear(scene,r,teeth,.65);gear.position.set(x,y,z);animated.push({kind:'gear',object:gear,speed});
-    rod(statics,[x,y,z-4],[x,y,z+1],.3,iron);
+    rod(statics,[x,y,z-4],[x,y,z+1],.3,iron);obstacles.push({x,z:z-1.5,rx:r,rz:2.6,bottom:y-r});
   }
   // Move the complete landmark back on hole 5, including its roof overhang.
   const heroHouseZ=level?.clockScenery?.heroZ??(level?.id===5?-22:-17),heroHouseX=level?.clockScenery?.heroX??9;
@@ -252,13 +255,15 @@ export function createClockEnvironment(scene,level){
   for(const [x,z,s] of [[-25,-25,.65],[-11,-26,.5],[29,-29,.9],[36,-12,.58]])cuckooHouse(scene,x,z,s,animated);
   const easternHouse=cuckooHouse(scene,34,9,.95,animated);easternHouse.rotation.y=-Math.PI/2;
   // Balconies, connecting catwalks, pipes and hanging shop signs give it a lived-in scale.
+  for(const [x,z,s] of [[-25,-25,.65],[-11,-26,.5],[heroHouseX,heroHouseZ,1.35],[29,-29,.9],[36,-12,.58],[34,9,.95]])obstacles.push({x,z,rx:4.2*s+.5,rz:4.2*s+.5,bottom:-1-3.8*s});
+  obstacles.push({x:-4,z:-23,rx:30,rz:1.3,bottom:-3.6});
   for(const [x,z,s] of [[-25,-25,.65],[-11,-26,.5],[heroHouseX,heroHouseZ,1.35],[29,-29,.9],[36,-12,.58]]){
     box(statics,7*s,.32,5*s,x,-2,z+1);box(statics,7*s,.08,5*s,x,-1.8,z+1,brass);
     for(const side of [-1,1]){rod(statics,[x+side*3*s,-1.8,z+3*s],[x+side*3*s,0,z+3*s],.06,iron);lantern(statics,x+side*3*s,-1.8,z+3*s)}
   }
   for(let i=0;i<14;i++){const x=-31+i*4;box(statics,3.9,.18,2,x,-3.4,-23,woodLight);for(const z of [-24,-22])rod(statics,[x-2,-2.7,z],[x+2,-2.7,z],.055,brass)}
   for(const [x,z] of [[-21,5],[level?.clockScenery?.pipeX??(level?.id===3?25.2:level?.id===4?25:20),5],[-21,-12]]){
-    rod(statics,[x,-7,z],[x,3,z],.22,copper);ring(statics,.3,.07,x,2.1,z,brass).rotation.x=Math.PI/2;
+    rod(statics,[x,-7,z],[x,3,z],.22,copper);obstacles.push({x,z,rx:1,rz:1,bottom:-7.2});ring(statics,.3,.07,x,2.1,z,brass).rotation.x=Math.PI/2;
     const elbow=add(statics,new THREE.TorusGeometry(.65,.22,10,24,Math.PI/2),copper,x+.65,3,z);elbow.rotation.z=Math.PI/2;
   }
   // A tiny watchmaker's desk and stacked spring barrels beside the opening tee.
@@ -268,7 +273,7 @@ export function createClockEnvironment(scene,level){
   for(let i=0;i<3;i++){
     const gear=createGear(statics,.55+i*.12,12+i*4,.1);gear.position.set(deskX-1+i*1.15,.04,deskZ-.1);gear.rotation.x=-Math.PI/2;
   }
-  lantern(statics,deskX+2,0,deskZ+.1);
+  lantern(statics,deskX+2,0,deskZ+.1);obstacles.push({x:deskX,z:deskZ,rx:2.4,rz:1.4,bottom:-7.2},{x:-18,z:9,rx:3.6,rz:.6,bottom:-7.2});
   // Cabinet-floor parquet and inlaid copper rails replace a featureless void.
   const parquet=[mat(0x42382e),mat(0x4a3b30),mat(0x3b3530)];
   for(let x=-40;x<44;x+=4)for(let z=-30;z<36;z+=3){
@@ -286,8 +291,10 @@ export function createClockEnvironment(scene,level){
   for(let i=0;i<130;i++)points.push(-30+random()*60,-4+random()*22,-28+random()*48);
   const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(points,3));
   const dust=new THREE.Points(geometry,new THREE.PointsMaterial({color:0xffd999,size:.045,transparent:true,opacity:.5,depthWrite:false}));scene.add(dust);
+  const town=createClockTown(scene,level,{...clockKit,mat},obstacles);
   const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   return {theme:CLOCK_THEME,update(time,gateTime=time){
+    town.update(time);
     if(reducedMotion)return;
     dust.position.y=Math.sin(time*.1)*.2;
     for(const entry of animated){
