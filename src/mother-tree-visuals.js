@@ -3,6 +3,7 @@ import { forestKit, createForestSurface } from './forest.js';
 import { createRootLoop } from './loop-visuals.js';
 import { LEVELS } from './levels.js';
 import { eyeMouths } from './mother-tree.js';
+import { modelInstance } from './models.js';
 
 // Molnskogens final. Mid-level procedural stand-ins: every named group here is
 // listed in BLENDER_ASSETS.md and is meant to be replaced by a Blender model
@@ -114,15 +115,20 @@ function createCanopy(scene,animated){
     tube(group,[[eye.x+Math.cos(a)*1.4,start,eye.z+Math.sin(a)*1.4],mid,tip],.55,bark);
     for(let k=0;k<3;k++){
       const crown=new THREE.Group();crown.position.set(tip[0]+(random()-.5)*3,tip[1]+random()*1.4,tip[2]+(random()-.5)*3);group.add(crown);
-      const r=2.6+random()*1.8;
-      const base=add(crown,new THREE.IcosahedronGeometry(r,1),k%2?leaf:blossom);base.scale.set(1,.42,1);
-      const cap=add(crown,new THREE.IcosahedronGeometry(r*.72,0),k%2?blossom:blossomDeep,0,r*.32,0);cap.scale.set(1,.4,1);
+      const r=2.6+random()*1.8,model=modelInstance(`forest/blossom-crown-${k%2?'leaf':'bloom'}`);
+      if(model){model.scale.setScalar(r);model.rotation.y=random()*6;crown.add(model)}
+      else{
+        const base=add(crown,new THREE.IcosahedronGeometry(r,1),k%2?leaf:blossom);base.scale.set(1,.42,1);
+        const cap=add(crown,new THREE.IcosahedronGeometry(r*.72,0),k%2?blossom:blossomDeep,0,r*.32,0);cap.scale.set(1,.4,1);
+      }
       animated.push({object:crown,phase:i+k,type:'canopy'});
     }
   }
   tube(group,[[top[0],15,top[2]],[top[0]+.3,20,top[2]-.2],[top[0]-.2,23.5,top[2]+.3]],1.2,bark);
   const crownTop=new THREE.Group();crownTop.position.set(top[0],24,top[2]);group.add(crownTop);
-  const head=add(crownTop,new THREE.IcosahedronGeometry(5.2,1),blossom);head.scale.set(1,.5,1);
+  const headModel=modelInstance('forest/blossom-crown-bloom');
+  if(headModel){headModel.scale.set(5.2,6.2,5.2);crownTop.add(headModel)}
+  else{const head=add(crownTop,new THREE.IcosahedronGeometry(5.2,1),blossom);head.scale.set(1,.5,1)}
   animated.push({object:crownTop,phase:2,type:'canopy'});
   occluder(group);
   return group;
@@ -173,6 +179,8 @@ function cloudSea(scene,animated){
 
 function owl(scene,x,z,turn,size=1){
   const root=new THREE.Group();root.name='owl-guardian';root.position.set(x,0,z);root.rotation.y=turn;root.scale.setScalar(size);scene.add(root);
+  const model=modelInstance('forest/owl');
+  if(model){root.add(model);occluder(root);return}
   add(root,new THREE.CylinderGeometry(.55,.7,.8,9),bark,0,.4,0);
   const body=add(root,new THREE.IcosahedronGeometry(.7,1),wood,0,1.55,0);body.scale.set(.9,1.25,.8);
   const face=material(0xf2d9a6),pupil=material(0x2f4630,{emissive:0x1d4a2a,emissiveIntensity:.3});

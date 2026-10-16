@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {clockKit as k,createGear} from './clockwork.js';
 import {clockHandPose} from './clock-hand.js';
+import {modelInstance} from './models.js';
 
 const {add,box,rod,ring,group,bake,brass,gold,copper,iron,ivory,teal,wood,woodLight}=k;
 const flatRing=(g,r,t,x,y,z,m)=>{const mesh=ring(g,r,t,x,y,z,m);mesh.rotation.x=-Math.PI/2;return mesh};
@@ -28,11 +29,17 @@ export function createClockHandVisuals(scene,c,cup){
   const outer=c.radius+1.45;
   // The case and its open clockwork sit BELOW the rolling surface. The broad
   // circular rim is scenery; only the visibly raised hand carries the ball.
-  const caseShape=new THREE.Shape();caseShape.absarc(0,0,outer,0,Math.PI*2,false);
-  const cutout=new THREE.Path();cutout.absarc(0,0,c.radius+.18,0,Math.PI*2,true);caseShape.holes.push(cutout);
-  const caseRing=add(fixed,new THREE.ExtrudeGeometry(caseShape,{depth:.65,bevelEnabled:true,bevelSize:.055,bevelThickness:.055,bevelSegments:2,curveSegments:96}),brass,0,-1.36,0);caseRing.rotation.x=-Math.PI/2;
-  flatRing(fixed,outer,.13,0,-.72,0,gold);flatRing(fixed,c.radius+.18,.09,0,-.72,0,copper);
-  flatRing(fixed,outer+.03,.15,0,-1.4,0,iron);
+  // The Blender case (milled edge, crown and bow) is built for this well radius.
+  const watch=c.radius===6.5?modelInstance('clockwork/pocket-watch'):null;
+  let caseRing=watch;
+  if(watch)fixed.add(watch);
+  else{
+    const caseShape=new THREE.Shape();caseShape.absarc(0,0,outer,0,Math.PI*2,false);
+    const cutout=new THREE.Path();cutout.absarc(0,0,c.radius+.18,0,Math.PI*2,true);caseShape.holes.push(cutout);
+    caseRing=add(fixed,new THREE.ExtrudeGeometry(caseShape,{depth:.65,bevelEnabled:true,bevelSize:.055,bevelThickness:.055,bevelSegments:2,curveSegments:96}),brass,0,-1.36,0);caseRing.rotation.x=-Math.PI/2;
+    flatRing(fixed,outer,.13,0,-.72,0,gold);flatRing(fixed,c.radius+.18,.09,0,-.72,0,copper);
+    flatRing(fixed,outer+.03,.15,0,-1.4,0,iron);
+  }
   const faceMaterial=new THREE.MeshStandardMaterial({color:0x204644,roughness:.7,metalness:.3,side:THREE.DoubleSide});
   const bezel=add(fixed,new THREE.RingGeometry(c.radius+.22,outer-.18,128),faceMaterial,0,-.665,0);bezel.rotation.x=-Math.PI/2;
   const numerals=['XII','I','II','III','IV','V','VI','VII','VIII','IX','X','XI'];
@@ -57,12 +64,14 @@ export function createClockHandVisuals(scene,c,cup){
     add(fixed,new THREE.CylinderGeometry(.07,.07,.09,6),copper,x,-.59,z);
   }
   // A winding crown and bow give the mechanism its unmistakable pocket-watch shape.
-  const winding=group(fixed,0,-1,-outer-1.0);
-  const knob=add(winding,new THREE.CylinderGeometry(.58,.58,1.5,24),gold);knob.rotation.x=Math.PI/2;
-  for(let i=0;i<16;i++){
-    const a=i*Math.PI/8;rod(winding,[Math.cos(a)*.59,Math.sin(a)*.59,-.55],[Math.cos(a)*.59,Math.sin(a)*.59,.55],.032,copper);
+  if(!watch){
+    const winding=group(fixed,0,-1,-outer-1.0);
+    const knob=add(winding,new THREE.CylinderGeometry(.58,.58,1.5,24),gold);knob.rotation.x=Math.PI/2;
+    for(let i=0;i<16;i++){
+      const a=i*Math.PI/8;rod(winding,[Math.cos(a)*.59,Math.sin(a)*.59,-.55],[Math.cos(a)*.59,Math.sin(a)*.59,.55],.032,copper);
+    }
+    flatRing(fixed,1.32,.17,0,-1,-outer-2.2,brass);
   }
-  flatRing(fixed,1.32,.17,0,-1,-outer-2.2,brass);
   // The complete playable deck rotates as one piece; its rectangle exactly
   // matches onClockHand. Inlaid arrows stay flush, without invisible blockers.
   const hand=group(moving);hand.name='clock-hand-deck';

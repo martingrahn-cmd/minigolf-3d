@@ -12,7 +12,7 @@ Prioritet: **P1** först (världsfinaler och delar som syns på varje hål), **P
 
 ## Status
 
-Fas 1–3 är byggda: Blender-pipelinen (`blender/build.py`, `blender/lib.py`, en modul per värld i `blender/assets/`), flagga och kopp för alla hål, Månkarnevalens kit (raket, tre asteroider, lykta och tält), Molnskogens växter (tre träd, svamp och ormbunke) och Urverkets kit: kugghjul för varje kuggantal i spelet (12–48, normaliserade till radie 1 och tjocklek 1), mässingslykta och gökurshusets stomme med spåntak. Gökurets visare, dörrar, fågel och pendel finns kvar som egna objekt i koden. Rader märkta ✅ finns som `.glb`. Nästa fas: världsfinalernas set pieces.
+Fas 1–3 är byggda: Blender-pipelinen (`blender/build.py`, `blender/lib.py`, en modul per värld i `blender/assets/`), flagga och kopp för alla hål, Månkarnevalens kit (raket, tre asteroider, lykta och tält), Molnskogens växter (tre träd, svamp och ormbunke) och Urverkets kit: kugghjul för varje kuggantal i spelet (12–48, normaliserade till radie 1 och tjocklek 1), mässingslykta och gökurshusets stomme med spåntak. Gökurets visare, dörrar, fågel och pendel finns kvar som egna objekt i koden. Fas 4 lade till dekoren runt världsfinalerna: fickurets boett med räfflad kant, krona och bygel (`clockwork/pocket-watch.glb`, byggd för brunnsradien 6,5 m), Moderträdets blomkronor (`forest/blossom-crown-leaf/bloom.glb`, radie 1), snidade vaktugglor (`forest/owl.glb`) och raketens fackverkstorn (`moon/gantry.glb`). Spelytorna, alltså visarbryggan, trädets tunnel och raketens laddning, är kvar som exakt kodgeometri, eftersom fysiken och testerna mäter dem. Rader märkta ✅ finns som `.glb`.
 
 ## Gemensamma regler för export
 
