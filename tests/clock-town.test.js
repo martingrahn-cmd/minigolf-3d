@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { loopPath } from '../src/clock-town.js';
+import { loopPath } from '../src/life-kit.js';
 
 test('the town loop is a closed rounded rectangle walked by distance', () => {
   const r=5,loop=loopPath(-20,20,-10,10,r);
