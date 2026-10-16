@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { modelInstance, tintMaterials } from './models.js';
+import { modelInstance } from './models.js';
 
 // Urverkets stad as a room. The course stands on stilts in a watchmaker's
 // workshop, and a miniature clockwork town has been built on the floor around
@@ -42,6 +42,45 @@ function compact(root,keep=[]){
     const mesh=new THREE.Mesh(merged,material);mesh.castShadow=mesh.receiveShadow=true;root.add(mesh);meshes.forEach(o=>o.removeFromParent());
   }
   return root;
+}
+
+// Recolour named materials with copies shared by every model of the same colour,
+// so the baked town still merges into one mesh per material.
+const tinted=new Map();
+function tintShared(object,colors){
+  object.traverse(o=>{
+    if(!o.isMesh||colors[o.material.name]===undefined)return;
+    const key=`${o.material.uuid}:${colors[o.material.name]}`;
+    if(!tinted.has(key)){const copy=o.material.clone();copy.color.set(colors[o.material.name]);tinted.set(key,copy)}
+    o.material=tinted.get(key);
+  });
+}
+
+// Many copies of one small animated model drawn as instances: one draw call per
+// material for the whole crowd instead of one per part per figure. Tinted
+// materials take their colour per instance. A part named `key` (and what hangs
+// under it) can be turned separately about its own z axis.
+function createCrowd(scene,name,count,tints={}){
+  const template=modelInstance(name);if(!template)return null;
+  compact(template,['key']);template.updateMatrixWorld(true);
+  let key=null;template.traverse(o=>{if(o.name==='key')key=o});
+  const keyRel=key?key.matrixWorld.clone():new THREE.Matrix4(),keyInverse=keyRel.clone().invert(),parts=[];
+  template.traverse(o=>{
+    if(!o.isMesh)return;
+    let inKey=false;for(let n=o;n;n=n.parent)if(n===key)inKey=true;
+    const tint=tints[o.material.name],material=tint?o.material.clone():o.material;if(tint)material.color.set(0xffffff);
+    const mesh=new THREE.InstancedMesh(o.geometry,material,count);mesh.castShadow=mesh.receiveShadow=true;mesh.frustumCulled=false;
+    if(tint)for(let i=0;i<count;i++)mesh.setColorAt(i,new THREE.Color(tint[i%tint.length]));
+    scene.add(mesh);parts.push({mesh,inKey,rel:inKey?keyInverse.clone().multiply(o.matrixWorld):o.matrixWorld.clone()});
+  });
+  const m=new THREE.Matrix4(),k=new THREE.Matrix4(),spin=new THREE.Matrix4();
+  return {
+    set(i,object,keyAngle=0){
+      object.updateMatrix();spin.makeRotationZ(keyAngle);k.copy(object.matrix).multiply(keyRel).multiply(spin);
+      for(const p of parts)p.mesh.setMatrixAt(i,m.multiplyMatrices(p.inKey?k:object.matrix,p.rel));
+    },
+    commit(){for(const p of parts)p.mesh.instanceMatrix.needsUpdate=true},
+  };
 }
 
 // Soft billboard puffs (smoke, steam, spray) in one draw call; works for the
@@ -100,7 +139,9 @@ export function wallpaper(repeatX,repeatY){
 
 export function createClockTown(scene,level,kit,obstacles){
   if(!level?.tiles||!modelInstance('clockwork/townhouse-0'))return {update(){}};
-  const {mat,add,box,rod,ring,group,bake,brass,gold,iron,wood,woodLight}=kit;
+  const {mat:newMat,add,box,rod,ring,group,bake,brass,gold,iron,wood,woodLight}=kit;
+  // Plain materials are shared by colour so the baked statics merge well.
+  const mats=new Map(),mat=(color,o={})=>{if(o.map)return newMat(color,o);const key=color+JSON.stringify(o);if(!mats.has(key))mats.set(key,newMat(color,o));return mats.get(key)};
   let seed=level.id*977+13;const random=()=>{seed=seed*16807%2147483647;return(seed-1)/2147483646};
   const xs=level.tiles.flatMap(t=>[t.x1,t.x2]),zs=level.tiles.flatMap(t=>[t.z1,t.z2]);
   const minX=Math.min(...xs),maxX=Math.max(...xs),minZ=Math.min(...zs),maxZ=Math.max(...zs),cx=(minX+maxX)/2,cz=(minZ+maxZ)/2;
@@ -220,7 +261,7 @@ export function createClockTown(scene,level,kit,obstacles){
   const square={x:cx,z:maxZ+12.5};
   const fountain=place(statics,'clockwork/fountain',square.x-5,square.z);claim(square.x-5,square.z,2.2);
   const carousel=place(scene,'clockwork/carousel',square.x+5.5,square.z);claim(square.x+5.5,square.z,2.8);
-  carousel?.traverse(n=>{if(n.name.startsWith('horse-'))compact(n)});carousel?.traverse(n=>{if(n.name==='spin')spinners.push({object:n,speed:.45});if(n.name.startsWith('horse-'))spinners.push({object:n,bob:true,phase:+n.name.slice(6)*1.6})});
+  carousel?.traverse(n=>{if(n.name.startsWith('horse-'))compact(n)});carousel?.traverse(n=>{if(n.name==='spin')compact(n,['horse-0','horse-1','horse-2','horse-3'])});compact(carousel,['spin']);carousel?.traverse(n=>{if(n.name==='spin')spinners.push({object:n,speed:.45});if(n.name.startsWith('horse-'))spinners.push({object:n,bob:true,phase:+n.name.slice(6)*1.6})});
   for(const s of [-1,1])place(statics,'clockwork/townsfolk',square.x+s*1.2,square.z-3.4,s*-.6);
   // Lanterns round the square.
   for(const [dx,dz] of [[-9,-2.5],[9,-2.5],[-9,3.5],[9,3.5],[0,4]])kit.lantern(statics,square.x+dx,FLOOR,square.z+dz);
@@ -250,7 +291,7 @@ export function createClockTown(scene,level,kit,obstacles){
     const scale=margin<12?.85:1,v=variants.find(k=>free(p.x,p.z,2.1,FLOOR+(tops[k]-FLOOR)*scale));if(v===undefined)continue;
     const house=place(statics,`clockwork/townhouse-${v}`,p.x,p.z,face,scale);claim(p.x,p.z,2.1);
     const palette=[[0xe9d3ad,0x3f6f6a],[0xd8b7a0,0x8a3f35],[0xc8d4c0,0x4a5a7a],[0xf0dcb8,0x6b4a3a],[0xb8c8c8,0x3f6f6a],[0xe6c39a,0x355a4f]][Math.floor(random()*6)];
-    tintMaterials(house,{Wall:palette[0],Roof:palette[1]});
+    tintShared(house,{Wall:palette[0],Roof:palette[1]});
     const k=Math.floor(random()*3);
     house.traverse(o=>{if(o.isMesh&&o.material.name==='Window'){windowMats[k]??=o.material.clone();o.material=windowMats[k]}});
     const chimney=[[.9,7.6,-.6],[-1,6.5,.6],[-.6,8.6,-.5]][v];
@@ -262,25 +303,29 @@ export function createClockTown(scene,level,kit,obstacles){
   // --- Wind-up townsfolk strolling the pavement between the railway and the houses. ---
   const walk=loopPath(minX-9.2,maxX+9.2,minZ-9.2,maxZ+9.2,6);
   const coats=[0x356966,0xc9483c,0x6b4a8a,0xe0b84a,0x3f6f9a,0x8a5a3a,0x5f8a5a],hats=[0x2a2a2a,0x6b2f2f,0x2f3f5a,0xc49a58];
-  for(let k=0;k<16;k++){
-    const o=place(scene,'clockwork/townsfolk',0,0);if(!o)break;
-    tintMaterials(o,{Coat:coats[k%coats.length],Hat:hats[(k*3)%hats.length]});
-    compact(o,['key']);let key;o.traverse(n=>{if(n.name==='key')key=n});
-    walkers.push({object:o,key,s:k/16*walk.length+random()*3,speed:(k%2?1:-1)*(.7+random()*.5),phase:random()*10,scale:.85+random()*.3});
-    o.scale.setScalar(walkers.at(-1).scale);
+  const people=createCrowd(scene,'clockwork/townsfolk',16,{Coat:coats,Hat:[0,3,6,9,12,15,18].map(i=>hats[i%hats.length])});
+  if(people)for(let k=0;k<16;k++){
+    const o=new THREE.Object3D();o.scale.setScalar(.85+random()*.3);
+    walkers.push({i:k,object:o,s:k/16*walk.length+random()*3,speed:(k%2?1:-1)*(.7+random()*.5),phase:random()*10});
   }
   // Pigeons pecking round the fountain.
-  for(let k=0;k<9;k++){
-    const a=random()*Math.PI*2,r=2.6+random()*2.5,o=compact(place(scene,'clockwork/pigeon',square.x-5+Math.cos(a)*r,square.z+Math.sin(a)*r,random()*6));
-    if(o)pigeons.push({object:o,home:{x:o.position.x,z:o.position.z},phase:random()*20,hop:null});
+  const flock=createCrowd(scene,'clockwork/pigeon',9);
+  if(flock)for(let k=0;k<9;k++){
+    const a=random()*Math.PI*2,r=2.6+random()*2.5,o=new THREE.Object3D();
+    o.position.set(square.x-5+Math.cos(a)*r,FLOOR,square.z+Math.sin(a)*r);o.rotation.y=random()*6;
+    pigeons.push({i:k,object:o,phase:random()*20,hop:null});
   }
+
+  // Pose everyone once, so a still scene (reduced motion) has them in place too.
+  for(const w of walkers){const p=walk.at(w.s),dir=Math.sign(w.speed);w.object.position.set(p.x+p.dz*.6*dir,FLOOR,p.z-p.dx*.6*dir);w.object.rotation.y=Math.atan2(p.dx*dir,p.dz*dir);people.set(w.i,w.object)}
+  for(const b of pigeons)flock.set(b.i,b.object);
+  people?.commit();flock?.commit();
 
   // Pendant lamps over the town, a mouse along the skirting board.
   const lamps=[];
   for(const [x,z] of [[cx-14,minZ-10],[cx+14,minZ-10]]){
     const lamp=place(scene,'clockwork/pendant',x,z,0,1,13);
     if(lamp){lamp.traverse(o=>{o.castShadow=false});lamps.push(lamp)}
-    const light=new THREE.PointLight(0xffc27a,90,60,1.3);light.position.set(x,12,z);scene.add(light);
   }
   const mouse=compact(place(scene,'clockwork/mouse',0,-29.3),['key']);let mouseKey=null;mouse?.traverse(n=>{if(n.name==='key')mouseKey=n});
 
@@ -288,7 +333,17 @@ export function createClockTown(scene,level,kit,obstacles){
   const zeppelin=compact(place(scene,'clockwork/zeppelin',cx,cz,0,1,13),['prop']);let prop=null;
   zeppelin?.traverse(n=>{n.castShadow=false;if(n.name==='prop')prop=n});
 
+  // Models from different Blender files carry their own copies of the same
+  // brass, stone and iron; fold identical materials together before baking.
+  const canonical=new Map();
+  statics.traverse(o=>{
+    if(!o.isMesh)return;const m=o.material;
+    const key=[m.type,m.name.replace(/\d+$/,''),m.color?.getHex(),m.emissive?.getHex(),m.emissiveIntensity,m.roughness,m.metalness,m.transparent,m.opacity,m.side,m.map?.uuid,m.vertexColors].join('|');
+    if(!canonical.has(key))canonical.set(key,m);o.material=canonical.get(key);
+  });
   bake(statics);
+  // Nothing in the baked town moves: skip its matrix updates every frame.
+  statics.traverse(o=>{o.updateMatrix();o.matrixAutoUpdate=false});
   const v=new THREE.Vector3();
   let last=null;
   return {update(time){
@@ -316,8 +371,9 @@ export function createClockTown(scene,level,kit,obstacles){
       w.object.position.set(p.x+p.dz*.6*dir,FLOOR+(moving?Math.abs(Math.sin(time*7+w.phase))*.08:0),p.z-p.dx*.6*dir);
       w.object.rotation.y=moving?Math.atan2(p.dx*dir,p.dz*dir):Math.atan2(p.dx*dir,p.dz*dir)+Math.sin((cycle-10)*1.2)*1.1;
       w.object.rotation.z=moving?Math.sin(time*7+w.phase)*.07:0;
-      if(w.key)w.key.rotation.z=time*(moving?3:.6);
+      people.set(w.i,w.object,time*(moving?3:.6));
     }
+    people?.commit();
     // Pigeons peck, and now and then hop to a new spot.
     for(const b of pigeons){
       if(!b.hop&&Math.random()<dt*.12){const a=Math.random()*Math.PI*2,r=2.6+Math.random()*2.5;b.hop={from:b.object.position.clone(),to:new THREE.Vector3(square.x-5+Math.cos(a)*r,FLOOR,square.z+Math.sin(a)*r),t:0}}
@@ -326,7 +382,9 @@ export function createClockTown(scene,level,kit,obstacles){
         b.object.position.lerpVectors(b.hop.from,b.hop.to,t);b.object.position.y=FLOOR+Math.sin(t*Math.PI)*1.1;
         b.object.rotation.y=Math.atan2(b.hop.to.x-b.hop.from.x,b.hop.to.z-b.hop.from.z);if(t>=1)b.hop=null;
       }else b.object.rotation.x=Math.max(0,Math.sin(time*5+b.phase))*.5;
+      flock.set(b.i,b.object);
     }
+    flock?.commit();
     // The cat breathes, flicks its tail and snores little z's.
     if(catBody)catBody.scale.set(1,1+Math.sin(time*1.3)*.025,1+Math.sin(time*1.3)*.04);
     if(catTail)catTail.rotation.y=Math.sin(time*.8)*.08+Math.max(0,Math.sin(time*.37))**8*.25;
