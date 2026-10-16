@@ -13,10 +13,11 @@ import bpy  # noqa: F401  (loads bmesh and mathutils when run as a module)
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path[:0] = [HERE, os.path.join(HERE, 'assets')]
 
+import clockwork  # noqa: E402
 import common  # noqa: E402
 import forest  # noqa: E402
 import moon  # noqa: E402
 
-for module in (common, forest, moon):
+for module in (common, clockwork, forest, moon):
     print(f'{module.__name__}:')
     module.build()

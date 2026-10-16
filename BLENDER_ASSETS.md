@@ -12,7 +12,7 @@ Prioritet: **P1** först (världsfinaler och delar som syns på varje hål), **P
 
 ## Status
 
-Fas 1 och 2 är byggda: Blender-pipelinen (`blender/build.py`, `blender/lib.py`, en modul per värld i `blender/assets/`), flagga och kopp för alla hål, Månkarnevalens kit (raket, tre asteroider, lykta och tält) och Molnskogens växter (tre träd, svamp och ormbunke). Rader märkta ✅ nedan finns som `.glb`. Nästa faser: Urverkets kit och sedan världsfinalernas set pieces.
+Fas 1–3 är byggda: Blender-pipelinen (`blender/build.py`, `blender/lib.py`, en modul per värld i `blender/assets/`), flagga och kopp för alla hål, Månkarnevalens kit (raket, tre asteroider, lykta och tält), Molnskogens växter (tre träd, svamp och ormbunke) och Urverkets kit: kugghjul för varje kuggantal i spelet (12–48, normaliserade till radie 1 och tjocklek 1), mässingslykta och gökurshusets stomme med spåntak. Gökurets visare, dörrar, fågel och pendel finns kvar som egna objekt i koden. Rader märkta ✅ finns som `.glb`. Nästa fas: världsfinalernas set pieces.
 
 ## Gemensamma regler för export
 

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { gatePose } from './gates.js';
+import { modelInstance } from './models.js';
 
 export const CLOCK_THEME={key:'clockwork',name:'Urverkets stad',range:'HÅL 01–06',sky:0x1e333c,horizon:0xc6a279,rail:0xc49a58,base:0x392a29,accent:0xe8bd70};
 const mat=(color,extra={})=>new THREE.MeshStandardMaterial({color,roughness:.65,...extra});
@@ -27,6 +28,9 @@ function bake(g){
 
 // True toothed outline with an open hub: the gears cast recognisable silhouettes.
 export function createGear(parent,r,teeth,depth=.22,m=brass){
+  // Blender gears are normalised to radius 1 and depth 1, one file per tooth count.
+  const model=m===brass&&modelInstance(`clockwork/gear-${teeth}`);
+  if(model){const root=group(parent);model.scale.set(r,r,depth);root.add(model);return root}
   const root=group(parent),shape=new THREE.Shape();
   for(let i=0;i<teeth*4;i++){
     const a=(i+.15)*Math.PI*2/(teeth*4),radius=r*(i%4===1||i%4===2?1:.87),x=Math.cos(a)*radius,y=Math.sin(a)*radius;
@@ -66,6 +70,8 @@ function clockFace(g,r,x,y,z){
   return {hour,minute};
 }
 function lantern(g,x,y,z){
+  const model=modelInstance('clockwork/lantern');
+  if(model){model.position.set(x,y,z);g.add(model);return}
   const root=group(g,x,y,z);rod(root,[0,0,0],[0,1.5,0],.07,iron);
   add(root,new THREE.CylinderGeometry(.18,.22,.55,8),glow,0,1.7,0);
   for(let i=0;i<4;i++){const a=i*Math.PI/2;rod(root,[Math.cos(a)*.2,1.43,Math.sin(a)*.2],[Math.cos(a)*.16,1.98,Math.sin(a)*.16],.025,iron)}
@@ -178,6 +184,10 @@ export const clockKit={add,box,rod,ring,group,bolt,bake,lantern,brass,gold,coppe
 
 function cuckooHouse(scene,x,z,scale,animated,hero=false){
   const root=group(scene,x,-1,z);root.scale.setScalar(scale);const fixed=group(root);
+  // The Blender shell replaces the carcass, roof and frames; the moving parts stay in code.
+  const shellModel=modelInstance('clockwork/cuckoo-house');
+  if(shellModel)fixed.add(shellModel);
+  else{
   box(fixed,5.4,9.8,2.5,0,3.9,0,wood);box(fixed,4.8,8.9,.13,0,4,1.3,woodLight);
   for(const side of [-1,1]){
     box(fixed,.28,9.4,.2,side*2.35,4,1.47,brass);
@@ -187,8 +197,9 @@ function cuckooHouse(scene,x,z,scale,animated,hero=false){
     // Layered roof ribs and scalloped eaves, all outside the playing space.
     for(let i=0;i<6;i++)rod(fixed,[side*(.25+i*.51),10.5-i*.34,-2.15],[side*(.25+i*.51),10.5-i*.34,2.15],.06,copper);
   }
+  }
   const face=clockFace(root,2.0,0,4.2,1.48);animated.push({kind:'hands',...face});
-  box(fixed,1.35,1.6,.16,0,7.63,1.43,dark);
+  if(!shellModel)box(fixed,1.35,1.6,.16,0,7.63,1.43,dark);
   const bird=group(root,0,7.28,1.0);
   const body=add(bird,new THREE.SphereGeometry(.32,16,10),teal,0,.22,0);body.scale.set(.8,1,.9);
   add(bird,new THREE.SphereGeometry(.23,14,10),ivory,0,.54,.10);
@@ -200,7 +211,7 @@ function cuckooHouse(scene,x,z,scale,animated,hero=false){
   const pendulum=group(root,0,1.65,1.6);rod(pendulum,[0,0,0],[0,-2.55,0],.045,brass);
   const bob=add(pendulum,new THREE.CylinderGeometry(.56,.56,.18,40),gold,0,-2.5,0);bob.rotation.x=Math.PI/2;
   ring(pendulum,.44,.03,0,-2.5,.13,copper);animated.push({kind:'pendulum',object:pendulum});
-  box(fixed,1.8,3.1,.12,0,.0,1.38,dark);
+  if(!shellModel)box(fixed,1.8,3.1,.12,0,.0,1.38,dark);
   for(const s of [-1,1]){chain(fixed,s*1.6,1.7,-3,1.5);const weight=add(fixed,new THREE.CylinderGeometry(.29,.19,1.2,10),copper,s*1.6,-2.2,1.5);for(let y=-2.7;y<-1.5;y+=.17)ring(fixed,.26,.04,s*1.6,y,1.5,gold).rotation.x=Math.PI/2}
   // Hands, doors and pendulum remain independent of the architectural batch.
   bake(fixed);
