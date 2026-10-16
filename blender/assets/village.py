@@ -131,3 +131,182 @@ def build():
     windmill()
     well()
     balloon()
+    build_more()
+
+
+# --- More life for the islands: farm, market, pond and apiary pieces. ---
+
+def _at(obj, loc, rot=None):
+    """box() bakes its location; build at the origin and place it here instead."""
+    obj.location = loc
+    if rot:
+        obj.rotation_euler = rot
+    return obj
+
+
+def stall():
+    """A market stall with a striped awning, crates of produce and a sign, 2.6 m tall."""
+    reset()
+    m = mats()
+    stripe_a, stripe_b = material('AwningA', 0xff8fb8, rough=.7), material('AwningB', 0xfff3e6, rough=.7)
+    _at(box('counter', (2.2, .8, .9), (0, 0, 0), m['timber'], None, .03), (0, 0, .45))
+    for x in (-1.05, 1.05):
+        for y in (-.35, .35):
+            _at(box(f'post-{x}-{y}', (.08, .08, 2.4), (0, 0, 0), m['timber'], None), (x, y, 1.2))
+    for k in range(8):
+        _at(box(f'awning-{k}', (.28, 1.1, .05), (0, 0, 0), stripe_a if k % 2 else stripe_b, None), (-.98 + k * .28, -.15, 2.35), (math.radians(-12), 0, 0))
+    produce = [material('Apples', 0xd6453c, rough=.5), material('Pears', 0xc8d84a, rough=.5), material('Carrots', 0xff9f3a, rough=.6)]
+    for k, mat in enumerate(produce):
+        x = -.7 + k * .7
+        _at(box(f'crate-{k}', (.6, .5, .22), (0, 0, 0), m['timber'], None, .02), (x, -.1, 1.0))
+        for j in range(6):
+            sphere(f'fruit-{k}-{j}', .08, (x - .2 + (j % 3) * .2, -.2 + (j // 3) * .2, 1.15), mat, None, 8, 6)
+    _at(box('sign', (1.2, .05, .3), (0, 0, 0), m['plaster'], None), (0, -.42, 2.0))
+    export('forest/stall.glb', join='stall')
+
+
+def beehive():
+    """A stacked straw beehive (skep) on a little stand, 1.3 m tall."""
+    reset()
+    m = mats()
+    _at(box('stand', (.7, .7, .08), (0, 0, 0), m['timber'], None), (0, 0, .55))
+    for x in (-.28, .28):
+        for y in (-.28, .28):
+            _at(box(f'leg-{x}-{y}', (.06, .06, .55), (0, 0, 0), m['timber'], None), (x, y, .27))
+    lathe('skep', [(.34, .6), (.36, .75), (.33, .95), (.26, 1.12), (.14, 1.24), (0, 1.28)], 14, m['thatch'], None)
+    for h in (.72, .86, 1.0, 1.12):
+        torus(f'coil-{h}', .35 - (h - .72) * .45, .025, (0, 0, h), material('Straw', 0xc8913f, rough=.9), None, 16, 4)
+    _at(box('entrance', (.14, .06, .08), (0, 0, 0), material('Dark', 0x2a1c12), None), (0, -.35, .66))
+    export('forest/beehive.glb', join='beehive')
+
+
+def produce():
+    """A pumpkin (radius ~0.3 m) and a cabbage for the vegetable patch."""
+    reset()
+    orange, stalk = material('Pumpkin', 0xf08a2c, rough=.55), material('Stalk', 0x5f7a2a, rough=.7)
+    for k in range(8):
+        a = k / 8 * math.tau
+        s = sphere(f'lobe-{k}', .16, (math.cos(a) * .14, math.sin(a) * .14, .2), orange, None, 10, 8)
+        s.scale = (1, 1, 1.15)
+    cylinder('stalk', .03, .12, (0, 0, .4), stalk, None, 6)
+    export('forest/pumpkin.glb', join='pumpkin')
+    reset()
+    leaf_a, leaf_b = material('Cabbage', 0x8fc95a, rough=.7), material('CabbageLight', 0xc6e6a0, rough=.7)
+    sphere('heart', .16, (0, 0, .17), leaf_b, None, 10, 8)
+    for k in range(7):
+        a = k / 7 * math.tau
+        s = sphere(f'leaf-{k}', .17, (math.cos(a) * .14, math.sin(a) * .14, .12), leaf_a, None, 8, 6)
+        s.scale = (1, .6, .45)
+        s.rotation_euler = (0, .5, a)
+    export('forest/cabbage.glb', join='cabbage')
+
+
+def haybale():
+    """A round hay bale, 1.1 m across, lying on its side."""
+    reset()
+    hay, band = material('Hay', 0xe5c26a, rough=.95), material('Twine', 0xb07a3a, rough=.8)
+    cylinder('bale', .55, 1.0, (0, 0, .55), hay, None, 20, rotation=(0, math.pi / 2, 0))
+    for x in (-.25, .25):
+        torus(f'band-{x}', .56, .02, (x, 0, .55), band, None, 24, 4, rotation=(0, math.pi / 2, 0))
+    export('forest/haybale.glb', join='haybale')
+
+
+def woodpile():
+    """Stacked firewood logs with an axe in the chopping block."""
+    reset()
+    bark, cut = material('LogBark', 0x6a4630, rough=.9), material('LogCut', 0xe3bb7c, rough=.8)
+    for row in range(3):
+        for k in range(5 - row):
+            x = -.48 + k * .24 + row * .12
+            cylinder(f'log-{row}-{k}', .11, .9, (x, 0, .11 + row * .2), bark, None, 8, rotation=(math.pi / 2, 0, 0))
+            for y in (-.451, .451):
+                cylinder(f'end-{row}-{k}-{y}', .1, .01, (x, y, .11 + row * .2), cut, None, 8, rotation=(math.pi / 2, 0, 0))
+    cylinder('block', .25, .4, (.9, 0, .2), bark, None, 10)
+    cylinder('block-top', .24, .01, (.9, 0, .405), cut, None, 10)
+    _at(box('axe-handle', (.04, .04, .6), (0, 0, 0), cut, None), (.9, 0, .65), (0, .35, 0))
+    _at(box('axe-head', (.18, .03, .1), (0, 0, 0), material('Steel', 0x9aa0a8, rough=.3, metal=.8), None), (.82, 0, .48), (0, .35, 0))
+    export('forest/woodpile.glb', join='woodpile')
+
+
+def bench():
+    """A garden bench, 1.4 m long."""
+    reset()
+    m = mats()
+    for k in range(3):
+        _at(box(f'seat-{k}', (1.4, .12, .05), (0, 0, 0), m['timber'], None, .01), (0, -.12 + k * .13, .45))
+    for k in range(2):
+        _at(box(f'back-{k}', (1.4, .05, .1), (0, 0, 0), m['timber'], None, .01), (0, .2, .62 + k * .18), (math.radians(-12), 0, 0))
+    for x in (-.6, .6):
+        _at(box(f'leg-{x}', (.07, .4, .45), (0, 0, 0), m['door'], None), (x, 0, .22))
+    export('forest/bench.glb', join='bench')
+
+
+def signpost():
+    """A wooden signpost with three arrows, 2 m tall."""
+    reset()
+    m = mats()
+    cylinder('post', .06, 2.0, (0, 0, 1.0), m['timber'], None, 8)
+    for k, (rot, h) in enumerate(((.3, 1.75), (-.9, 1.5), (2.2, 1.25))):
+        arrow = _at(box(f'arrow-{k}', (.7, .04, .16), (0, 0, 0), m['plaster'], None, .01), (math.cos(rot) * .3, math.sin(rot) * .3, h), (0, 0, rot))
+    sphere('cap', .08, (0, 0, 2.02), m['timber'], None, 8, 6)
+    export('forest/signpost.glb', join='signpost')
+
+
+def sheep():
+    """A fluffy sheep, 0.9 m tall, facing the game's +x. The head is part of the
+    body; the game bobs and walks the whole sheep."""
+    reset()
+    wool, face = material('Wool', 0xfaf6ee, rough=.95), material('SheepFace', 0x3a3030, rough=.7)
+    for k, (x, y, z, r) in enumerate([(0, 0, .55, .32), (.22, .1, .58, .26), (-.22, -.1, .58, .27), (.15, -.15, .62, .24), (-.15, .15, .62, .25), (0, 0, .78, .22)]):
+        sphere(f'fluff-{k}', r, (x, y, z), wool, None, 10, 8)
+    head = sphere('head', .16, (.42, 0, .7), face, None, 10, 8)
+    head.scale = (1.2, .85, .9)
+    for s in (-1, 1):
+        e = sphere(f'ear-{s}', .07, (.38, s * .15, .78), face, None, 6, 4)
+        e.scale = (1, .4, .6)
+        sphere(f'eye-{s}', .025, (.55, s * .07, .74), material('Eye', 0xffffff), None, 6, 4)
+    for x in (-.18, .18):
+        for y in (-.12, .12):
+            cylinder(f'leg-{x}-{y}', .045, .35, (x, y, .17), face, None, 6)
+    export('forest/sheep.glb', join='sheep')
+
+
+def chicken():
+    """A little hen, 0.45 m tall, facing the game's +x."""
+    reset()
+    white, red, beak = material('Feathers', 0xfff4e0, rough=.8), material('Comb', 0xe0473c, rough=.6), material('ChickenBeak', 0xf0a43a, rough=.5)
+    body = sphere('body', .17, (0, 0, .22), white, None, 10, 8)
+    body.scale = (1.25, .9, .9)
+    sphere('head', .09, (.17, 0, .37), white, None, 8, 6)
+    sphere('comb', .04, (.18, 0, .46), red, None, 6, 4)
+    lathe('beak', [(.025, 0), (0, .07)], 4, beak, None, smooth=False).location = (.26, 0, .36)
+    bpy_tail = sphere('tail', .1, (-.2, 0, .3), white, None, 8, 6)
+    bpy_tail.scale = (.6, .4, 1)
+    for y in (-.05, .05):
+        cylinder(f'leg-{y}', .015, .12, (0, y, .06), beak, None, 4)
+    export('forest/chicken.glb', join='chicken')
+
+
+def duck():
+    """A floating duck, 0.35 m long, facing the game's +x."""
+    reset()
+    body_mat, head_mat, beak = material('Duck', 0xfff1c8, rough=.7), material('DuckHead', 0x3f8f5a, rough=.6), material('DuckBeak', 0xf0a43a, rough=.5)
+    b = sphere('body', .15, (0, 0, .08), body_mat, None, 10, 8)
+    b.scale = (1.3, .9, .7)
+    sphere('head', .08, (.14, 0, .2), head_mat, None, 8, 6)
+    bk = sphere('beak', .04, (.22, 0, .19), beak, None, 6, 4)
+    bk.scale = (1.4, .8, .5)
+    export('forest/duck.glb', join='duck')
+
+
+def build_more():
+    stall()
+    beehive()
+    produce()
+    haybale()
+    woodpile()
+    bench()
+    signpost()
+    sheep()
+    chicken()
+    duck()

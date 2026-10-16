@@ -30,14 +30,14 @@ Efter grafikuppiffningen kändes miljöerna sterila: allt stod still, ytorna var
 
 Inget av detta påverkar bollen. Om spelaren valt reducerad rörelse står livet still. `src/ambience.js` innehåller vind och fågelsång, men ljudet är parkerat (`AMBIENCE=false` i `main.js`) tills spelaren vill ta upp ljud igen.
 
-**Byn.** Spelaren ville ha en mysig stämning med fler öar och en bebyggd närmiljö utanför banan. `src/forest-village.js` lägger därför en ring av upp till åtta små svävande öar runt varje skogshål, cirka 7,5 meter utanför banan. Öarna ligger aldrig på tee-sidan där kameran står, och lite lägre än filten så att de ramar in banan i stället för att skymma den. Varje ö är bebodd:
-- en stuga med halmtak, där fönstren lyser varmt och flimrar och det ryker ur skorstenen
-- en brunn eller en väderkvarn vars vingar snurrar
-- trädgårdsland med blommor, en buske och ett vitt staket
-- ett träd med en tvättlina där kläderna fladdrar
-- en lykta
+**Byn.** Spelaren ville ha en mysig stämning med fler öar och en bebyggd närmiljö utanför banan. `src/forest-village.js` lägger därför en ring av upp till åtta små svävande öar runt varje skogshål, cirka 7,5 meter utanför banan. Öarna ligger aldrig på tee-sidan där kameran står, och lite lägre än filten så att de ramar in banan i stället för att skymma den. Öarna turas om att vara olika sorters platser:
+- **Hem:** en stuga med halmtak där fönstren lyser varmt och det ryker ur skorstenen, en brunn eller en väderkvarn med snurrande vingar, trädgårdsland, vitt staket, en tvättlina med fladdrande kläder och en lykta.
+- **Bondgård:** höbalar, vedtrave, pumpa- och kålland och en fårhage. Tre får och fyra höns strövar omkring, stannar och betar eller pickar och går sedan vidare.
+- **Damm:** en damm med stenar och vass där tre ankor simmar runt. Ett vattenfall rinner över öns kant och bänkar står vid stranden.
+- **Marknad:** två stånd med randiga markiser, vimplar mellan lyktor, en bänk, en vägvisare och höns som pickar.
+- **Bigård:** fyra bikupor med surrande bin över en blomsteräng.
 
-Repbroar hänger mellan grannöarna, och en lapptäcksfärgad luftballong driver sakta runt himlen. Modellerna (`forest/cottage`, `windmill`, `well` och `balloon`) byggs i `blender/assets/village.py`.
+Repbroar hänger mellan grannöarna, och en lapptäcksfärgad luftballong driver sakta runt himlen. Alla modeller byggs i `blender/assets/village.py`: stuga, väderkvarn, brunn, ballong, stånd, bikupa, pumpa, kål, höbal, vedtrave, bänk, vägvisare, får, höna och anka. Ingenting i byn påverkar bollen.
 
 ## Efterforskning och slutsatser
 
