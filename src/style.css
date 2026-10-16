@@ -322,3 +322,5 @@ i[data-icon]{display:inline-flex;font-style:normal}
 .qa-row{display:flex;flex-wrap:wrap;gap:5px}
 .qa-panel button,.qa-panel a{padding:7px 9px;border:0;border-radius:8px;background:#f4ead6;color:#2c2a26;font:inherit;text-decoration:none;cursor:pointer}
 .qa-panel a{background:#3f6f6a;color:#fff}.qa-panel a.active{background:#e8bd70;color:#2c2a26}
+/* Keep the result card readable while the bench is open. */
+body:has(#win:not(.hidden)) .qa-panel{top:auto;bottom:10px}
