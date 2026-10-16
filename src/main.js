@@ -129,6 +129,8 @@ function burst(x,y,z,color=0xffdb77,count=16,force=1){
   }
 }
 // The world's background sound starts with the first tap (browsers need a gesture).
+// Parked for now: the player wants to revisit sound later.
+const AMBIENCE=false;
 let ambience=null;
 function startAmbience(){
   try{
@@ -794,11 +796,11 @@ $('actionButton').addEventListener('click',action);
 $('cancelShot').addEventListener('click',()=>{if(['power','accuracy'].includes(state.phase)){state.power=0;setPhase('idle')}});
 $('puttLength').addEventListener('input',()=>{puttLength=Number($('puttLength').value);updateUI()});
 $('shotMode').addEventListener('click',()=>{puttEnabled=!puttEnabled;updateUI();$('shotMode').blur()});
-$('playButton').addEventListener('click',()=>{lockPortrait();startAmbience();$('intro').classList.add('hidden');reset();startPreview()});
+$('playButton').addEventListener('click',()=>{lockPortrait();if(AMBIENCE)startAmbience();$('intro').classList.add('hidden');reset();startPreview()});
 $('againButton').addEventListener('click',()=>{$('win').classList.add('hidden');reset()});
 $('resetButton').addEventListener('click',()=>{if(state.phase!=='intro'){reset();$('win').classList.add('hidden')}});
 $('cameraButton').addEventListener('click',()=>{preview=0;setOverview(!cameraOverview)});
-$('soundButton').addEventListener('click',()=>{audioEnabled=!audioEnabled;if(audioEnabled)startAmbience();else ambience?.setEnabled(false);$('soundButton').classList.toggle('off',!audioEnabled);setIcon($('soundIcon'),audioEnabled?'sound':'mute')});
+$('soundButton').addEventListener('click',()=>{audioEnabled=!audioEnabled;if(audioEnabled&&AMBIENCE)startAmbience();else ambience?.setEnabled(false);$('soundButton').classList.toggle('off',!audioEnabled);setIcon($('soundIcon'),audioEnabled?'sound':'mute')});
 window.addEventListener('resize',resize);
 document.addEventListener('visibilitychange',()=>ambience?.setEnabled(audioEnabled&&!document.hidden));
 

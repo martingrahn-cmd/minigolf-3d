@@ -28,7 +28,16 @@ Efter grafikuppiffningen kändes miljöerna sterila: allt stod still, ytorna var
 - Gräs och vildblommor växer längs alla sargkanter som inte är öppna, och de vajar i vinden via en vertex-shader.
 - Solstrålar faller snett ner över banan.
 
-Inget av detta påverkar bollen. `src/ambience.js` spelar vind och fågelsång, syntetiserat med Web Audio. Ljudet startar vid första trycket, följer ljudknappen och pausas när fliken döljs. Om spelaren valt reducerad rörelse står livet still.
+Inget av detta påverkar bollen. Om spelaren valt reducerad rörelse står livet still. `src/ambience.js` innehåller vind och fågelsång, men ljudet är parkerat (`AMBIENCE=false` i `main.js`) tills spelaren vill ta upp ljud igen.
+
+**Byn.** Spelaren ville ha en mysig stämning med fler öar och en bebyggd närmiljö utanför banan. `src/forest-village.js` lägger därför en ring av upp till åtta små svävande öar runt varje skogshål, cirka 7,5 meter utanför banan. Öarna ligger aldrig på tee-sidan där kameran står, och lite lägre än filten så att de ramar in banan i stället för att skymma den. Varje ö är bebodd:
+- en stuga med halmtak, där fönstren lyser varmt och flimrar och det ryker ur skorstenen
+- en brunn eller en väderkvarn vars vingar snurrar
+- trädgårdsland med blommor, en buske och ett vitt staket
+- ett träd med en tvättlina där kläderna fladdrar
+- en lykta
+
+Repbroar hänger mellan grannöarna, och en lapptäcksfärgad luftballong driver sakta runt himlen. Modellerna (`forest/cottage`, `windmill`, `well` och `balloon`) byggs i `blender/assets/village.py`.
 
 ## Efterforskning och slutsatser
 

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { modelInstance, tintMaterials } from './models.js';
 import { createForestLife } from './forest-life.js';
+import { createForestVillage } from './forest-village.js';
 
 export const FOREST_THEME={key:'forest',name:'Molnskogen',range:'HÅL 07–12',sky:0xef79b9,horizon:0xffacd7,rail:0xa76b37,base:0x986344,accent:0x96ca50};
 const palette={bark:0x76503a,wood:0xb17c43,cut:0xeac082,moss:0x557d2c,leaf:0x69a72c,leafLight:0x92c83b,rock:0xb99973};
@@ -269,6 +270,7 @@ export function createForestEnvironment(scene,dress=forestProps,level){
   const canopyMaterials=[...new Set(crowns.map(c=>c.material))],sightRay=new THREE.Raycaster(),sightDirection=new THREE.Vector3();
   const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const life=createForestLife(scene,level);let lifeTime=0;
+  const village=createForestVillage(scene,level,{island,tree,material,add,beam,glowTexture,randomSource},animated);
   return {theme:FOREST_THEME,
     updateView(camera,ball,dt,overview){
       if(!reducedMotion)life.update(lifeTime,dt,ball);
@@ -287,6 +289,7 @@ export function createForestEnvironment(scene,dress=forestProps,level){
     update(time){
     lifeTime=time;
     if(reducedMotion)return;
+    village.update(time,1/60);
     pollen.position.y=Math.sin(time*.2)*.3;pollen.rotation.y=Math.sin(time*.08)*.008;
     for(const entry of animated){
       const {object,phase,type}=entry;
