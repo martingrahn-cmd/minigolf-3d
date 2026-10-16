@@ -10,6 +10,8 @@ import { modelInstance } from './models.js';
 // Månkarnevalen an alien.
 
 export const HOLE_RADIUS=.55,HOLE_DEPTH=1.05;
+// The opening sits just above the felt (+0.04) and its flush edge ring (+0.047).
+const LIP=.05;
 // Timeline, in game seconds from the capture (the first part plays in slow motion).
 export const SINK={rim:.35,drop:.6,settle:.8,rise:1.15,gulp:1.6,swallowed:1.8,duck:2.9,done:3.3};
 export const SLOW_MOTION=.38;
@@ -46,7 +48,7 @@ export function createCupHole(scene,x,y,z,theme){
     fragmentShader:'void main(){gl_FragDepth=1.;gl_FragColor=vec4(0.);}',colorWrite:false,depthFunc:THREE.AlwaysDepth,
     stencilWrite:true,stencilRef:1,stencilFunc:THREE.EqualStencilFunc,stencilZPass:THREE.KeepStencilOp,
   }));
-  for(const [mesh,order] of [[mark,1],[clear,1.5]]){mesh.rotation.x=-Math.PI/2;mesh.position.set(x,y+.095,z);mesh.renderOrder=order;mesh.castShadow=false;scene.add(mesh)}
+  for(const [mesh,order] of [[mark,1],[clear,1.5]]){mesh.rotation.x=-Math.PI/2;mesh.position.set(x,y+LIP,z);mesh.renderOrder=order;mesh.castShadow=false;scene.add(mesh)}
   // A pale cup liner at the top, then earth (or brass, or violet) going dark.
   const [band,top,bottom]=theme==='forest'?[0xf1ead8,0x8a6244,0x2a1a10]:theme==='moon'?[0xe8e0ff,0x6a56b0,0x1a1238]:[0xf0ca7e,0x9a7448,0x2a2018];
   const wall=new THREE.CylinderGeometry(HOLE_RADIUS,HOLE_RADIUS,HOLE_DEPTH,32,10,true),colors=[],p=wall.attributes.position;
@@ -55,9 +57,9 @@ export function createCupHole(scene,x,y,z,theme){
   wall.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));
   // Unlit, so the walls read clearly as a shaft going down whatever the lighting.
   const liner=new THREE.Mesh(wall,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.BackSide}));
-  liner.position.set(x,y+.095-HOLE_DEPTH/2,z);liner.renderOrder=2;liner.receiveShadow=true;scene.add(liner);
+  liner.position.set(x,y+LIP-HOLE_DEPTH/2,z);liner.renderOrder=2;liner.receiveShadow=true;scene.add(liner);
   const floor=new THREE.Mesh(new THREE.CircleGeometry(HOLE_RADIUS,32),new THREE.MeshBasicMaterial({color:new THREE.Color(bottom).multiplyScalar(.7)}));
-  floor.rotation.x=-Math.PI/2;floor.position.set(x,y+.095-HOLE_DEPTH+.01,z);floor.renderOrder=2;scene.add(floor);
+  floor.rotation.x=-Math.PI/2;floor.position.set(x,y+LIP-HOLE_DEPTH+.01,z);floor.renderOrder=2;scene.add(floor);
   return {mark,clear,liner,floor};
 }
 

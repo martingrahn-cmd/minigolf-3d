@@ -87,7 +87,7 @@ Modellerna byggs i `blender/assets/carnival.py`: utomjording, kättingflygare, r
 
 Att sänka putten ska kännas som en belöning, inte bara som konfetti. Allt ligger i `src/cup-celebration.js`.
 
-**Ett riktigt hål.** Koppen är nu ett riktigt hål i filten, 1,1 m brett och en meter djupt. Hålet skärs upp med stencilbufferten i två steg efter att allt annat ogenomskinligt är ritat. Först markerar öppningen de pixlar där den syns. Sedan skjuts djupet bakåt på just de pixlarna, så att hålets insida och bollen ritas genom filten. Insidan är oupplyst så att den alltid syns som ett schakt. Överst sitter en ljus kopp och längre ner blir det mörk jord, violett på månen och mässing i Urverket. Flaggans kant står kvar när flaggan lyfts. Renderaren och skogens efterbehandling har stencilbuffert.
+**Ett riktigt hål.** Koppen är nu ett riktigt hål i filten, 1,1 m brett och en meter djupt. Hålet skärs upp med stencilbufferten i två steg efter att allt annat ogenomskinligt är ritat. Först markerar öppningen de pixlar där den syns. Sedan skjuts djupet bakåt på just de pixlarna, så att hålets insida och bollen ritas genom filten. Insidan är oupplyst så att den alltid syns som ett schakt. Överst sitter en ljus kopp och längre ner blir det mörk jord, violett på månen och mässing i Urverket. Kanten ligger plant med filten, som på en riktig green, med en tunn mörk ring och koppens ljusa kant. Flaggmodellens upphöjda ring används inte längre. Renderaren och skogens efterbehandling har stencilbuffert.
 
 **Sänkningen**
 - Spelet går över i slowmotion och kameran sänker sig ner till koppen. Den tittar längs linjen bollen kom in på.
@@ -109,6 +109,15 @@ Ett tryck hoppar över firandet. Om spelaren valt reducerad rörelse blir det in
 Kameran visar bollen, koppen och hjälparen från sidan, även under sänkningen, så att hjälparen inte skymmer.
 
 Modellerna byggs i `blender/assets/critters.py`: mullvad, gök och katt. Utomjordingen återanvänds från karnevalen.
+
+**Händelsebänken.** Lägg till `&qa` i adressen, till exempel `?hole=7&qa`. Då startar spelet direkt med en panel som kan sätta igång varje händelse för sig:
+- sänkning rakt, från vänster, från höger och långsamt
+- boll på kanten, rakt och snett
+- fall utanför banan
+- bara resultatkortet
+- nollställning
+
+Det finns också genvägar till en bana i varje värld. Med bänken går varje händelse att granska i lugn och ro. Inget som spelas där sparas som resultat. Koden ligger i `src/qa.js`.
 
 ## Puttning
 

@@ -28,6 +28,7 @@ import {wheelTurn,docked,crossesDock,ridePose} from './ferris.js';
 import {starsFor,starText,bestStars,worldStars,startWorldRun,activeRun,recordRunHole,endWorldRun,nextRunHole,runScorecard} from './progress.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { createAudio } from './audio.js';
+import { QA, setupQA } from './qa.js';
 import { SINK, SLOW_MOTION, sinkPose, RESCUE, onTheLip } from './cup-celebration.js';
 import './style.css';
 
@@ -319,8 +320,8 @@ function finishSink(){
 function win(){
   setPhase('win');state.vx=0;state.vz=0;
   const best=Number(localStorage.getItem(LEVEL.recordKey))||Infinity;
-  if(state.strokes<best)localStorage.setItem(LEVEL.recordKey,String(state.strokes));
-  recordRunHole(localStorage,SELECTION.slot,state.strokes);
+  // The event bench never saves scores.
+  if(!QA){if(state.strokes<best)localStorage.setItem(LEVEL.recordKey,String(state.strokes));recordRunHole(localStorage,SELECTION.slot,state.strokes)}
   updateUI();
   const stars=starsFor(state.strokes,LEVEL.par),bestNow=bestStars(localStorage,LEVEL);
   $('winStars').textContent=starText(stars);$('winStars').setAttribute('aria-label',`${stars} av 3 stjärnor`);
@@ -1033,5 +1034,29 @@ async function init(){
   }
   $('playButton').disabled=false;
   $('loading').classList.add('done');updateUI();frame();
+  if(QA)startQA();
+}
+// The event bench: start straight into play, with a panel of set pieces to fire.
+function startQA(){
+  $('intro').classList.add('hidden');reset();setPhase('idle');
+  // Roll in along the line from the tee, so the camera and the helpers behave as in play.
+  const tx=CUP.x-START.x,tz=CUP.z-START.z,td=Math.hypot(tx,tz)||1,dir={x:tx/td,z:tz/td};
+  setupQA({
+    hole:SELECTION.slot?.hole??LEVEL.id,
+    prepare(){$('win').classList.add('hidden');reset(false);ball.visible=true},
+    roll(side,speed,from=1.5){
+      const px=-dir.z*side,pz=dir.x*side;
+      state.x=CUP.x-dir.x*from+px;state.z=CUP.z-dir.z*from+pz;
+      const vx=CUP.x-state.x,vz=CUP.z-state.z,d=Math.hypot(vx,vz);
+      state.aim=Math.atan2(vz,vx);state.vx=vx/d*speed;state.vz=vz/d*speed;state.settle=0;setPhase('moving');
+    },
+    lip(side){
+      const a=Math.atan2(-dir.z,-dir.x)+side;
+      state.x=CUP.x+Math.cos(a)*.66;state.z=CUP.z+Math.sin(a)*.66;state.aim=a+Math.PI;
+      state.vx=Math.cos(a+Math.PI)*.02;state.vz=Math.sin(a+Math.PI)*.02;state.settle=0;setPhase('moving');
+    },
+    fall(){state.x=CUP.x-dir.x*2;state.z=CUP.z-dir.z*2;doFall()},
+    win(){state.x=CUP.x;state.z=CUP.z;win()},
+  });
 }
 init();

@@ -8,7 +8,7 @@ import { createCrownCourse, createTrapdoors, createThornSpinner } from './crown.
 import { createLoopCourse } from './loop-visuals.js';
 import { createCarnival } from './carnival-visuals.js';
 import { createClockCourse, createClockGates } from './clockwork.js';
-import { createCupHole, createCupCritter, createLipRescuer } from './cup-celebration.js';
+import { createCupHole, createCupCritter, createLipRescuer, HOLE_RADIUS } from './cup-celebration.js';
 import { createFunnelVisuals } from './funnel-visuals.js';
 import { createBellBridgeVisuals } from './bell-bridge-visuals.js';
 import { createLiftVisuals } from './lift-visuals.js';
@@ -164,8 +164,11 @@ export async function createCourse(scene) {
   }
   // Cup and its visible rim are authored separately for reliable collision detection.
   const cupHeight=heightAt(CUP.x,CUP.z);
-  // A dark lip round the hole; the hole itself is cut through the felt (cup-celebration.js).
-  cylinder(scene,.64,.64,.03,CUP.x,cupHeight+.05,CUP.z,dark,48);
+  // The hole is cut through the felt (cup-celebration.js); round it, flush with
+  // the felt like a real green, a thin dark ring and the cup's pale edge.
+  cylinder(scene,.64,.64,.006,CUP.x,cupHeight+.043,CUP.z,dark,48);
+  const cupEdge=new THREE.Mesh(new THREE.RingGeometry(HOLE_RADIUS-.004,HOLE_RADIUS+.035,48),mat(0xf3ecdc,.5));
+  cupEdge.rotation.x=-Math.PI/2;cupEdge.position.set(CUP.x,cupHeight+.047,CUP.z);cupEdge.receiveShadow=true;scene.add(cupEdge);
   torus(scene,.83,.025,CUP.x,cupHeight+.04,CUP.z,new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.6}));
   // The flagpole now goes into the actual cup. The Blender pin replaces the
   // procedural pole, rim and pennant when it has loaded.
@@ -174,13 +177,10 @@ export async function createCourse(scene) {
   const flagstick=new THREE.Group();flagstick.position.set(CUP.x,cupHeight,CUP.z);scene.add(flagstick);
   if(pin){
     tintMaterials(pin,{Flag:flagColor});pin.rotation.y=-.35;flagstick.add(pin);
-    // The cup stays put when the flag is lifted: its rim moves out to the hole's
-    // wider edge and the old liner gives way to the real hole.
+    // The real hole replaces the model's raised rim and liner.
     pin.getObjectByName('cup-liner')?.removeFromParent();
-    const rim=pin.getObjectByName('cup-rim');
-    if(rim){rim.removeFromParent();rim.position.set(CUP.x,cupHeight+.085,CUP.z);rim.scale.set(1.25,1.1,1.25);scene.add(rim)}
+    pin.getObjectByName('cup-rim')?.removeFromParent();
   }else{
-  torus(scene,.585,.055,CUP.x,cupHeight+.085,CUP.z,cream);
   cylinder(flagstick,.032,.032,2.7,0,1.38,0,cream,12);
   const pennant=new THREE.Shape();pennant.moveTo(0,0);pennant.lineTo(1.05,-.18);pennant.lineTo(0,-.57);pennant.closePath();
   const flag=new THREE.Mesh(new THREE.ShapeGeometry(pennant),new THREE.MeshStandardMaterial({color:flagColor,side:THREE.DoubleSide,roughness:.65}));
