@@ -12,7 +12,13 @@ const glow=mat(0xffd78b,{emissive:0xffba58,emissiveIntensity:1.4,roughness:.3});
 function add(g,geo,m,x=0,y=0,z=0){const o=new THREE.Mesh(geo,m);o.position.set(x,y,z);o.castShadow=o.receiveShadow=true;g.add(o);return o}
 function box(g,w,h,d,x,y,z,m){return add(g,new THREE.BoxGeometry(w,h,d),m,x,y,z)}
 function rod(g,a,b,r,m){const p=new THREE.Vector3(...a),q=new THREE.Vector3(...b),o=add(g,new THREE.CylinderGeometry(r,r,p.distanceTo(q),12),m);o.position.copy(p).add(q).multiplyScalar(.5);o.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),q.sub(p).normalize());return o}
-function ring(g,r,t,x,y,z,m){return add(g,new THREE.TorusGeometry(r,t,8,64),m,x,y,z)}
+// Segments follow the ring's size: a chain link needs a tenth of what the great window does.
+const ringGeometries=new Map();
+function ring(g,r,t,x,y,z,m){
+  const key=`${r}:${t}`;
+  if(!ringGeometries.has(key))ringGeometries.set(key,new THREE.TorusGeometry(r,t,t<.06?5:8,Math.round(THREE.MathUtils.clamp(r*28,10,64))));
+  return add(g,ringGeometries.get(key),m,x,y,z);
+}
 function group(g,x=0,y=0,z=0){const o=new THREE.Group();o.position.set(x,y,z);g.add(o);return o}
 function bolt(g,x,y,z){const b=add(g,new THREE.CylinderGeometry(.06,.06,.04,6),gold,x,y,z);return b}
 function bake(g){
@@ -214,8 +220,9 @@ function cuckooHouse(scene,x,z,scale,animated,hero=false){
   ring(pendulum,.44,.03,0,-2.5,.13,copper);animated.push({kind:'pendulum',object:pendulum});
   if(!shellModel)box(fixed,1.8,3.1,.12,0,.0,1.38,dark);
   for(const s of [-1,1]){chain(fixed,s*1.6,1.7,-3,1.5);const weight=add(fixed,new THREE.CylinderGeometry(.29,.19,1.2,10),copper,s*1.6,-2.2,1.5);for(let y=-2.7;y<-1.5;y+=.17)ring(fixed,.26,.04,s*1.6,y,1.5,gold).rotation.x=Math.PI/2}
-  // Hands, doors and pendulum remain independent of the architectural batch.
-  bake(fixed);
+  // Hands, doors and pendulum remain independent of the architectural batch,
+  // but each moving part is merged into one mesh per material.
+  bake(fixed);bake(face.hour);bake(face.minute);bake(bird);bake(pendulum);
   return root;
 }
 
@@ -286,7 +293,7 @@ export function createClockEnvironment(scene,level){
   for(let i=0;i<=250;i++){const a=i/250*Math.PI*7,r=.35+i/250*2.8;spiral.push(new THREE.Vector3(Math.cos(a)*r,Math.sin(a)*r,0))}
   add(spring,new THREE.TubeGeometry(new THREE.CatmullRomCurve3(spiral),250,.09,8,false),brass);
   ring(spring,3.35,.15,0,0,0,iron);const springHub=createGear(spring,.6,12,.25);animated.push({kind:'gear',object:spring,speed:.025});
-  bake(statics);
+  bake(statics);statics.traverse(o=>{o.updateMatrix();o.matrixAutoUpdate=false});
   const points=[];let seed=197;const random=()=>{seed=seed*16807%2147483647;return(seed-1)/2147483646};
   for(let i=0;i<130;i++)points.push(-30+random()*60,-4+random()*22,-28+random()*48);
   const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(points,3));
