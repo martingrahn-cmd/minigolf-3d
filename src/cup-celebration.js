@@ -9,7 +9,7 @@ import { modelInstance } from './models.js';
 // mole in a miner's helmet, Urverkets stad a cuckoo on a spring and
 // Månkarnevalen an alien.
 
-export const HOLE_RADIUS=.42,HOLE_DEPTH=.95;
+export const HOLE_RADIUS=.55,HOLE_DEPTH=1.05;
 // Timeline, in game seconds from the capture (the first part plays in slow motion).
 export const SINK={rim:.35,drop:.6,settle:.8,rise:1.15,gulp:1.6,swallowed:1.8,duck:2.9,done:3.3};
 export const SLOW_MOTION=.38;
@@ -31,27 +31,34 @@ export function sinkPose(t,entry){
   return {x:Math.cos(a)*r,z:Math.sin(a)*r,y,done:t>=SINK.settle};
 }
 
-// A real hole in the felt. A disc at the lip resets the depth buffer to "far"
-// where the felt is seen, so the liner and the ball inside draw through it.
-// Draw order: felt and everything else, then the hole (1), then the liner (2),
-// then the ball and the critter (3).
+// A real hole in the felt, cut with the stencil buffer in two passes after
+// everything else that is opaque has drawn. First the opening marks the pixels
+// where it can be seen (nothing in front of it); then, on just those pixels, the
+// depth is pushed back to "far", so the liner and the ball inside can draw
+// through the felt. Draw order: the scene (0), the cut (1, 1.5), the liner (2),
+// the ball and the critter (3). The renderer needs a stencil buffer.
 export function createCupHole(scene,x,y,z,theme){
-  const punch=new THREE.Mesh(new THREE.CircleGeometry(HOLE_RADIUS,40),new THREE.ShaderMaterial({
+  const disc=new THREE.CircleGeometry(HOLE_RADIUS,48);
+  const mark=new THREE.Mesh(disc,new THREE.MeshBasicMaterial({colorWrite:false,depthWrite:false,
+    stencilWrite:true,stencilRef:1,stencilFunc:THREE.AlwaysStencilFunc,stencilZPass:THREE.ReplaceStencilOp}));
+  const clear=new THREE.Mesh(disc,new THREE.ShaderMaterial({
     vertexShader:'void main(){gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
-    fragmentShader:'void main(){gl_FragDepth=1.;gl_FragColor=vec4(0.);}',colorWrite:false,
+    fragmentShader:'void main(){gl_FragDepth=1.;gl_FragColor=vec4(0.);}',colorWrite:false,depthFunc:THREE.AlwaysDepth,
+    stencilWrite:true,stencilRef:1,stencilFunc:THREE.EqualStencilFunc,stencilZPass:THREE.KeepStencilOp,
   }));
-  punch.rotation.x=-Math.PI/2;punch.position.set(x,y+.095,z);punch.renderOrder=1;scene.add(punch);
+  for(const [mesh,order] of [[mark,1],[clear,1.5]]){mesh.rotation.x=-Math.PI/2;mesh.position.set(x,y+.095,z);mesh.renderOrder=order;mesh.castShadow=false;scene.add(mesh)}
   // A pale cup liner at the top, then earth (or brass, or violet) going dark.
   const [band,top,bottom]=theme==='forest'?[0xf1ead8,0x8a6244,0x2a1a10]:theme==='moon'?[0xe8e0ff,0x6a56b0,0x1a1238]:[0xf0ca7e,0x9a7448,0x2a2018];
   const wall=new THREE.CylinderGeometry(HOLE_RADIUS,HOLE_RADIUS,HOLE_DEPTH,32,10,true),colors=[],p=wall.attributes.position;
   const a=new THREE.Color(top),b=new THREE.Color(bottom),c0=new THREE.Color(band);
-  for(let i=0;i<p.count;i++){const k=(p.getY(i)+HOLE_DEPTH/2)/HOLE_DEPTH,c=k>.8?c0:b.clone().lerp(a,Math.pow(k/.8,1.5));colors.push(c.r,c.g,c.b)}
+  for(let i=0;i<p.count;i++){const k=(p.getY(i)+HOLE_DEPTH/2)/HOLE_DEPTH,c=k>.86?c0.clone().multiplyScalar(.8+.2*(k-.86)/.14):b.clone().lerp(a,Math.pow(k/.86,1.6));colors.push(c.r,c.g,c.b)}
   wall.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));
-  const liner=new THREE.Mesh(wall,new THREE.MeshStandardMaterial({vertexColors:true,side:THREE.BackSide,roughness:.85,emissive:0x2a2018,emissiveIntensity:.6}));
+  // Unlit, so the walls read clearly as a shaft going down whatever the lighting.
+  const liner=new THREE.Mesh(wall,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.BackSide}));
   liner.position.set(x,y+.095-HOLE_DEPTH/2,z);liner.renderOrder=2;liner.receiveShadow=true;scene.add(liner);
-  const floor=new THREE.Mesh(new THREE.CircleGeometry(HOLE_RADIUS,32),new THREE.MeshStandardMaterial({color:bottom,roughness:1}));
+  const floor=new THREE.Mesh(new THREE.CircleGeometry(HOLE_RADIUS,32),new THREE.MeshBasicMaterial({color:new THREE.Color(bottom).multiplyScalar(.7)}));
   floor.rotation.x=-Math.PI/2;floor.position.set(x,y+.095-HOLE_DEPTH+.01,z);floor.renderOrder=2;scene.add(floor);
-  return {punch,liner,floor};
+  return {mark,clear,liner,floor};
 }
 
 function springGeometry(){
@@ -82,8 +89,9 @@ export function createCupCritter(scene,theme,cup){
       // Up out of the hole with a little overshoot, and back down at the end.
       const up=t<SINK.rise?(()=>{const k=clamp01((t-SINK.settle)/(SINK.rise-SINK.settle));return 1+2.7*Math.pow(k-1,3)+1.7*Math.pow(k-1,2)})():t<SINK.duck?1:1-ease(clamp01((t-SINK.duck)/(SINK.done-SINK.duck)));
       const lift=theme==='clockwork'?.7:0;
-      body.position.y=-1.35+(1.35+lift)*up;
-      if(spring){spring.scale.set(1,Math.max(.02,body.position.y+.05),1);spring.position.y=-.05}
+      // It starts below the cup's floor so nothing shows until it comes up.
+      body.position.y=-2.3+(2.3+lift)*up;
+      if(spring){spring.visible=body.position.y>.05;spring.scale.set(1,Math.max(.02,body.position.y+.05),1);spring.position.y=-.05}
       // Gulp: squash and stretch; then chew.
       let sy=1,sxz=1;
       if(t>SINK.gulp&&t<SINK.swallowed){const k=(t-SINK.gulp)/(SINK.swallowed-SINK.gulp);sy=1-.18*Math.sin(k*Math.PI);sxz=1+.14*Math.sin(k*Math.PI)}
@@ -111,7 +119,16 @@ export function createCupCritter(scene,theme,cup){
 // lit, and taps it; in Urverkets stad a cat strolls over and, being a cat,
 // pushes it over the edge with a paw; on the moon an alien hops in and boops it.
 export const LIP_RESCUE=.85;
-export const RESCUE={arrive:1.3,look:1.9,tap:2.2,leave:3.2,gone:4.4};
+// Arrive, look at the camera, a first testing poke, a cheeky look, the real push.
+export const RESCUE={arrive:1.3,look:1.9,poke:2.25,peek:2.4,tap:3.05,leave:3.9,gone:5.1};
+// A paw swing: wind up, strike forward, settle. 0 at rest, negative lifted, positive pushed through.
+function swing(t,at,amp){
+  const s=(t-(at-.42))/.6;if(s<0||s>1.5)return 0;
+  if(s<.7)return -amp*1.1*Math.sin(s/.7*Math.PI/2);
+  if(s<1)return -amp*1.1+amp*1.7*Math.sin((s-.7)/.3*Math.PI/2);
+  return amp*.6*(1-(s-1)/.5);
+}
+const pawAt=t=>swing(t,RESCUE.poke,.55)+swing(t,RESCUE.tap,1);
 export const onTheLip=(ball,cup)=>Math.hypot(ball.x-cup.x,ball.z-cup.z)<LIP_RESCUE;
 
 export function createLipRescuer(scene,theme,heightAt){
@@ -127,7 +144,7 @@ export function createLipRescuer(scene,theme,heightAt){
   }
   const lamp=parts.lamp?.material;if(lamp){parts.lamp.material=lamp.clone()}
   // How far behind the ball the helper stands to reach it.
-  const reach=theme==='clockwork'?1.05:theme==='moon'?.75:.72;
+  const reach=theme==='clockwork'?.98:theme==='moon'?.78:.74;
   const face=new THREE.Vector3(),stand=new THREE.Vector3(),from=new THREE.Vector3(),side=new THREE.Vector3();
   return {
     // `t` is time since the ball settled; `ball` where it stopped; `dir` the unit direction to the cup.
@@ -146,9 +163,9 @@ export function createLipRescuer(scene,theme,heightAt){
         const rise=t<.4?0:t<1?ease((t-.4)/.6):t<RESCUE.leave?1:1-ease(Math.min(1,(t-RESCUE.leave)/.5));
         root.position.set(stand.x,y-1.25+1.25*rise,stand.z);
         mound.visible=true;mound.position.set(stand.x,y,stand.z);mound.scale.set(1,.45*Math.min(1,t/.5)*(t>RESCUE.gone-.6?Math.max(0,(RESCUE.gone-t)/.6):1),1);
-        heading=t>1&&t<RESCUE.look?towardCamera:towardCup;
+        heading=(t>1&&t<RESCUE.look)||(t>RESCUE.peek&&t<RESCUE.tap-.5)?towardCamera:towardCup;
         if(parts.lamp)parts.lamp.material.emissiveIntensity=t>1&&t<RESCUE.look?2+Math.sin(t*20)*2:3;
-        if(parts['paw-r'])parts['paw-r'].rotation.x=t>RESCUE.look&&t<RESCUE.tap+.2?-Math.sin(Math.min(1,(t-RESCUE.look)/(RESCUE.tap+.2-RESCUE.look))*Math.PI)*1.2:0;
+        if(parts['paw-r'])parts['paw-r'].rotation.x=-pawAt(t);
         if(parts['paw-l'])parts['paw-l'].rotation.z=t>RESCUE.tap+.2&&t<RESCUE.leave?-.6-Math.sin(t*12)*.5:0;
       }else{
         // Walk (or hop) in, sit and look at the camera, swat, watch, wander off.
@@ -159,12 +176,12 @@ export function createLipRescuer(scene,theme,heightAt){
         if(theme==='moon'&&walking)root.position.y+=Math.abs(Math.sin(t*9))*.35;
         if(theme==='clockwork'){
           for(const [n,ph] of [['leg-fl',0],['leg-br',0],['leg-fr',Math.PI],['leg-bl',Math.PI]])if(parts[n])parts[n].rotation.x=walking?Math.sin(t*11+ph)*.45:0;
-          if(parts.head)parts.head.rotation.y=t>RESCUE.arrive&&t<RESCUE.look?THREE.MathUtils.clamp(towardCamera-towardCup,-1.2,1.2):0;
+          if(parts.head)parts.head.rotation.y=(t>RESCUE.arrive&&t<RESCUE.look)||(t>RESCUE.peek&&t<RESCUE.tap-.5)?THREE.MathUtils.clamp(Math.atan2(Math.sin(towardCamera-towardCup),Math.cos(towardCamera-towardCup)),-1.2,1.2):0;
           if(parts.tail)parts.tail.rotation.z=Math.sin(t*3)*.35;
           // The swat: lift the paw, hold a beat, push.
-          if(parts['leg-fr']&&!walking&&t>RESCUE.look-.1&&t<RESCUE.tap+.35){const s=(t-RESCUE.look+.1)/(RESCUE.tap+.35-RESCUE.look+.1);parts['leg-fr'].rotation.x=s<.6?-1.1*Math.sin(s/.6*Math.PI/2):-1.1+1.6*Math.sin((s-.6)/.4*Math.PI/2)}
+          if(parts['leg-fr']&&!walking)parts['leg-fr'].rotation.x=pawAt(t)<0?pawAt(t)*1.3:-pawAt(t)*.2-.5*Math.min(1,pawAt(t));
         }
-        if(theme==='moon'&&!walking&&t>RESCUE.look&&t<RESCUE.tap+.25)root.rotation.x=Math.sin((t-RESCUE.look)/(RESCUE.tap+.25-RESCUE.look)*Math.PI)*.35;else root.rotation.x=0;
+        root.rotation.x=theme==='moon'&&!walking?Math.max(0,pawAt(t))*.35:0;
       }
       root.rotation.y=heading;
       return {walking};

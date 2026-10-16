@@ -8,7 +8,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 // Short-range ambient occlusion grounds the carved props and fence posts.
 // Bloom only catches the brightest crystal highlights; turf stays crisp.
 export function createForestRenderer(renderer,scene,camera){
-  const target=new WebGLRenderTarget(1,1,{type:HalfFloatType,samples:Math.min(4,renderer.capabilities.maxSamples)});
+  const target=new WebGLRenderTarget(1,1,{type:HalfFloatType,stencilBuffer:true,samples:Math.min(4,renderer.capabilities.maxSamples)});
   const composer=new EffectComposer(renderer,target);
   const color=new RenderPass(scene,camera),ao=new SSAOPass(scene,camera,1,1,16);
   ao.kernelRadius=.8;ao.minDistance=.00005;ao.maxDistance=.013;

@@ -87,7 +87,7 @@ Modellerna byggs i `blender/assets/carnival.py`: utomjording, kättingflygare, r
 
 Att sänka putten ska kännas som en belöning, inte bara som konfetti. Allt ligger i `src/cup-celebration.js`.
 
-**Ett riktigt hål.** Koppen är nu ett riktigt hål i filten. En osynlig skiva vid kanten nollställer djupbufferten där filten syns, så att hålets insida och bollen kan ritas genom den. Överst sitter en ljus kopp, längre ner blir det mörk jord: violett på månen och mässing i Urverket.
+**Ett riktigt hål.** Koppen är nu ett riktigt hål i filten, 1,1 m brett och en meter djupt. Hålet skärs upp med stencilbufferten i två steg efter att allt annat ogenomskinligt är ritat. Först markerar öppningen de pixlar där den syns. Sedan skjuts djupet bakåt på just de pixlarna, så att hålets insida och bollen ritas genom filten. Insidan är oupplyst så att den alltid syns som ett schakt. Överst sitter en ljus kopp och längre ner blir det mörk jord, violett på månen och mässing i Urverket. Flaggans kant står kvar när flaggan lyfts. Renderaren och skogens efterbehandling har stencilbuffert.
 
 **Sänkningen**
 - Spelet går över i slowmotion och kameran sänker sig ner till koppen. Den tittar längs linjen bollen kom in på.
@@ -101,14 +101,18 @@ Att sänka putten ska kännas som en belöning, inte bara som konfetti. Allt lig
 
 Ett tryck hoppar över firandet. Om spelaren valt reducerad rörelse blir det ingen slowmotion och ingen kameraåkning.
 
-**Precis på kanten.** Om bollen stannar precis vid kanten, närmare än 0,85 m från hålets mitt, kommer en hjälpare och knuffar ner den. Slaget räknas som sänkt.
+**Precis på kanten.** Om bollen stannar precis vid kanten, närmare än 0,85 m från hålets mitt, kommer en hjälpare och knackar ner den. Inknackningen kostar ett slag, precis som om spelaren hade knackat i den själv. Det blir alltså inte lättare, bara roligare.
 - Molnskogen: mullvaden gräver upp sig ur en jordhög bredvid bollen, tittar sig omkring med pannlampan och knackar ner bollen.
-- Urverkets stad: en katt kommer gående, sätter sig, tittar in i kameran och puttar ner bollen med tassen, som katter gör.
+- Urverkets stad: en katt kommer gående, tittar in i kameran och petar försiktigt på bollen så att den gungar. Sedan tittar den på kameran igen och puttar ner bollen med tassen, som katter gör.
 - Månkarnevalen: en utomjording hoppar fram och boopar bollen.
 
-Kameran visar bollen, koppen och hjälparen från sidan. Sedan följer den vanliga sänkningen.
+Kameran visar bollen, koppen och hjälparen från sidan, även under sänkningen, så att hjälparen inte skymmer.
 
 Modellerna byggs i `blender/assets/critters.py`: mullvad, gök och katt. Utomjordingen återanvänds från karnevalen.
+
+## Puttning
+
+Spelaren tyckte att det förenklade puttsystemet gjorde spelet för lätt. Där valde man exakt rulllängd med ett reglage, och putten gick alltid rakt. Det är borttaget. Närputten finns kvar på plana greener nära hålet, men den går genom samma mätare som alla slag. Kraftmätaren räknar i meter, från 0,25 till 6 m, och siktlinjen visar längden medan mätaren går. Därefter ska man pricka mitten. Missar man grönt går putten snett. Det gröna fältet är lika smalt för alla slag, och mjuka slag får ingen breddning eller dämpning av missar längre. **Fullt slag** ger den vanliga kraftmätaren.
 
 ## Ljud
 

@@ -13,7 +13,7 @@ import { hydrateIcons, setIcon } from './icons.js';
 import { WORLDS, ROUND, PROTOTYPES, holeLabel, builtCount, nextInRound } from './round.js';
 import { createGolfBall } from './ball.js';
 import * as activeLayout from './layout.js';
-import { puttingContext, puttSpeed } from './putting.js';
+import { puttingContext, puttSpeed, puttLengthAt } from './putting.js';
 import { entersFunnel,createFunnelTrack,startFunnelRide,sampleFunnelRide } from './funnel.js';
 import { createTubeCameraRail,tubeCameraPose,tubeCameraBlend } from './tube-camera.js';
 import {createBellBridgeState,stepBellBridge,strikeBell,collideBellBridge,restoreBellBridge} from './bell-bridge.js';
@@ -33,7 +33,8 @@ import './style.css';
 
 const $=id=>document.getElementById(id);
 const canvas=$('game');
-const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true,powerPreference:'high-performance'});
+// The stencil buffer cuts the cup's hole through the felt (cup-celebration.js).
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true,stencil:true,powerPreference:'high-performance'});
 renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
 renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 renderer.outputColorSpace=THREE.SRGBColorSpace;
@@ -164,22 +165,20 @@ function updateUI(){
   $('app').classList.toggle('overview',cameraOverview);
   $('meter').classList.toggle('accuracy',state.phase==='accuracy');
   const touch=touchInput();
-  $('meterStatus').textContent={idle:cameraOverview?(touch?'Tryck på banan för att sikta':'Klicka på banan för att sikta'):(touch?'Dra för att sikta · ◁ ▷ finsiktar':'Dra för att sikta · A / D finjusterar'),power:touch?'Mjukt ← kraft → hårt':'Mjukt ← kraft → hårt · Esc avbryter',accuracy:state.power<.3?'Mjuk putt · större grönt fält':'Pricka mitten · hårda slag kräver precision',moving:'Nästa slag när bollen stannar',looping:'Farten avgör om du når runt',cannon:'Över gapet mot flaggan',pipe:'På väg till kanonen',bridgeflight:'Nästa stopp: flippergreen',floating:'Låg gravitation · bollen sjunker långsamt',riding:'Gondolen tippar ut bollen på greenen',loading:'Tryckluften blåser upp bollen i kanonen',loaded:`Tryck FYR${touch?' eller på banan':' eller Mellanslag'} när siktet ${LEVEL.cometCannon?.launchY?'står där du vill landa':'pekar rätt'}`,comet:'Mot landningshyllorna',drumflight:LEVEL.trampoline?.status||'Genom ringen – mot käglorna!',falling:'+1 pliktslag',win:'Flaggan är din!'}[state.phase]||'';
+  $('meterStatus').textContent={idle:cameraOverview?(touch?'Tryck på banan för att sikta':'Klicka på banan för att sikta'):(touch?'Dra för att sikta · ◁ ▷ finsiktar':'Dra för att sikta · A / D finjusterar'),power:touch?'Mjukt ← kraft → hårt':'Mjukt ← kraft → hårt · Esc avbryter',accuracy:'Pricka mitten · hårda slag kräver mest precision',moving:'Nästa slag när bollen stannar',looping:'Farten avgör om du når runt',cannon:'Över gapet mot flaggan',pipe:'På väg till kanonen',bridgeflight:'Nästa stopp: flippergreen',floating:'Låg gravitation · bollen sjunker långsamt',riding:'Gondolen tippar ut bollen på greenen',loading:'Tryckluften blåser upp bollen i kanonen',loaded:`Tryck FYR${touch?' eller på banan':' eller Mellanslag'} när siktet ${LEVEL.cometCannon?.launchY?'står där du vill landa':'pekar rätt'}`,comet:'Mot landningshyllorna',drumflight:LEVEL.trampoline?.status||'Genom ringen – mot käglorna!',falling:'+1 pliktslag',win:'Flaggan är din!'}[state.phase]||'';
   if(state.phase==='funnel')$('meterStatus').textContent='Tryckluften lyfter dig till postterrassen';
   if(state.phase==='elevator')$('meterStatus').textContent='Motvikterna tar dig till balkongen';
-  const putting=puttEnabled&&state.phase==='idle';
-  $('puttControls').hidden=!putting;$('meter').hidden=putting||state.phase==='loaded';
+  const putting=puttEnabled&&['idle','power','accuracy'].includes(state.phase);
+  $('meter').hidden=state.phase==='loaded';
   $('shotMode').hidden=!nearPutt||state.phase!=='idle';
   $('fineAim').hidden=state.phase!=='idle'||cameraOverview;
   $('cancelShot').hidden=!touch||!['power','accuracy'].includes(state.phase);
   if($('fineAim').hidden)fineAim=0;
-  $('shotMode').textContent=putting?'Fullt slag':'Närputt';
+  $('shotMode').textContent=puttEnabled?'Fullt slag':'Närputt';
   if(putting){
-    $('controlTitle').textContent='Närputt';$('actionText').textContent='Putta';$('actionSteps').dataset.step='putt';
-    $('puttDistance').textContent=`${nearPutt.distance.toFixed(1).replace('.',',')} m till hålet`;
-    $('puttLength').value=puttLength;
-    $('puttOutput').textContent=`${puttLength.toFixed(1).replace('.',',')} m`;
-    $('meterStatus').textContent=touch?'Tryck på hålet för att sikta · välj rulllängd':'Klicka på hålet för att sikta · välj rulllängd';
+    // The near putt uses the same meter: the power sets the roll in metres, then hit the centre.
+    $('controlTitle').textContent='Närputt';$('actionText').textContent=state.phase==='idle'?'Putta':$('actionText').textContent;
+    $('meterStatus').textContent=state.phase==='idle'?`${nearPutt.distance.toFixed(1).replace('.',',')} m till hålet · tryck för rulllängd`:state.phase==='power'?'Tryck när rulllängden stämmer':'Pricka mitten för en rak putt';
   }
   if(preview>0){
     $('controlTitle').textContent='Banöversikt';$('actionText').textContent='Börja';$('actionSteps').dataset.step='';$('meter').hidden=true;
@@ -196,21 +195,21 @@ function action(){
   if(endPreview())return;
   if(state.phase==='loaded'){fireComet();return}
   if(state.phase==='idle'){
-    if(puttEnabled){state.accuracy=0;state.power=0;shoot(puttSpeed(puttLength,nearPutt.friction));return}
     setPhase('power');state.power=0;state.meterStart=elapsed;sound(530,.08,'triangle',.04,1.2);
   }else if(state.phase==='power'){
     if(state.power<.01)state.power=.01;
     setPhase('accuracy');state.needle=-1;state.accuracyStart=elapsed;sound(720,.08,'triangle',.04,.85);
   }else if(state.phase==='accuracy'){
     state.accuracy=state.needle;
-    shoot();
+    shoot(puttEnabled&&nearPutt?puttSpeed(puttLength,nearPutt.friction):undefined);
   }
 }
 function shoot(puttingSpeed){
   pinRack.beginShot();
   bellBridgeState.savedOpen=bellBridgeState.open;
   liftState.savedTop=liftState.mode==='top';
-  const error=shotError(state.accuracy,state.power);
+  // A putt misses like a gentle shot: a little off line when the needle is off centre.
+  const error=shotError(state.accuracy,puttingSpeed!==undefined?.35:state.power);
   shotKick=state.power>.8?1:0;
   const angle=state.aim+error;
   const speed=puttingSpeed??shotSpeed(state.power);
@@ -222,8 +221,7 @@ function shoot(puttingSpeed){
   setPhase('moving');
   audio.putt(state.power);
   burst(state.x,.25+surfaceHeight(state.x,state.z),state.z,0xffffff,8,.45);
-  if(puttingSpeed!==undefined)toast('Mjuk putt',900);
-  else if(Math.abs(state.accuracy)<=perfectZone(state.power))toast(state.power>.82?'SUPERTRÄFF! ✦':'PERFEKT TRÄFF! ✦',1300);
+  if(Math.abs(state.accuracy)<=perfectZone(state.power))toast(puttingSpeed!==undefined?'RAK PUTT ✦':state.power>.82?'SUPERTRÄFF! ✦':'PERFEKT TRÄFF! ✦',1300);
   else if(Math.abs(error)>.06)toast(`SNETT SLAG · ${Math.abs(error*180/Math.PI).toFixed(1)}°`,1300);
 }
 function reset(full=true){
@@ -288,9 +286,11 @@ function updateRescue(dt){
   const t=(rescue.t+=dt),once=(name,at)=>t>=at&&!rescue.events.has(name)&&rescue.events.add(name);
   if(once('hello',.3))audio.critter(LEVEL.theme==='forest'?'dig':LEVEL.theme==='clockwork'?'meow':'boop');
   if(once('look',RESCUE.arrive+.1)&&LEVEL.theme!=='forest')audio.critter(LEVEL.theme==='clockwork'?'meow':'boop');
+  if(once('poke',RESCUE.poke))audio.critter('tap');
   if(once('tap',RESCUE.tap)&&state.phase==='rescue'){
-    // The nudge: just enough to roll over the lip.
-    audio.critter('tap');state.vx=rescue.dir.x*1.8;state.vz=rescue.dir.z*1.8;state.settle=0;setPhase('moving');
+    // The tap-in: just enough to roll over the lip. It counts as a stroke, as a tap-in would.
+    audio.critter('tap');state.strokes++;$('strokeCount').textContent=state.strokes;toast('Inknackad · +1 slag',1400);
+    state.vx=rescue.dir.x*1.8;state.vz=rescue.dir.z*1.8;state.settle=0;setPhase('moving');
   }
   if(t>=RESCUE.gone){course?.lipRescuer?.hide();rescue=null}
 }
@@ -616,6 +616,10 @@ function draw(dt){
   if(phase==='comet')extraY=cometPose(LEVEL.cometCannon,state.cometAngle,state.flight,state.cometRange).y;
   if(phase==='sinking'&&sink)extraY=sink.y;
   ball.position.set(state.x,ballHeight+.04+BALL_RADIUS+extraY,state.z);
+  if(phase==='rescue'&&rescue){
+    // The first poke only rocks the ball on the lip.
+    const k=(rescue.t-RESCUE.poke)/.7;if(k>0&&k<1){const w=Math.sin(k*Math.PI*3)*(1-k)*.07;ball.position.x+=rescue.dir.x*w;ball.position.z+=rescue.dir.z*w}
+  }
   ball.visible=phase!=='loaded'&&phase!=='win';ball.scale.setScalar(1);
   if(rescue)course?.lipRescuer?.update(rescue.t,rescue.ball,rescue.dir,camera);
   if(phase==='sinking'&&sink){
@@ -646,7 +650,7 @@ function draw(dt){
   halo.material.opacity=.28+.08*Math.sin(elapsed*3);
   aimGroup.visible=phase==='idle'||phase==='power'||phase==='accuracy';
   const c=Math.cos(state.aim),s=Math.sin(state.aim);
-  const aimLength=puttEnabled&&phase==='idle'?puttLength:6.25;
+  const aimLength=puttEnabled&&(phase==='power'||phase==='accuracy')?puttLength:puttEnabled&&phase==='idle'&&nearPutt?nearPutt.distance:6.25;
   aimDots.forEach((d,i)=>{const distance=.4+(aimLength-.4)*i/16;const x=state.x+c*distance,z=state.z+s*distance;d.position.set(x,surfaceHeight(x,z)+.16,z);d.visible=onCourse(x,z)&&supportedByTrapdoors(x,z,crownTime,LEVEL.trapdoors)&&supportedByClockHand(x,z,crownTime,LEVEL.clockHand)});
   const ax=state.x+c*aimLength,az=state.z+s*aimLength;aimArrow.position.set(ax,surfaceHeight(ax,az)+.2,az);aimArrow.rotation.y=-state.aim;aimArrow.visible=onCourse(ax,az)&&supportedByClockHand(ax,az,crownTime,LEVEL.clockHand);
   if(course){
@@ -722,7 +726,10 @@ function draw(dt){
   }
   if(phase==='sinking'&&sink&&!cameraOverview&&!reducedCameraMotion){
     // Down to the cup, looking along the line the ball came in on.
-    const speed=Math.hypot(sink.entry.vx,sink.entry.vz),bx=speed>.01?-sink.entry.vx/speed:-Math.cos(state.aim),bz=speed>.01?-sink.entry.vz/speed:-Math.sin(state.aim);
+    const speed=Math.hypot(sink.entry.vx,sink.entry.vz);
+    let bx=speed>.01?-sink.entry.vx/speed:-Math.cos(state.aim),bz=speed>.01?-sink.entry.vz/speed:-Math.sin(state.aim);
+    // After a tap-in the helper stands behind the ball: watch from its side instead.
+    if(rescue){bx=-rescue.dir.z;bz=rescue.dir.x;if(bx*(cameraPosition.x-CUP.x)+bz*(cameraPosition.z-CUP.z)<0){bx=-bx;bz=-bz}}
     const up=sink.t>SINK.settle?1:0,h=course?.cupHeight??0;
     desiredPosition.set(CUP.x+bx*3.1-bz*.8,h+1.55+up*.35,CUP.z+bz*3.1+bx*.8);
     desiredTarget.set(CUP.x,h-.1+up*.6,CUP.z);desiredFov=44;
@@ -766,8 +773,9 @@ function frame(){
     if(fineAim){fineAimHeld+=dt;state.aim+=fineAim*dt*(fineAimHeld>.7?.3:.1)}
   }
   if(state.phase==='power')state.power=powerAt(elapsed-state.meterStart);
+  if(state.phase==='power'&&puttEnabled)puttLength=puttLengthAt(state.power);
   if(state.phase==='accuracy')state.needle=precisionAt(elapsed-state.accuracyStart);
-  $('meterValue').textContent=state.phase==='accuracy'?'Pricka grönt':state.phase==='power'?`${state.power>.82?'MAXKRAFT · ':''}${Math.round(state.power*100)} %`:'';
+  $('meterValue').textContent=state.phase==='accuracy'?'Pricka grönt':state.phase==='power'?(puttEnabled?`${puttLength.toFixed(1).replace('.',',')} m`:`${state.power>.82?'MAXKRAFT · ':''}${Math.round(state.power*100)} %`):'';
   const zone=perfectZone(state.power);
   $('meter').style.setProperty('--sweet-start',`${50-zone*50}%`);
   $('meter').style.setProperty('--sweet-end',`${50+zone*50}%`);
@@ -851,7 +859,6 @@ $('helpButton').addEventListener('click',()=>{
 $('closeHelp').addEventListener('click',()=>$('helpPanel').close());
 $('actionButton').addEventListener('click',action);
 $('cancelShot').addEventListener('click',()=>{if(['power','accuracy'].includes(state.phase)){state.power=0;setPhase('idle')}});
-$('puttLength').addEventListener('input',()=>{puttLength=Number($('puttLength').value);updateUI()});
 $('shotMode').addEventListener('click',()=>{puttEnabled=!puttEnabled;updateUI();$('shotMode').blur()});
 $('playButton').addEventListener('click',()=>{lockPortrait();audio.unlock();$('intro').classList.add('hidden');reset();startPreview()});
 $('againButton').addEventListener('click',()=>{$('win').classList.add('hidden');reset()});

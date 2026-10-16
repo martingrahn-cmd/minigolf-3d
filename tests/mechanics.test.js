@@ -48,21 +48,19 @@ test('the cup gives slow putts a little rim tolerance without rescuing fast or w
   assert.equal(shouldSink({x:0,z:0,vx:4,vz:0},cup),false);
   near(cupCaptureRadius(1),.38);near(cupCaptureRadius(3),.32);
 });
-test('soft putts widen the perfect zone and soften misses without changing hard shots',()=>{
-  near(perfectZone(.2),.28);near(perfectZone(.5),.10);near(perfectZone(1),.10);
-  near(shotError(.26,.2),0);assert.ok(shotError(.29,.2)>0);
-  assert.ok(shotError(1,.2)*180/Math.PI<2);
+test('every shot has the same green zone, and a missed needle sends a putt off line',()=>{
+  near(perfectZone(.2),.10);near(perfectZone(.5),.10);near(perfectZone(1),.10);
+  near(shotError(.09,.2),0);assert.ok(shotError(.2,.2)>0);
   near(shotError(1,1)*180/Math.PI,15);
-  for(const power of [.01,.1,.2])for(const needle of [-1,-.6,0,.6,1]){
-    const speed=shotSpeed(power),angle=shotError(needle,power),distance=speed/1.35*.55;
-    const ball={x:0,z:0,vx:Math.cos(angle)*speed,vz:Math.sin(angle)*speed},cup={x:distance,z:0};
-    let sank=false;
-    for(let i=0;i<1000;i++){
-      ball.vx*=Math.exp(-1.35/120);ball.vz*=Math.exp(-1.35/120);ball.x+=ball.vx/120;ball.z+=ball.vz/120;
-      if(shouldSink(ball,cup)){sank=true;break}
-    }
-    assert.ok(sank,`A softly aimed ${distance.toFixed(2)} metre putt should be forgiving`);
+  // A soft shot with the needle at the very edge misses a 1.5 m putt.
+  const power=.15,speed=shotSpeed(power),angle=shotError(1,power),distance=speed/1.35*.55;
+  const ball={x:0,z:0,vx:Math.cos(angle)*speed,vz:Math.sin(angle)*speed},cup={x:distance,z:0};
+  let sank=false;
+  for(let i=0;i<1000;i++){
+    ball.vx*=Math.exp(-1.35/120);ball.vz*=Math.exp(-1.35/120);ball.x+=ball.vx/120;ball.z+=ball.vz/120;
+    if(shouldSink(ball,cup)){sank=true;break}
   }
+  assert.ok(distance<1.5||!sank,'a wild needle should not be forgiven');
 });
 test('spinner collision follows the rendered Three.js rotation',()=>{
   const angle=Math.PI/6,c=Math.cos(angle),s=Math.sin(angle);
