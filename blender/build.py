@@ -18,7 +18,8 @@ import common  # noqa: E402
 import finale  # noqa: E402
 import forest  # noqa: E402
 import moon  # noqa: E402
+import village  # noqa: E402
 
-for module in (common, clockwork, forest, moon, finale):
+for module in (common, clockwork, forest, village, moon, finale):
     print(f'{module.__name__}:')
     module.build()
