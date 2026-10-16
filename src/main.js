@@ -27,7 +27,7 @@ import {barrelAngle,cometRange,loadsCannon,feedPose,cometPose,landingVelocity,co
 import {wheelTurn,docked,crossesDock,ridePose} from './ferris.js';
 import {starsFor,starText,bestStars,worldStars,startWorldRun,activeRun,recordRunHole,endWorldRun,nextRunHole,runScorecard} from './progress.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { createAmbience } from './ambience.js';
+import { createAudio } from './audio.js';
 import './style.css';
 
 const $=id=>document.getElementById(id);
@@ -63,7 +63,6 @@ let nearPutt=null,puttEnabled=false,puttLength=1;
 let course;
 let forestRenderer;
 let audioEnabled=true;
-let audioContext;
 let toastTimer;
 const aimKeys=new Set();
 // Touch and mouse/keyboard get their own hints and controls. Starts from the primary
@@ -128,28 +127,11 @@ function burst(x,y,z,color=0xffdb77,count=16,force=1){
     particles.push({mesh,vx:Math.cos(a)*(1.2+Math.random()*3)*force,vy:(1+Math.random()*3)*force,vz:Math.sin(a)*(1.2+Math.random()*3)*force,life:.55+Math.random()*.5,max:1});
   }
 }
-// The world's background sound starts with the first tap (browsers need a gesture).
-// Parked for now: the player wants to revisit sound later.
-const AMBIENCE=false;
-let ambience=null;
-function startAmbience(){
-  try{
-    audioContext??=new (window.AudioContext||window.webkitAudioContext)();
-    if(audioContext.state==='suspended')audioContext.resume();
-    ambience??=createAmbience(audioContext,LEVEL.theme);ambience?.setEnabled(audioEnabled);
-  }catch{}
-}
-function sound(freq=440,duration=.13,type='sine',vol=.055,slide=1){
-  if(!audioEnabled)return;
-  try{
-    audioContext??=new (window.AudioContext||window.webkitAudioContext)();
-    if(audioContext.state==='suspended')audioContext.resume();
-    const osc=audioContext.createOscillator(),gain=audioContext.createGain();
-    const t=audioContext.currentTime;osc.type=type;osc.frequency.setValueAtTime(freq,t);osc.frequency.exponentialRampToValueAtTime(Math.max(30,freq*slide),t+duration);
-    gain.gain.setValueAtTime(vol,t);gain.gain.exponentialRampToValueAtTime(.001,t+duration);
-    osc.connect(gain);gain.connect(audioContext.destination);osc.start(t);osc.stop(t+duration);
-  }catch{}
-}
+// Sound: game effects and each world's soundscape, synthesised in audio.js.
+// Browsers only start sound after a gesture, so the first tap unlocks it.
+const audio=createAudio(LEVEL.theme);
+for(const type of ['pointerdown','touchend','click','keydown'])window.addEventListener(type,()=>audio.unlock(),{capture:true});
+function sound(freq=440,duration=.13,type='sine',vol=.055,slide=1){if(audioEnabled)audio.tone(freq,duration,type,vol,slide)}
 function toast(text,ms=2000){
   const el=$('toast');el.textContent=text;el.classList.add('visible');
   clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('visible'),ms);
@@ -231,8 +213,7 @@ function shoot(puttingSpeed){
   if(!trapdoorAt(state.x,state.z,LEVEL.trapdoors)&&!inClockWell(state.x,state.z,LEVEL.clockHand))state.saved={x:state.x,z:state.z,aim:state.aim};
   $('strokeCount').textContent=state.strokes;
   setPhase('moving');
-  sound(170,.22,'triangle',.16,2.25);
-  sound(68,.18,'sine',.13,.55);
+  audio.putt(state.power);
   burst(state.x,.25+surfaceHeight(state.x,state.z),state.z,0xffffff,8,.45);
   if(puttingSpeed!==undefined)toast('Mjuk putt',900);
   else if(Math.abs(state.accuracy)<=perfectZone(state.power))toast(state.power>.82?'SUPERTRÄFF! ✦':'PERFEKT TRÄFF! ✦',1300);
@@ -256,7 +237,7 @@ function reset(full=true){
 function doFall(fromHeight=surfaceHeight(state.x,state.z),reason){
   if(state.phase==='falling')return;
   state.fall=0;state.fallY=fromHeight;state.fallX=state.x;state.fallZ=state.z;state.vx=0;state.vz=0;setPhase('falling');
-  sound(250,.45,'sawtooth',.035,.28);toast(reason||(LEVEL.theme==='forest'?'Ner i molnen! +1 pliktslag':LEVEL.theme==='moon'?'Ut i rymden! +1 pliktslag':'Plums! +1 pliktslag'),1800);
+  audio.fall();toast(reason||(LEVEL.theme==='forest'?'Ner i molnen! +1 pliktslag':LEVEL.theme==='moon'?'Ut i rymden! +1 pliktslag':'Plums! +1 pliktslag'),1800);
   burst(state.x,0,state.z,0x9ce8ef,20,1.1);
 }
 function loadComet(){
@@ -306,10 +287,10 @@ function win(){
   burst(CUP.x,.6,CUP.z,0xffd264,55,1.7);burst(CUP.x,.6,CUP.z,0xf47761,30,1.2);
   // The world finale on the moon ends with fireworks over the summit.
   if(LEVEL.scenery==='moonrocket')[0xffd264,0x9ff3ff,0xff8fc8,0xb18cff,0x6fe3a0,0xff9f5a].forEach((color,i)=>setTimeout(()=>{
-    burst(CUP.x-4+i*1.6,7+(i%3)*1.8,CUP.z+(i%2?-3:3),color,46,2.4);sound(180+i*60,.5,'triangle',.06,2.5);
+    burst(CUP.x-4+i*1.6,7+(i%3)*1.8,CUP.z+(i%2?-3:3),color,46,2.4);audio.boom(-4+i*1.6);
   },250+i*420));
   if(course?.motherTree){course.motherTree.bloom();burst(LEVEL.treeEye.x,LEVEL.treeEye.y,LEVEL.treeEye.z,0xffb3d4,60,2.2)}
-  sound(440,.18,'triangle',.08,1.5);setTimeout(()=>sound(660,.25,'triangle',.08,1.6),150);setTimeout(()=>sound(880,.42,'triangle',.08,1.3),310);
+  audio.cup();audio.fanfare(stars);
 }
 
 function celebratePins(indices){
@@ -393,7 +374,7 @@ function physics(dt){
     if(collideClockWheel(state,previous,crownTime,LEVEL.clockWheel)){
       sound(130,.13,'triangle',.055,.7);state.settle=0;
     }
-    if(collideWalls(state))sound(125,.07,'triangle',.025,1.6);
+    if(collideWalls(state))audio.knock(Math.hypot(state.vx,state.vz));
     if(collideWalls(state,liftBarriers(liftState,LEVEL.lift),[]))sound(190,.1,'triangle',.04);
     if(strikeBell(state,bellBridgeState,LEVEL.bellBridge)){
       toast('KLANG! Genvägen öppnas',2200);sound(523,.9,'sine',.15,1);sound(1046,.6,'triangle',.045,1);
@@ -587,6 +568,7 @@ function draw(dt){
   ball.position.set(state.x,ballHeight+.04+BALL_RADIUS+extraY,state.z);
   ball.visible=phase!=='loaded';
   const rollingSpeed=Math.hypot(state.vx,state.vz);
+  audio.roll(phase==='moving'?rollingSpeed:0);
   trail.forEach(m=>{m.material.opacity=Math.max(0,m.material.opacity-dt*1.8);m.scale.multiplyScalar(Math.exp(-dt*2))});
   trailTimer+=dt;
   if(trailTimer>.025){trailTimer=0;if((phase==='moving'&&rollingSpeed>6)||phase==='looping'||phase==='bridgeflight'||phase==='drumflight'||phase==='floating'||phase==='comet'){
@@ -796,13 +778,13 @@ $('actionButton').addEventListener('click',action);
 $('cancelShot').addEventListener('click',()=>{if(['power','accuracy'].includes(state.phase)){state.power=0;setPhase('idle')}});
 $('puttLength').addEventListener('input',()=>{puttLength=Number($('puttLength').value);updateUI()});
 $('shotMode').addEventListener('click',()=>{puttEnabled=!puttEnabled;updateUI();$('shotMode').blur()});
-$('playButton').addEventListener('click',()=>{lockPortrait();if(AMBIENCE)startAmbience();$('intro').classList.add('hidden');reset();startPreview()});
+$('playButton').addEventListener('click',()=>{lockPortrait();audio.unlock();$('intro').classList.add('hidden');reset();startPreview()});
 $('againButton').addEventListener('click',()=>{$('win').classList.add('hidden');reset()});
 $('resetButton').addEventListener('click',()=>{if(state.phase!=='intro'){reset();$('win').classList.add('hidden')}});
 $('cameraButton').addEventListener('click',()=>{preview=0;setOverview(!cameraOverview)});
-$('soundButton').addEventListener('click',()=>{audioEnabled=!audioEnabled;if(audioEnabled&&AMBIENCE)startAmbience();else ambience?.setEnabled(false);$('soundButton').classList.toggle('off',!audioEnabled);setIcon($('soundIcon'),audioEnabled?'sound':'mute')});
+$('soundButton').addEventListener('click',()=>{audioEnabled=!audioEnabled;audio.setEnabled(audioEnabled);$('soundButton').classList.toggle('off',!audioEnabled);setIcon($('soundIcon'),audioEnabled?'sound':'mute')});
 window.addEventListener('resize',resize);
-document.addEventListener('visibilitychange',()=>ambience?.setEnabled(audioEnabled&&!document.hidden));
+document.addEventListener('visibilitychange',()=>audio.setHidden(document.hidden));
 
 const recordText=level=>{const best=localStorage.getItem(level.recordKey);return best?`${starText(bestStars(localStorage,level))} · Bästa ${best}`:'Inget rekord'};
 function openLevels(){
