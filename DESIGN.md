@@ -83,7 +83,25 @@ Modellerna byggs i `blender/assets/carnival.py`: utomjording, kättingflygare, r
 
 ## Efterforskning och slutsatser
 
-- **Walkabout Mini Golf:** Mighty Coconut beskrive## När putten sänks
+- **Walkabout Mini Golf:** Mighty Coconut beskrive## Kampanjens framsteg och slut
+
+Menyn visar spelarens framsteg, inte hur många hål som är byggda:
+- **Stjärnor:** totalt antal stjärnor av 54.
+- **Hål:** hur många av de 18 hålen som är klarade.
+- **Världar:** varje värld visar klarade hål och stjärnor, och den markeras *Klarad ✓* när alla sex hål är spelade.
+
+Allt räknas från varje håls bästa resultat (`campaignProgress` i `src/progress.js`).
+
+**Slutet.** Efter Månraketen, hål 18, är vinstkortets huvudknapp *Kampanjens slut ✦*. I en världsrunda finns knappen på resultatkortet. Slutkortet visar:
+- totala stjärnor och slag mot par
+- en rad per värld
+- eftertexter som rullar, där medverkande är mullvaden, katten, göken, utomjordingarna, leksakståget, fåren, tivolit och ugglorna
+
+Fyrverkerier smäller över banan medan kortet är öppet. Saknas hål visar kortet hur många som är kvar och leder till nästa ospelade hål. Är allt klart leder det i stället till första hålet som saknar stjärnor. När kampanjen är klar finns *Se slutet igen* på menyn.
+
+De fem gamla prototyperna heter nu *Bonusbanor* och räknas inte till kampanjen. Alla världar är fortfarande öppna, så den som redan spelar blir inte utelåst.
+
+## När putten sänks
 
 Att sänka putten ska kännas som en belöning, inte bara som konfetti. Allt ligger i `src/cup-celebration.js`.
 

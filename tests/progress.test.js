@@ -46,3 +46,19 @@ test('a half-played run is shown as incomplete',()=>{
   const card=runScorecard(activeRun(storage,built[0]),moon);
   assert.equal(card.complete,false);assert.equal(card.rows[1].strokes,null);assert.equal(card.par,built[0].level.par);
 });
+
+test('the campaign adds up every hole, its stars and the best strokes against par', async () => {
+  const { campaignProgress, isCampaignFinale } = await import('../src/progress.js');
+  const store=new Map(),storage={getItem:k=>store.get(k)??null,setItem:(k,v)=>store.set(k,String(v)),removeItem:k=>store.delete(k)};
+  let p=campaignProgress(storage);
+  assert.equal(p.total,18);assert.equal(p.played,0);assert.equal(p.max,54);assert.equal(p.next.hole,1);assert.equal(p.complete,false);
+  const first=ROUND[0].level,second=ROUND[1].level;
+  storage.setItem(first.recordKey,first.par-1);storage.setItem(second.recordKey,second.par+1);
+  p=campaignProgress(storage);
+  assert.equal(p.played,2);assert.equal(p.stars,3+1);assert.equal(p.strokes,first.par+second.par);assert.equal(p.par,first.par+second.par);
+  assert.equal(p.next.hole,3);assert.equal(p.worlds[0].played,2);assert.equal(p.worlds[0].stars,4);
+  for(const slot of ROUND)storage.setItem(slot.level.recordKey,slot.level.par);
+  p=campaignProgress(storage);
+  assert.ok(p.complete);assert.equal(p.next,null);assert.equal(p.stars,36);
+  assert.ok(isCampaignFinale(ROUND.at(-1)));assert.ok(!isCampaignFinale(ROUND[5]));
+});

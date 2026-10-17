@@ -55,3 +55,26 @@ export function runScorecard(run,world){
     stars:rows.reduce((sum,row)=>sum+row.stars,0),max:rows.length*STARS_PER_HOLE,
   };
 }
+
+// The whole campaign, from each hole's best score: how many holes are cleared,
+// the stars, and the best strokes against par for the holes played so far.
+export function campaignProgress(storage){
+  const holes=ROUND.filter(slot=>slot.level).map(slot=>{
+    const best=Number(storage.getItem(slot.level.recordKey))||0;
+    return {slot,best,stars:starsFor(best,slot.level.par)};
+  });
+  const played=holes.filter(h=>h.best);
+  const worlds=[...new Set(holes.map(h=>h.slot.world))].map(world=>{
+    const own=holes.filter(h=>h.slot.world===world),done=own.filter(h=>h.best);
+    return {world,played:done.length,total:own.length,stars:own.reduce((s,h)=>s+h.stars,0),max:own.length*STARS_PER_HOLE,
+      strokes:done.reduce((s,h)=>s+h.best,0),par:done.reduce((s,h)=>s+h.slot.level.par,0)};
+  });
+  return {
+    holes,worlds,played:played.length,total:holes.length,complete:played.length===holes.length,
+    stars:holes.reduce((s,h)=>s+h.stars,0),max:holes.length*STARS_PER_HOLE,
+    strokes:played.reduce((s,h)=>s+h.best,0),par:played.reduce((s,h)=>s+h.slot.level.par,0),
+    next:holes.find(h=>!h.best)?.slot??null,
+  };
+}
+// The last hole of the campaign (the moon rocket), where the ending is offered.
+export const isCampaignFinale=slot=>!!slot&&slot.hole===ROUND.filter(s=>s.level).at(-1).hole;
