@@ -287,7 +287,6 @@ function updateRescue(dt){
   const t=(rescue.t+=dt),once=(name,at)=>t>=at&&!rescue.events.has(name)&&rescue.events.add(name);
   if(once('hello',.3))audio.critter(LEVEL.theme==='forest'?'dig':LEVEL.theme==='clockwork'?'meow':'boop');
   if(once('look',RESCUE.arrive+.1)&&LEVEL.theme!=='forest')audio.critter(LEVEL.theme==='clockwork'?'meow':'boop');
-  if(once('poke',RESCUE.poke))audio.critter('tap');
   if(once('tap',RESCUE.tap)&&state.phase==='rescue'){
     // The tap-in: just enough to roll over the lip. It counts as a stroke, as a tap-in would.
     audio.critter('tap');state.strokes++;$('strokeCount').textContent=state.strokes;toast('Inknackad · +1 slag',1400);
@@ -617,10 +616,6 @@ function draw(dt){
   if(phase==='comet')extraY=cometPose(LEVEL.cometCannon,state.cometAngle,state.flight,state.cometRange).y;
   if(phase==='sinking'&&sink)extraY=sink.y;
   ball.position.set(state.x,ballHeight+.04+BALL_RADIUS+extraY,state.z);
-  if(phase==='rescue'&&rescue){
-    // The first poke only rocks the ball on the lip.
-    const k=(rescue.t-RESCUE.poke)/.7;if(k>0&&k<1){const w=Math.sin(k*Math.PI*3)*(1-k)*.07;ball.position.x+=rescue.dir.x*w;ball.position.z+=rescue.dir.z*w}
-  }
   ball.visible=phase!=='loaded'&&phase!=='win';ball.scale.setScalar(1);
   if(rescue)course?.lipRescuer?.update(rescue.t,rescue.ball,rescue.dir,camera);
   if(phase==='sinking'&&sink){

@@ -28,12 +28,13 @@ test('only a ball resting right at the edge counts as on the lip', () => {
   assert.ok(LIP_RESCUE<HOLE_RADIUS+BALL_RADIUS+.15,'just past touching the rim');
 });
 
-test("the cat's paw lifts slowly, strikes on the beat and draws back smoothly", async () => {
-  const { catPaw } = await import('../src/cup-celebration.js');
-  assert.deepEqual(catPaw(0,1),{lift:0,reach:0},'at rest long before');
-  assert.equal(catPaw(1,1).reach,1,'fully out at the moment of contact');
-  assert.ok(catPaw(.85,1).lift>.9,'held high just before the strike');
-  assert.deepEqual(catPaw(2,1),{lift:0,reach:0},'back at rest after');
-  let last=catPaw(0,1);
-  for(let t=0;t<=2;t+=.005){const p=catPaw(t,1);assert.ok(Math.abs(p.lift-last.lift)<.12&&Math.abs(p.reach-last.reach)<.12,`no jumps at ${t.toFixed(3)}`);last=p}
+test("the cat's paw rises slowly, strikes once on the beat and draws back smoothly", async () => {
+  const { catPaw, PAW_RAISED, PAW_STRIKE } = await import('../src/cup-celebration.js');
+  assert.equal(catPaw(0,1),0,'at rest long before');
+  assert.equal(catPaw(1,1),PAW_STRIKE,'out at the ball at the moment of contact');
+  assert.ok(Math.abs(catPaw(.85,1)-PAW_RAISED)<.06,'held high just before the strike');
+  assert.equal(catPaw(2,1),0,'back at rest after');
+  let last=0,swings=0;
+  for(let t=0;t<=2;t+=.005){const a=catPaw(t,1);assert.ok(Math.abs(a-last)<.2,`no jumps at ${t.toFixed(3)}`);if(a!==0&&last===0)swings++;last=a}
+  assert.equal(swings,1,'one movement of the paw, no second poke');
 });

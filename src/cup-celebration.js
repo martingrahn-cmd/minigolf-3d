@@ -121,8 +121,8 @@ export function createCupCritter(scene,theme,cup){
 // lit, and taps it; in Urverkets stad a cat strolls over and, being a cat,
 // pushes it over the edge with a paw; on the moon an alien hops in and boops it.
 export const LIP_RESCUE=.85;
-// Arrive, look at the camera, a first testing poke, a cheeky look, the real push.
-export const RESCUE={arrive:1.3,look:1.9,poke:2.25,peek:2.4,tap:3.05,leave:3.9,gone:5.1};
+// Arrive, look at the camera, the push, watch, leave.
+export const RESCUE={arrive:1.3,look:1.9,tap:3.05,leave:3.9,gone:5.1};
 // A paw swing: wind up, strike forward, settle. 0 at rest, negative lifted, positive pushed through.
 function swing(t,at,amp){
   const s=(t-(at-.42))/.6;if(s<0||s>1.5)return 0;
@@ -130,22 +130,25 @@ function swing(t,at,amp){
   if(s<1)return -amp*1.1+amp*1.7*Math.sin((s-.7)/.3*Math.PI/2);
   return amp*.6*(1-(s-1)/.5);
 }
-const pawAt=t=>swing(t,RESCUE.poke,.55)+swing(t,RESCUE.tap,1);
+const pawAt=t=>swing(t,RESCUE.tap,1);
 export const onTheLip=(ball,cup)=>Math.hypot(ball.x-cup.x,ball.z-cup.z)<LIP_RESCUE;
 
 const smoother=t=>{t=clamp01(t);return t*t*t*(t*(t*6-15)+10)};
 // Exponential smoothing towards a target; for angles, the short way round.
 const damp=(current,target,rate,dt)=>target+(current-target)*Math.exp(-rate*dt);
 const dampAngle=(current,target,rate,dt)=>{const d=Math.atan2(Math.sin(target-current),Math.cos(target-current));return current+d*(1-Math.exp(-rate*dt))};
-// A cat's paw strike landing at `at`: lift slowly, hover, strike fast, hold, draw back.
-export function catPaw(t,at,height=1){
-  const u=t-at;let lift=0,reach=0;
-  if(u>-.6&&u<=-.22){const k=smoother((u+.6)/.38);lift=k*height;reach=k*.35}
-  else if(u>-.22&&u<=-.09){lift=height*(1+Math.sin((u+.22)/.13*Math.PI)*.06);reach=.35}
-  else if(u>-.09&&u<=0){const k=(u+.09)/.09;lift=height-(height-.12)*k*k;reach=.35+.65*k*k}
-  else if(u>0&&u<=.14){lift=.12;reach=1}
-  else if(u>.14&&u<.55){const k=smoother((u-.14)/.41);lift=.12*(1-k);reach=1-k}
-  return {lift,reach};
+// The cat's front-leg angle for one paw strike landing at `at` (negative swings
+// the paw forward and up): raise it slowly up high, hover, swipe down and
+// forward onto the ball, hold, and draw it back.
+export const PAW_RAISED=-2.05,PAW_STRIKE=-1.45;
+export function catPaw(t,at){
+  const u=t-at;
+  if(u<=-.6||u>=.55)return 0;
+  if(u<=-.22)return PAW_RAISED*smoother((u+.6)/.38);
+  if(u<=-.09)return PAW_RAISED+Math.sin((u+.22)/.13*Math.PI)*.05;
+  if(u<=0){const k=(u+.09)/.09;return PAW_RAISED+(PAW_STRIKE-PAW_RAISED)*k*k}
+  if(u<=.14)return PAW_STRIKE;
+  return PAW_STRIKE*(1-smoother((u-.14)/.41));
 }
 
 export function createLipRescuer(scene,theme,heightAt){
@@ -161,7 +164,7 @@ export function createLipRescuer(scene,theme,heightAt){
   }
   const lamp=parts.lamp?.material;if(lamp){parts.lamp.material=lamp.clone()}
   // How far behind the ball the helper stands to reach it.
-  const reach=theme==='clockwork'?.95:theme==='moon'?.78:.74;
+  const reach=theme==='clockwork'?1.05:theme==='moon'?.78:.74;
   const face=new THREE.Vector3(),stand=new THREE.Vector3(),from=new THREE.Vector3(),side=new THREE.Vector3();
   const curve=new THREE.QuadraticBezierCurve3(new THREE.Vector3(),new THREE.Vector3(),new THREE.Vector3()),pos=new THREE.Vector3(),tangent=new THREE.Vector3();
   // The cat's smoothed pose, carried from frame to frame.
@@ -184,22 +187,23 @@ export function createLipRescuer(scene,theme,heightAt){
     cat.gait=damp(cat.gait,Math.min(1,speed/2.2),8,dt);cat.phase+=moved/.62*Math.PI;
     const g=cat.gait;
     for(const [n,ph] of [['leg-fl',0],['leg-br',0],['leg-fr',Math.PI],['leg-bl',Math.PI]])if(parts[n])parts[n].rotation.x=Math.sin(cat.phase+ph)*.5*g;
-    // Looking: at the camera on arrival and again between the pokes, with a curious tilt; down at the ball before each strike.
-    const lookAtCamera=(t>RESCUE.arrive-.1&&t<RESCUE.look+.05)||(t>RESCUE.peek&&t<RESCUE.tap-.55);
+    // Looking: at the camera on arrival with a curious tilt, then at the ball.
+    // And a sideways glance at the camera just as it pushes, the way cats do.
+    const lookAtCamera=(t>RESCUE.arrive-.1&&t<RESCUE.look+.15)||(t>RESCUE.tap-.25&&t<RESCUE.tap+.7);
     const yaw=lookAtCamera?THREE.MathUtils.clamp(Math.atan2(Math.sin(towardCamera-cat.heading),Math.cos(towardCamera-cat.heading)),-1.1,1.1):0;
     cat.head=damp(cat.head,yaw,6,dt);cat.tilt=damp(cat.tilt,lookAtCamera?.28:0,4,dt);
-    const aiming=(t>RESCUE.look&&t<RESCUE.poke+.1)||(t>RESCUE.tap-.6&&t<RESCUE.tap+.1);
-    cat.pitch=damp(cat.pitch,aiming?.2:t>RESCUE.tap+.1&&t<RESCUE.leave?.2:0,6,dt);
+    // A small nod towards the ball; the head stays well clear of it.
+    const aiming=t>RESCUE.look+.15&&t<RESCUE.tap+.1;
+    cat.pitch=damp(cat.pitch,aiming?.08:t>RESCUE.tap+.1&&t<RESCUE.leave?.15:0,6,dt);
     if(parts.head)parts.head.rotation.set(cat.pitch,cat.head,cat.tilt);
     // Crouch and wiggle before the real push.
-    cat.crouch=damp(cat.crouch,t>RESCUE.tap-.9&&t<RESCUE.tap+.05?1:aiming?.4:0,5,dt);
+    cat.crouch=damp(cat.crouch,t>RESCUE.tap-1&&t<RESCUE.tap+.05?1:0,5,dt);
     model.position.y=Math.abs(Math.sin(cat.phase))*.035*g-cat.crouch*.06;
     model.rotation.z=Math.sin(t*13)*.035*Math.max(0,cat.crouch-.5)*2+Math.sin(cat.phase)*.03*g;
-    // The paw: a careful first poke, then the push.
-    const a=catPaw(t,RESCUE.poke,.75),b=catPaw(t,RESCUE.tap,1.05),reachOut=a.reach*.7+b.reach;
-    if(parts['leg-fr']&&g<.5)parts['leg-fr'].rotation.x=-((a.lift+b.lift)*1.25+reachOut*.45);
-    // Lean in with the strike, so the paw reaches the ball while the head stays clear.
-    root.position.addScaledVector(face,.13*reachOut);
+    // One careful paw strike. The leg stretches a little as it reaches out level,
+    // so the paw touches the ball while the nose stays well clear of it.
+    if(parts['leg-fr']&&g<.5){const a=catPaw(t,RESCUE.tap);parts['leg-fr'].rotation.x=a;parts['leg-fr'].scale.y=1+.38*clamp01((-a-.3)/(-PAW_STRIKE-.3))}
+    else if(parts['leg-fr'])parts['leg-fr'].scale.y=1;
     // The tail stands up while walking and swishes slowly while watching.
     cat.tail=damp(cat.tail,g>.3?-.5:0,4,dt);
     if(parts.tail)parts.tail.rotation.set(cat.tail,0,Math.sin(t*2.1)*(.25+.15*(1-g)));
@@ -224,7 +228,7 @@ export function createLipRescuer(scene,theme,heightAt){
         const rise=t<.4?0:t<1?ease((t-.4)/.6):t<RESCUE.leave?1:1-ease(Math.min(1,(t-RESCUE.leave)/.5));
         root.position.set(stand.x,y-1.25+1.25*rise,stand.z);
         mound.visible=true;mound.position.set(stand.x,y,stand.z);mound.scale.set(1,.45*Math.min(1,t/.5)*(t>RESCUE.gone-.6?Math.max(0,(RESCUE.gone-t)/.6):1),1);
-        heading=(t>1&&t<RESCUE.look)||(t>RESCUE.peek&&t<RESCUE.tap-.5)?towardCamera:towardCup;
+        heading=t>1&&t<RESCUE.look?towardCamera:towardCup;
         if(parts.lamp)parts.lamp.material.emissiveIntensity=t>1&&t<RESCUE.look?2+Math.sin(t*20)*2:3;
         if(parts['paw-r'])parts['paw-r'].rotation.x=-pawAt(t);
         if(parts['paw-l'])parts['paw-l'].rotation.z=t>RESCUE.tap+.2&&t<RESCUE.leave?-.6-Math.sin(t*12)*.5:0;
@@ -235,13 +239,6 @@ export function createLipRescuer(scene,theme,heightAt){
         walking=t<RESCUE.arrive||t>RESCUE.leave?1:0;
         heading=t<RESCUE.arrive?Math.atan2(stand.x-from.x,stand.z-from.z):t>RESCUE.leave?Math.atan2(from.x-stand.x,from.z-stand.z):towardCup;
         if(theme==='moon'&&walking)root.position.y+=Math.abs(Math.sin(t*9))*.35;
-        if(theme==='clockwork'){
-          for(const [n,ph] of [['leg-fl',0],['leg-br',0],['leg-fr',Math.PI],['leg-bl',Math.PI]])if(parts[n])parts[n].rotation.x=walking?Math.sin(t*11+ph)*.45:0;
-          if(parts.head)parts.head.rotation.y=(t>RESCUE.arrive&&t<RESCUE.look)||(t>RESCUE.peek&&t<RESCUE.tap-.5)?THREE.MathUtils.clamp(Math.atan2(Math.sin(towardCamera-towardCup),Math.cos(towardCamera-towardCup)),-1.2,1.2):0;
-          if(parts.tail)parts.tail.rotation.z=Math.sin(t*3)*.35;
-          // The swat: lift the paw, hold a beat, push.
-          if(parts['leg-fr']&&!walking)parts['leg-fr'].rotation.x=pawAt(t)<0?pawAt(t)*1.3:-pawAt(t)*.2-.5*Math.min(1,pawAt(t));
-        }
         root.rotation.x=theme==='moon'&&!walking?Math.max(0,pawAt(t))*.35:0;
       }
       root.rotation.y=heading;
