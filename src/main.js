@@ -29,6 +29,7 @@ import {starsFor,starText,bestStars,worldStars,startWorldRun,activeRun,recordRun
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { createAudio } from './audio.js';
 import { QA, setupQA } from './qa.js';
+import { createCoach } from './coach.js';
 import { SINK, SLOW_MOTION, sinkPose, RESCUE, onTheLip } from './cup-celebration.js';
 import './style.css';
 
@@ -88,6 +89,8 @@ let elapsed=0;
 let sink=null,timeScale=1,realDt=0;
 // A friend who helps a ball that stopped right on the lip of the cup.
 let rescue=null;
+// Tips for a first round, shown once each as the moment for them comes.
+const coach=createCoach(localStorage,$);let aimAtIdle=0,wasIdle=false;
 let accumulator=0;
 let bridgeAngle=LEVEL.bridge?.maxAngle||0;
 let launch=null;
@@ -770,6 +773,11 @@ function frame(){
   }
   if(state.phase==='power')state.power=powerAt(elapsed-state.meterStart);
   if(state.phase==='power'&&puttEnabled)puttLength=puttLengthAt(state.power);
+  if(state.phase==='idle'&&!wasIdle)aimAtIdle=state.aim;wasIdle=state.phase==='idle';
+  coach.update({
+    enabled:!QA&&preview<=0&&['idle','power','accuracy'].includes(state.phase)&&$('intro').classList.contains('hidden')&&$('menu').classList.contains('hidden')&&!$('helpPanel').open&&!$('levelPanel').open,
+    phase:state.phase,putting:puttEnabled&&!!nearPutt,shots:state.strokes,aimMoved:Math.abs(state.aim-aimAtIdle)>.12,overview:cameraOverview,
+  },elapsed);
   if(state.phase==='accuracy')state.needle=precisionAt(elapsed-state.accuracyStart);
   $('meterValue').textContent=state.phase==='accuracy'?'Pricka grönt':state.phase==='power'?(puttEnabled?`${puttLength.toFixed(1).replace('.',',')} m`:`${state.power>.82?'MAXKRAFT · ':''}${Math.round(state.power*100)} %`):'';
   const zone=perfectZone(state.power);
@@ -933,6 +941,7 @@ $('menuPlay').addEventListener('click',()=>{
 });
 $('menuLevels').addEventListener('click',openLevels);
 $('menuHelp').addEventListener('click',()=>$('helpPanel').showModal());
+$('coachReset').addEventListener('click',()=>{coach.reset();$('helpPanel').close();toast('Tipsen visas igen',1400)});
 $('menuEnding').addEventListener('click',()=>{$('menu').classList.add('hidden');openEnding()});
 
 function configureLevelUI(){

@@ -345,3 +345,13 @@ body:has(#win:not(.hidden)) .qa-panel{top:auto;bottom:10px}
 .menu-progress-total{display:flex;gap:14px;align-items:baseline;margin:-4px 0 12px;font-weight:800;color:#5f6b75;font-size:12px;letter-spacing:.04em}
 .menu-progress-total strong{font-family:Fredoka,sans-serif;font-size:26px;color:#e8a93a;letter-spacing:0}
 .ending-button{margin-bottom:8px}
+
+/* Tips for a first round, beside the control they explain. */
+.coach{position:fixed;z-index:55;transform:translateX(-50%);display:flex;align-items:center;gap:10px;max-width:min(340px,calc(100vw - 24px));padding:11px 12px 11px 15px;border-radius:14px;background:#263b52;color:#fff;font:600 13.5px/1.35 'DM Sans',system-ui,sans-serif;box-shadow:0 10px 26px #0d244b55;animation:coach-in .35s ease-out}
+.coach[data-anchor=scene]{transform:translate(-50%,-50%)}
+.coach:after{content:'';position:absolute;left:50%;bottom:-7px;width:14px;height:14px;background:inherit;transform:translateX(-50%) rotate(45deg);border-radius:2px}
+.coach.below:after{bottom:auto;top:-7px}.coach[data-anchor=scene]:after{display:none}
+.coach-ok{flex:none;border:0;border-radius:9px;padding:7px 10px;background:#f6be55;color:#263b52;font:inherit;font-weight:800;cursor:pointer}
+@keyframes coach-in{from{opacity:0;margin-top:6px}to{opacity:1;margin-top:0}}
+@media(prefers-reduced-motion:reduce){.coach{animation:none}}
+.coach-reset{margin-top:6px}
