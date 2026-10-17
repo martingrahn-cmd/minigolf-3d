@@ -27,3 +27,13 @@ test('only a ball resting right at the edge counts as on the lip', () => {
   assert.ok(!onTheLip({x:LIP_RESCUE+.05,z:0},cup));
   assert.ok(LIP_RESCUE<HOLE_RADIUS+BALL_RADIUS+.15,'just past touching the rim');
 });
+
+test("the cat's paw lifts slowly, strikes on the beat and draws back smoothly", async () => {
+  const { catPaw } = await import('../src/cup-celebration.js');
+  assert.deepEqual(catPaw(0,1),{lift:0,reach:0},'at rest long before');
+  assert.equal(catPaw(1,1).reach,1,'fully out at the moment of contact');
+  assert.ok(catPaw(.85,1).lift>.9,'held high just before the strike');
+  assert.deepEqual(catPaw(2,1),{lift:0,reach:0},'back at rest after');
+  let last=catPaw(0,1);
+  for(let t=0;t<=2;t+=.005){const p=catPaw(t,1);assert.ok(Math.abs(p.lift-last.lift)<.12&&Math.abs(p.reach-last.reach)<.12,`no jumps at ${t.toFixed(3)}`);last=p}
+});

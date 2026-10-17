@@ -103,7 +103,11 @@ Ett tryck hoppar över firandet. Om spelaren valt reducerad rörelse blir det in
 
 **Precis på kanten.** Om bollen stannar precis vid kanten, närmare än 0,85 m från hålets mitt, kommer en hjälpare och knackar ner den. Inknackningen kostar ett slag, precis som om spelaren hade knackat i den själv. Det blir alltså inte lättare, bara roligare.
 - Molnskogen: mullvaden gräver upp sig ur en jordhög bredvid bollen, tittar sig omkring med pannlampan och knackar ner bollen.
-- Urverkets stad: en katt kommer gående, tittar in i kameran och petar försiktigt på bollen så att den gungar. Sedan tittar den på kameran igen och puttar ner bollen med tassen, som katter gör.
+- Urverkets stad: en katt kommer gående, tittar in i kameran och petar försiktigt på bollen så att den gungar. Sedan tittar den på kameran igen och puttar ner bollen med tassen, som katter gör. Katten rör sig mjukt:
+  - Svängar, huvudvridningar och lutningar fjädrar in mot sina mål i stället för att hoppa.
+  - Benen följer sträckan den går, så att tassarna inte glider, och gången tonas in och ut.
+  - Den kommer i en båge, hukar sig och vickar på rumpan inför slaget.
+  - Tassen lyfts långsamt, svävar en stund, slår snabbt och dras sedan mjukt tillbaka, medan kroppen lutar sig fram.
 - Månkarnevalen: en utomjording hoppar fram och boopar bollen.
 
 Kameran visar bollen, koppen och hjälparen från sidan, även under sänkningen, så att hjälparen inte skymmer.
