@@ -324,3 +324,24 @@ i[data-icon]{display:inline-flex;font-style:normal}
 .qa-panel a{background:#3f6f6a;color:#fff}.qa-panel a.active{background:#e8bd70;color:#2c2a26}
 /* Keep the result card readable while the bench is open. */
 body:has(#win:not(.hidden)) .qa-panel{top:auto;bottom:10px}
+
+/* The campaign ending: totals per world and a slow roll of credits. */
+.ending-backdrop{background:radial-gradient(circle at 50% 30%,#3b2a6baa,#0d0828dd)}
+.ending-card{max-height:calc(100vh - 32px);overflow:auto;transform:rotate(.6deg)}
+.ending-card h1{font-size:clamp(44px,8vw,64px)}
+.ending-stars{display:flex;align-items:baseline;justify-content:center;gap:10px;margin:-6px 0 8px}
+.ending-stars strong{font-family:Fredoka,sans-serif;font-size:64px;color:#f2b84b;line-height:1}
+.ending-stars span{font-size:12px;font-weight:800;letter-spacing:.08em;color:#8e9aa1}
+.ending-worlds{display:grid;gap:6px;margin:0 0 14px}
+.ending-world{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:9px 12px;border-radius:10px;background:#f3f1e8;font-size:13px;text-align:left}
+.ending-world strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ending-world small{color:#8e9aa1;font-weight:700}.ending-world b{color:#d79b2e}
+.credits{position:relative;height:150px;overflow:hidden;margin:0 0 16px;border-radius:12px;background:#26204a;color:#f4ecff;-webkit-mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent);mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent)}
+.credits-roll{position:absolute;left:0;right:0;top:100%;display:flex;flex-direction:column;gap:9px;padding:0 14px;animation:credits 24s linear infinite}
+.credits-roll p{margin:0;font-size:12.5px;line-height:1.35;color:#d8cdf2}.credits-roll b{color:#fff}
+.credits-head{font-family:Fredoka,sans-serif;font-size:15px;letter-spacing:.12em;color:#f2c25c;margin:8px 0 2px}
+.credits-roll small{font-size:10px;color:#a99cd0}
+@keyframes credits{to{transform:translateY(calc(-100% - 150px))}}
+@media(prefers-reduced-motion:reduce){.credits{height:auto;-webkit-mask-image:none;mask-image:none}.credits-roll{position:static;animation:none;padding:12px 14px}}
+.menu-progress-total{display:flex;gap:14px;align-items:baseline;margin:-4px 0 12px;font-weight:800;color:#5f6b75;font-size:12px;letter-spacing:.04em}
+.menu-progress-total strong{font-family:Fredoka,sans-serif;font-size:26px;color:#e8a93a;letter-spacing:0}
+.ending-button{margin-bottom:8px}

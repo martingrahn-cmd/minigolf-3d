@@ -25,7 +25,7 @@ import {inLowGravity,stepFloat,floatDrop} from './low-gravity.js';
 import {blackHolePull,crossesHorizon} from './black-hole.js';
 import {barrelAngle,cometRange,loadsCannon,feedPose,cometPose,landingVelocity,cometLanding} from './comet-cannon.js';
 import {wheelTurn,docked,crossesDock,ridePose} from './ferris.js';
-import {starsFor,starText,bestStars,worldStars,startWorldRun,activeRun,recordRunHole,endWorldRun,nextRunHole,runScorecard} from './progress.js';
+import {starsFor,starText,bestStars,worldStars,startWorldRun,activeRun,recordRunHole,endWorldRun,nextRunHole,runScorecard,campaignProgress,isCampaignFinale} from './progress.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { createAudio } from './audio.js';
 import { QA, setupQA } from './qa.js';
@@ -879,7 +879,6 @@ $('closeLevels').addEventListener('click',()=>$('levelPanel').close());
 $('levelOptions').addEventListener('click',event=>{if(event.target.closest('a.hole-card'))endWorldRun(localStorage)});
 $('menuContinue').addEventListener('click',()=>endWorldRun(localStorage));
 
-const builtHoles=ROUND.filter(slot=>slot.level).length;
 function holeCard(slot){
   const number=holeLabel(slot.hole);
   if(slot.placeholder)return `<div class="hole-card placeholder" title="${slot.placeholder.idea}">
@@ -891,33 +890,37 @@ function holeCard(slot){
       <small>${level.feature}</small><span class="hole-meta">PAR ${level.par}${slot.finale?' · FINAL':''} · <span id="record-${level.id}">Inget rekord</span></span></a>`;
 }
 function worldSection(world,w){
-  const slots=ROUND.filter(slot=>slot.world===world),built=builtCount(world);
-  const status=built===6?'Klar':built?`${built} av 6 byggda`:'Inte påbörjad';
+  const slots=ROUND.filter(slot=>slot.world===world),mine=campaignProgress(localStorage).worlds.find(x=>x.world===world);
+  const status=mine.played===mine.total?'Klarad ✓':mine.played?`${mine.played} av ${mine.total} klarade`:'Inte spelad',built=mine.played===mine.total?6:0;
   return `<section class="world-section" data-world="${world.key}">
     <header><div><span class="world-range">HÅL ${holeLabel(w*6+1)}–${holeLabel(w*6+6)}</span><h3>${world.name}</h3></div>
     <span class="world-badges"><span id="stars-${world.key}" class="world-stars"></span><span class="world-status${built===6?' done':''}">${status}</span></span></header>
     <div class="hole-grid">${slots.map(holeCard).join('')}</div></section>`;
 }
 function prototypeSection(){
-  return `<section class="world-section prototypes"><header><div><span class="world-range">UTANFÖR RUNDAN</span><h3>Prototyper</h3></div>
-    <span class="world-status">Ska byggas om</span></header>
-    <p class="world-note">Äldre testbanor. Spelbara, men deras idéer ska flyttas in i världarna.</p>
+  return `<section class="world-section prototypes"><header><div><span class="world-range">UTANFÖR RUNDAN</span><h3>Bonusbanor</h3></div>
+    <span class="world-status">Extra</span></header>
+    <p class="world-note">Fem experimentbanor från spelets början. De räknas inte till kampanjen.</p>
     <div class="hole-grid">${PROTOTYPES.map(proto=>{const level=LEVELS.find(l=>l.id===proto.id);
       return `<a id="level-${level.id}" href="?proto=${proto.slug}" class="hole-card prototype">
       <span class="hole-number">P</span><strong>${level.name}</strong><small>${proto.world} · ${level.feature}</small>
       <span class="hole-meta">PAR ${level.par} · <span id="record-${level.id}">Inget rekord</span></span></a>`}).join('')}</div></section>`;
 }
 function configureMenu(){
-  $('menuWorlds').innerHTML=WORLDS.map((world,w)=>{const built=builtCount(world);
+  // Progress is the player's: holes cleared and stars, from each hole's best score.
+  const campaign=campaignProgress(localStorage);
+  $('menuWorlds').innerHTML=WORLDS.map((world,w)=>{const built=builtCount(world),mine=campaign.worlds.find(x=>x.world===world);
     return `<div class="menu-world" data-world="${world.key}"><div class="menu-world-head"><strong>${world.name}</strong><span>HÅL ${holeLabel(w*6+1)}–${holeLabel(w*6+6)}</span></div>
-      <div class="menu-progress" role="img" aria-label="${built} av 6 hål byggda">${ROUND.filter(s=>s.world===world).map(s=>`<i class="${s.level?'built':''}"></i>`).join('')}</div>
-      <small>${built===6?'Klar':built?`${built} av 6 byggda`:'Inte påbörjad'} · ${world.tagline}</small>
+      <div class="menu-progress" role="img" aria-label="${mine.played} av ${mine.total} hål klarade">${ROUND.filter(s=>s.world===world).map(s=>`<i class="${s.level&&localStorage.getItem(s.level.recordKey)?'built':''}"></i>`).join('')}</div>
+      <small>${mine.played===mine.total?'Klarad ✓':mine.played?`${mine.played} av ${mine.total} klarade`:'Inte spelad'} · ${world.tagline}</small>
       ${built?`<div class="menu-world-foot"><span class="world-stars">${worldStars(localStorage,world).stars}/${worldStars(localStorage,world).max} ★</span><button class="world-play" data-world="${world.key}">Spela ${built} hål <span>→</span></button></div>`:''}</div>`}).join('');
   $('menuWorlds').querySelectorAll('.world-play').forEach(button=>button.addEventListener('click',()=>{
     const first=startWorldRun(localStorage,WORLDS.find(world=>world.key===button.dataset.world));
     location.href=`?hole=${first.hole}`;
   }));
-  $('menuSummary').textContent=`${builtHoles} av 18 hål byggda · ${PROTOTYPES.length} prototyper att bygga om`;
+  $('menuProgress').innerHTML=`<strong>★ ${campaign.stars}</strong><span>av ${campaign.max} stjärnor · ${campaign.played} av ${campaign.total} hål klarade</span>`;
+  $('menuSummary').textContent=campaign.complete?'Kampanjen klar! Jaga de stjärnor som fattas.':`${campaign.total-campaign.played} hål kvar till kampanjens slut`;
+  $('menuEnding').hidden=!campaign.complete;
   const unplayed=ROUND.find(slot=>slot.level&&!localStorage.getItem(slot.level.recordKey));
   if(unplayed&&unplayed.hole>1){$('menuContinue').hidden=false;$('menuContinue').href=`?hole=${unplayed.hole}`;$('menuContinue').innerHTML=`<i data-icon="arrow"></i>Fortsätt · Hål ${holeLabel(unplayed.hole)} ${unplayed.level.name}`;hydrateIcons($('menuContinue'))}
   if(SELECTION.missing){$('menuNotice').hidden=false;$('menuNotice').textContent=`Hål ${holeLabel(SELECTION.missing.hole)} · ${SELECTION.missing.placeholder.name} byggs fortfarande.`}
@@ -930,9 +933,11 @@ $('menuPlay').addEventListener('click',()=>{
 });
 $('menuLevels').addEventListener('click',openLevels);
 $('menuHelp').addEventListener('click',()=>$('helpPanel').showModal());
+$('menuEnding').addEventListener('click',()=>{$('menu').classList.add('hidden');openEnding()});
 
 function configureLevelUI(){
-  $('levelSummary').textContent=`${builtHoles} av 18 hål byggda. Tomma platser byggs härnäst.`;
+  const campaign=campaignProgress(localStorage);
+  $('levelSummary').textContent=`${campaign.played} av ${campaign.total} hål klarade · ★ ${campaign.stars} av ${campaign.max} stjärnor`;
   $('levelOptions').innerHTML=WORLDS.map(worldSection).join('')+prototypeSection();
   const number=SELECTION.slot?holeLabel(SELECTION.slot.hole):'P';
   const holeText=SELECTION.slot?`HÅL ${number}`:'PROTOTYP';
@@ -948,10 +953,10 @@ function configureLevelUI(){
   $('meter').style.setProperty('--sweet-width',`${PERFECT_ZONE*100}%`);
   configureNext();
 
-  document.title=SELECTION.menu?'Mini Mayhem':`${LEVEL.name} · ${SELECTION.slot?`Hål ${number}`:'Prototyp'}`;
+  document.title=SELECTION.menu?'Mini Mayhem':`${LEVEL.name} · ${SELECTION.slot?`Hål ${number}`:'Bonusbana'}`;
   $('holeNumber').textContent=number;$('holeName').textContent=LEVEL.name.toUpperCase();
   $('parCount').textContent=LEVEL.par;
-  $('introKicker').textContent=SELECTION.slot?.finale?`${SELECTION.slot.world.finale.toUpperCase()} · ${holeText}`:SELECTION.slot?`VÄLKOMMEN TILL ${holeText}`:'PROTOTYP · SKA BYGGAS OM';
+  $('introKicker').textContent=SELECTION.slot?.finale?`${SELECTION.slot.world.finale.toUpperCase()} · ${holeText}`:SELECTION.slot?`VÄLKOMMEN TILL ${holeText}`:'BONUSBANA';
   $('introTitle').innerHTML=`${LEVEL.title[0]}<br><em>${LEVEL.title[1]}</em><span class="title-star">✦</span>`;
   $('introDescription').textContent=LEVEL.description;
   $('featureBadge').textContent=LEVEL.feature.toUpperCase();$('parBadge').textContent=`⛳ PAR ${LEVEL.par}`;
@@ -982,6 +987,7 @@ function configureNext(){
     else show('#resultat',`Resultat för ${SELECTION.slot.world.name}`);
     return;
   }
+  if(isCampaignFinale(SELECTION.slot)){show('#slutet','Kampanjens slut ✦');return}
   const {slot,skipped}=nextInRound(SELECTION.slot.hole);
   if(slot)show(`?hole=${slot.hole}`,`${slot.world===SELECTION.slot.world?'Nästa hål':`Vidare till ${slot.world.name}`} · ${holeLabel(slot.hole)} ${slot.level.name}`);
   else show('./','Till menyn');
@@ -1002,9 +1008,42 @@ function openScorecard(){
   $('scoreStars').textContent=card.stars;$('scoreStarsMax').textContent=`av ${card.max}`;
   const missing=card.max-card.stars;
   $('scoreText').textContent=missing===0?'Alla stjärnor i världen. Mästarklass!':`${missing} ${missing===1?'stjärna':'stjärnor'} kvar att hämta. Hål med tomma stjärnor är värda ett nytt försök.`;
-  $('win').classList.add('hidden');$('scorecard').classList.remove('hidden');$('scoreAgain').focus();
+  $('scoreEnding').hidden=!isCampaignFinale(SELECTION.slot);
+  $('win').classList.add('hidden');$('scorecard').classList.remove('hidden');($('scoreEnding').hidden?$('scoreAgain'):$('scoreEnding')).focus();
 }
-$('nextHole').addEventListener('click',event=>{if($('nextHole').getAttribute('href')==='#resultat'){event.preventDefault();openScorecard()}});
+
+// The end of the campaign: totals for every world, credits rolling, and fireworks
+// over the course while the card is open.
+let endingFireworks=null;
+function openEnding(){
+  const p=campaignProgress(localStorage),diff=p.strokes-p.par;
+  $('endingKicker').textContent=p.complete?'MINI MAYHEM · ALLA 18 HÅL':'MINI MAYHEM';
+  $('endingTitle').innerHTML=p.complete?(p.stars===p.max?'MÄSTARE<br><em>★★★</em>':'KAMPANJEN<br><em>KLAR!</em>'):'NÄSTAN<br><em>I MÅL</em>';
+  $('endingStars').textContent=p.stars;$('endingStarsMax').textContent=`av ${p.max} ★`;
+  $('endingText').textContent=p.complete
+    ?`Du har klarat alla tre världarna på ${p.strokes} slag, ${diff===0?'precis på par':diff<0?`${-diff} under par`:`${diff} över par`}. ${p.stars===p.max?'Varenda stjärna. Ren mästarklass!':`${p.max-p.stars} stjärnor finns kvar att jaga.`}`
+    :`${p.total-p.played} ${p.total-p.played===1?'hål':'hål'} kvar innan hela kampanjen är klar.`;
+  $('endingWorlds').innerHTML=p.worlds.map(w=>{const d=w.strokes-w.par;return `<div class="ending-world"><strong>${w.world.name}</strong><small>${w.played===w.total?(d===0?'par':d<0?`${d}`:`+${d}`):`${w.played}/${w.total} hål`}</small><b>${w.stars}/${w.max} ★</b></div>`}).join('');
+  // Onward: an unplayed hole, then the first hole still missing stars.
+  const hunt=p.holes.find(h=>h.stars<3)?.slot,next=p.next??hunt;
+  const link=$('endingNext');
+  if(next){link.href=`?hole=${next.hole}`;link.innerHTML=`<span>${p.next?'Spela':'Jaga stjärnor ·'} hål ${holeLabel(next.hole)} ${next.level.name}</span><i data-icon="arrow"></i>`}
+  else{link.href='./';link.innerHTML='<span>Till menyn</span><i data-icon="arrow"></i>'}
+  hydrateIcons(link);
+  $('win').classList.add('hidden');$('scorecard').classList.add('hidden');$('ending').classList.remove('hidden');link.focus();
+  if(p.complete&&!endingFireworks&&!reducedCameraMotion){
+    const colors=[0xffd264,0x9ff3ff,0xff8fc8,0xb18cff,0x6fe3a0,0xff9f5a];let i=0;
+    endingFireworks=setInterval(()=>{const c=colors[i++%colors.length],x=CUP.x+(Math.random()-.5)*10;burst(x,6+Math.random()*4,CUP.z+(Math.random()-.5)*6,c,40,2.2);audio.boom(x-CUP.x)},900);
+  }
+}
+function closeEnding(){$('ending').classList.add('hidden');clearInterval(endingFireworks);endingFireworks=null}
+$('endingClose').addEventListener('click',()=>{closeEnding();if(state.phase==='win')$('win').classList.remove('hidden');else if(SELECTION.menu)$('menu').classList.remove('hidden')});
+$('nextHole').addEventListener('click',event=>{
+  const href=$('nextHole').getAttribute('href');
+  if(href==='#resultat'){event.preventDefault();openScorecard()}
+  if(href==='#slutet'){event.preventDefault();openEnding()}
+});
+$('scoreEnding').addEventListener('click',openEnding);
 $('scoreAgain').addEventListener('click',()=>{const first=startWorldRun(localStorage,SELECTION.slot.world);location.href=`?hole=${first.hole}`});
 $('scoreClose').addEventListener('click',()=>{$('scorecard').classList.add('hidden');$('win').classList.remove('hidden')});
 
