@@ -50,7 +50,6 @@
           <div class="shot-controls">
             <div class="control-heading"><strong id="controlTitle">Sikta</strong><span id="meterValue"></span><span id="fineAim" class="fine-aim"><button id="aimLeft" class="fine-aim-button" aria-label="Finsikta åt vänster">◁</button><button id="aimRight" class="fine-aim-button" aria-label="Finsikta åt höger">▷</button></span><button id="shotMode" class="shot-mode" hidden>Fullt slag</button><button id="cancelShot" class="shot-mode cancel-shot" hidden>Avbryt</button></div>
             <div id="meter" class="meter"><div id="meterFill" class="meter-fill"></div><div class="meter-sweet"></div><div id="meterNeedle" class="meter-needle"></div></div>
-            <div id="puttControls" hidden><div class="putt-label"><label for="puttLength">Rulllängd <output id="puttOutput" for="puttLength">1,0 m</output></label><span id="puttDistance"></span></div><input id="puttLength" type="range" min="0.25" max="6" step="0.05" value="1" aria-label="Puttens rulllängd i meter"></div>
             <div id="meterStatus" class="meter-status">Dra för att sikta · A / D finjusterar</div>
           </div>
           <button id="actionButton" class="action-button"><span id="actionText">Starta</span><span class="action-key">Mellanslag</span><span id="actionSteps" class="action-steps" aria-hidden="true"><i></i><i></i><i></i></span></button>
@@ -62,11 +61,11 @@
         <div class="help-steps">
           <div class="help-step"><i data-icon="aim"></i><div><strong>1 · Sikta</strong><small><span class="touch-only">Dra över banan. ◁ ▷ finsiktar.</span><span class="keys-only">Dra med musen. <kbd>A</kbd>/<kbd>D</kbd> finjusterar, <kbd>Shift</kbd> ger precision.</span></small></div></div>
           <div class="help-step"><i data-icon="power"></i><div><strong>2 · Kraft</strong><small>Lite för en putt, mycket för ett hopp. Sista biten ger extra fart.</small></div></div>
-          <div class="help-step"><i data-icon="target"></i><div><strong>3 · Pricka grönt</strong><small>Grönt fält ger ett rakt slag. Hårda slag kräver mer precision.</small></div></div>
+          <div class="help-step"><i data-icon="target"></i><div><strong>3 · Pricka grönt</strong><small>Grönt fält ger ett rakt slag, även för putten. Hårda slag missar mer när du missar grönt.</small></div></div>
         </div>
         <p class="help-hint"><span class="touch-only">Tryck på den stora knappen för varje steg. <strong>Avbryt</strong> stoppar en påbörjad mätare.</span><span class="keys-only">Knappen eller <kbd>Mellanslag</kbd> för varje steg. <kbd>Esc</kbd> avbryter.</span></p>
         <div class="help-cards">
-          <div class="help-card"><i data-icon="flag"></i><div><strong>Närputt</strong><small>Nära hålet på en plan green: välj rulllängd och tryck <strong>Putta</strong>. Inget precisionstryck. <strong>Fullt slag</strong> ger vanliga mätaren.</small></div></div>
+          <div class="help-card"><i data-icon="flag"></i><div><strong>Närputt</strong><small>Nära hålet på en plan green räknar mätaren i meter: tryck när rulllängden stämmer och pricka sedan mitten. <strong>Fullt slag</strong> ger vanliga kraftmätaren.</small></div></div>
           <div class="help-card"><i data-icon="map"></i><div><strong>Översikt</strong><small>Se hela banan och <span class="touch-only">tryck</span><span class="keys-only">klicka</span> där du vill sikta.</small></div></div>
         </div>
       </dialog>

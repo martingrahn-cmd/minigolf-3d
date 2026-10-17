@@ -13,8 +13,8 @@ export function shouldSink(ball,cup){
   const speed=Math.hypot(ball.vx,ball.vz);
   return Math.hypot(ball.x-cup.x,ball.z-cup.z)<cupCaptureRadius(speed)&&speed<CUP_CAPTURE_SPEED;
 }
-const puttAssist=power=>Math.max(0,Math.min(1,(.5-power)/.3));
-export const perfectZone=(power=1)=>PERFECT_ZONE+.18*puttAssist(power);
+// The same green zone for every shot: soft putts need the same precision as drives.
+export const perfectZone=()=>PERFECT_ZONE;
 export function powerAt(seconds) {
   const t=(seconds/1.8)%2;
   return t<=1?t:2-t;
@@ -26,7 +26,7 @@ export function precisionAt(seconds) {
 export function shotError(needle,power=1) {
   const p=Math.max(0,Math.min(1,power));
   const zone=perfectZone(p),miss=Math.max(0,Math.min(1,(Math.abs(needle)-zone)/(1-zone)));
-  return Math.sign(needle)*miss*(5+10*p**1.25)*(1-.7*puttAssist(p))*Math.PI/180;
+  return Math.sign(needle)*miss*(5+10*p**1.25)*Math.PI/180;
 }
 export function shotSpeed(power) {
   const p=Math.max(0,Math.min(1,power));

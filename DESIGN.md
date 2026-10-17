@@ -83,7 +83,47 @@ Modellerna byggs i `blender/assets/carnival.py`: utomjording, kättingflygare, r
 
 ## Efterforskning och slutsatser
 
-- **Walkabout Mini Golf:** Mighty Coconut beskrive## Ljud
+- **Walkabout Mini Golf:** Mighty Coconut beskrive## När putten sänks
+
+Att sänka putten ska kännas som en belöning, inte bara som konfetti. Allt ligger i `src/cup-celebration.js`.
+
+**Ett riktigt hål.** Koppen är nu ett riktigt hål i filten, 1,1 m brett och en meter djupt. Hålet skärs upp med stencilbufferten i två steg efter att allt annat ogenomskinligt är ritat. Först markerar öppningen de pixlar där den syns. Sedan skjuts djupet bakåt på just de pixlarna, så att hålets insida och bollen ritas genom filten. Insidan är oupplyst så att den alltid syns som ett schakt. Överst sitter en ljus kopp och längre ner blir det mörk jord, violett på månen och mässing i Urverket. Kanten ligger plant med filten, som på en riktig green, med en tunn mörk ring och koppens ljusa kant. Flaggmodellens upphöjda ring används inte längre. Renderaren och skogens efterbehandling har stencilbuffert.
+
+**Sänkningen**
+- Spelet går över i slowmotion och kameran sänker sig ner till koppen. Den tittar längs linjen bollen kom in på.
+- Flaggan lyfts ur hålet.
+- Bollen rullar ett halvt varv runt kanten i den riktning den rullade och tippar över. Den faller ner och studsar mot botten med ett *plink*.
+
+**Kopphålets invånare.** När bollen ligger på botten tittar världens figur upp ur hålet med bollen i munnen. Den sväljer, tuggar, vinkar och dyker ner igen innan resultatkortet visas.
+- Molnskogen: en mullvad med bygghjälm och pannlampa.
+- Urverkets stad: en gök på en fjäder.
+- Månkarnevalen: en utomjording.
+
+Ett tryck hoppar över firandet. Om spelaren valt reducerad rörelse blir det ingen slowmotion och ingen kameraåkning.
+
+**Precis på kanten.** Om bollen stannar precis vid kanten, närmare än 0,85 m från hålets mitt, kommer en hjälpare och knackar ner den. Inknackningen kostar ett slag, precis som om spelaren hade knackat i den själv. Det blir alltså inte lättare, bara roligare.
+- Molnskogen: mullvaden gräver upp sig ur en jordhög bredvid bollen, tittar sig omkring med pannlampan och knackar ner bollen.
+- Urverkets stad: en katt kommer gående, tittar in i kameran och petar försiktigt på bollen så att den gungar. Sedan tittar den på kameran igen och puttar ner bollen med tassen, som katter gör.
+- Månkarnevalen: en utomjording hoppar fram och boopar bollen.
+
+Kameran visar bollen, koppen och hjälparen från sidan, även under sänkningen, så att hjälparen inte skymmer.
+
+Modellerna byggs i `blender/assets/critters.py`: mullvad, gök och katt. Utomjordingen återanvänds från karnevalen.
+
+**Händelsebänken.** Lägg till `&qa` i adressen, till exempel `?hole=7&qa`. Då startar spelet direkt med en panel som kan sätta igång varje händelse för sig:
+- sänkning rakt, från vänster, från höger och långsamt
+- boll på kanten, rakt och snett
+- fall utanför banan
+- bara resultatkortet
+- nollställning
+
+Det finns också genvägar till en bana i varje värld. Med bänken går varje händelse att granska i lugn och ro. Inget som spelas där sparas som resultat. Koden ligger i `src/qa.js`.
+
+## Puttning
+
+Spelaren tyckte att det förenklade puttsystemet gjorde spelet för lätt. Där valde man exakt rulllängd med ett reglage, och putten gick alltid rakt. Det är borttaget. Närputten finns kvar på plana greener nära hålet, men den går genom samma mätare som alla slag. Kraftmätaren räknar i meter, från 0,25 till 6 m, och siktlinjen visar längden medan mätaren går. Därefter ska man pricka mitten. Missar man grönt går putten snett. Det gröna fältet är lika smalt för alla slag, och mjuka slag får ingen breddning eller dämpning av missar längre. **Fullt slag** ger den vanliga kraftmätaren.
+
+## Ljud
 
 Allt ljud syntetiseras med Web Audio i `src/audio.js`, så spelet behöver inga ljudfiler. Ljudet startar vid första tryckningen, eftersom webbläsare kräver det. Ljudknappen stänger av allt, och när fliken döljs pausas ljudet så att det inte drar batteri. Allt går genom en mjuk kompressor och lite rumsklang: lång klang på månen, ett verkstadsrum i Urverket och öppen skog i Molnskogen.
 

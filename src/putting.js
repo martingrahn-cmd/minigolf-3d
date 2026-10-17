@@ -2,6 +2,9 @@ import { BALL_RADIUS, collideWalls } from './mechanics.js';
 import {inClockWell} from './clock-hand.js';
 
 export const PUTT_RANGE=5.5;
+// The putting meter runs from a tap to this many metres of roll.
+export const PUTT_MAX=6;
+export const puttLengthAt=power=>.25+Math.max(0,Math.min(1,power))*(PUTT_MAX-.25);
 export const puttSpeed=(distance,friction)=>Math.max(.35,distance*friction+.1);
 
 // Offer a distance control only on an unobstructed, flat patch of green.

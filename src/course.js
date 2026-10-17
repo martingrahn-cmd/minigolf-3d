@@ -8,6 +8,7 @@ import { createCrownCourse, createTrapdoors, createThornSpinner } from './crown.
 import { createLoopCourse } from './loop-visuals.js';
 import { createCarnival } from './carnival-visuals.js';
 import { createClockCourse, createClockGates } from './clockwork.js';
+import { createCupHole, createCupCritter, createLipRescuer, HOLE_RADIUS } from './cup-celebration.js';
 import { createFunnelVisuals } from './funnel-visuals.js';
 import { createBellBridgeVisuals } from './bell-bridge-visuals.js';
 import { createLiftVisuals } from './lift-visuals.js';
@@ -163,21 +164,31 @@ export async function createCourse(scene) {
   }
   // Cup and its visible rim are authored separately for reliable collision detection.
   const cupHeight=heightAt(CUP.x,CUP.z);
-  cylinder(scene,.49,.49,.03,CUP.x,cupHeight+.05,CUP.z,dark,40);
-  cylinder(scene,.35,.35,.015,CUP.x,cupHeight+.073,CUP.z,mat(0x071b2a),40);
+  // The hole is cut through the felt (cup-celebration.js); round it, flush with
+  // the felt like a real green, a thin dark ring and the cup's pale edge.
+  cylinder(scene,.64,.64,.006,CUP.x,cupHeight+.043,CUP.z,dark,48);
+  const cupEdge=new THREE.Mesh(new THREE.RingGeometry(HOLE_RADIUS-.004,HOLE_RADIUS+.035,48),mat(0xf3ecdc,.5));
+  cupEdge.rotation.x=-Math.PI/2;cupEdge.position.set(CUP.x,cupHeight+.047,CUP.z);cupEdge.receiveShadow=true;scene.add(cupEdge);
   torus(scene,.83,.025,CUP.x,cupHeight+.04,CUP.z,new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.6}));
   // The flagpole now goes into the actual cup. The Blender pin replaces the
   // procedural pole, rim and pennant when it has loaded.
   const flagColor=theme.key==='forest'?0xffc35c:0xed6655,pin=modelInstance('common/flag');
+  // The flag stands in a group so the sink celebration can lift it out of the cup.
+  const flagstick=new THREE.Group();flagstick.position.set(CUP.x,cupHeight,CUP.z);scene.add(flagstick);
   if(pin){
-    tintMaterials(pin,{Flag:flagColor});pin.position.set(CUP.x,cupHeight,CUP.z);pin.rotation.y=-.35;scene.add(pin);
+    tintMaterials(pin,{Flag:flagColor});pin.rotation.y=-.35;flagstick.add(pin);
+    // The real hole replaces the model's raised rim and liner.
+    pin.getObjectByName('cup-liner')?.removeFromParent();
+    pin.getObjectByName('cup-rim')?.removeFromParent();
   }else{
-  torus(scene,.47,.055,CUP.x,cupHeight+.085,CUP.z,cream);
-  cylinder(scene,.032,.032,2.7,CUP.x,cupHeight+1.38,CUP.z,cream,12);
+  cylinder(flagstick,.032,.032,2.7,0,1.38,0,cream,12);
   const pennant=new THREE.Shape();pennant.moveTo(0,0);pennant.lineTo(1.05,-.18);pennant.lineTo(0,-.57);pennant.closePath();
   const flag=new THREE.Mesh(new THREE.ShapeGeometry(pennant),new THREE.MeshStandardMaterial({color:flagColor,side:THREE.DoubleSide,roughness:.65}));
-  flag.position.set(CUP.x,cupHeight+2.62,CUP.z);flag.rotation.y=-.35;flag.castShadow=true;scene.add(flag);
+  flag.position.set(0,2.62,0);flag.rotation.y=-.35;flag.castShadow=true;flagstick.add(flag);
   }
+  createCupHole(scene,CUP.x,cupHeight,CUP.z,theme.key);
+  const cupCritter=createCupCritter(scene,theme.key,{x:CUP.x,y:cupHeight,z:CUP.z});
+  const lipRescuer=createLipRescuer(scene,theme.key,heightAt);
 
   const spinner = SPINNER?new THREE.Group():null;
   if(spinner){spinner.position.set(SPINNER.x,.04,SPINNER.z);scene.add(spinner)}
@@ -293,5 +304,5 @@ export async function createCourse(scene) {
     model('chest_red','red',-17+startOffset,.08+decorHeight(-17+startOffset,4.8),4.8,.48,Math.PI/4),
     model('diamond_blue','blue',-18.1+startOffset,.4+decorHeight(-18.1+startOffset,-4.8),-4.8,.5)]),
   ]);
-  return { spinner, springGlows, pipePath, bridge, bumpers, gates, carnival, pendulum, trapdoors, environment, funnel, bellBridge, lift, clockWheel, clockHand, motherTree, rocketPads, blackHole, cometCannon, ferris, aimSurface:floor };
+  return { flagstick, cupCritter, lipRescuer, cupHeight, spinner, springGlows, pipePath, bridge, bumpers, gates, carnival, pendulum, trapdoors, environment, funnel, bellBridge, lift, clockWheel, clockHand, motherTree, rocketPads, blackHole, cometCannon, ferris, aimSurface:floor };
 }
