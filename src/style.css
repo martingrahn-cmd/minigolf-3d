@@ -371,3 +371,49 @@ body:has(#win:not(.hidden)) .qa-panel{top:auto;bottom:10px}
 .sound-row output{font-size:12px;color:#5d6f78;text-align:right;font-variant-numeric:tabular-nums}
 .sound-row input{width:100%;height:28px;accent-color:#2f8f80;cursor:pointer;margin:0}
 .sound-note{font-size:12px!important;color:#5d6f78;margin:14px 0 0}
+
+/* Spökhamnen: night panels in deep purple, bone-white text and pumpkin orange. */
+[data-theme=halloween]{background:#140a29;color:#f1e3c4}
+[data-theme=halloween] .brand{color:#f1e3c4;text-shadow:0 2px 6px #0b0619}
+[data-theme=halloween] .brand-accent{color:#ff8a2a}
+[data-theme=halloween] .brand-icon{background:#ff8a2a;color:#2b1d3a;box-shadow:0 3px 0 #a8400f}
+[data-theme=halloween] .vignette{background:radial-gradient(ellipse at 50% 40%,transparent 40%,#0b061988 100%)}
+[data-theme=halloween] .hole-tag,[data-theme=halloween] .icon-button,[data-theme=halloween] .camera-button{background:#2b1d3af2;border-color:#4b3366;color:#f1e3c4;box-shadow:0 3px 0 #0b0619aa}
+[data-theme=halloween] .hole-tag strong{color:#ff8a2a}
+[data-theme=halloween] .levels-button{background:#3b2a12;border-color:#ff8a2a88}
+[data-theme=halloween] .score-card,[data-theme=halloween] .route-card{background:#241a33f2;color:#f1e3c4;border:1px solid #4b3366;border-bottom:4px solid #ff8a2a;box-shadow:0 9px 26px #0b061988}
+[data-theme=halloween] .score-title,[data-theme=halloween] .score-label,[data-theme=halloween] .score-bottom,[data-theme=halloween] .route-eyebrow{color:#b9a6d6}
+[data-theme=halloween] .score-bottom strong{color:#ff8a2a}
+[data-theme=halloween] .world-name{color:#9dffc2}
+[data-theme=halloween] .route-line small{color:#b9a6d6}
+[data-theme=halloween] .cannon-symbol{background:#ff8a2a33;color:#ff8a2a}
+[data-theme=halloween] .safe-symbol{background:#9dffc233;color:#9dffc2}
+[data-theme=halloween] .control-panel{background:linear-gradient(115deg,#2b1d3af5,#1d1430f2);border:1px solid #4b3366;border-bottom:4px solid #ff8a2a;color:#f1e3c4;box-shadow:0 8px 32px #0b0619aa}
+[data-theme=halloween] .meter-status{color:#b9a6d6}
+[data-theme=halloween] .control-heading span{color:#9dffc2}
+[data-theme=halloween] .action-button,[data-theme=halloween] .play-button{background:#ff8a2a;color:#2b1d3a;box-shadow:0 4px 0 #a8400f;border:1px solid #ffb36b}
+[data-theme=halloween] .action-button:hover,[data-theme=halloween] .play-button:hover{background:#ff9a45}
+[data-theme=halloween] .action-button:disabled{background:#6b5a7a;color:#d8cce6;border-color:#7d6b8f;box-shadow:0 3px 0 #3b2a4a}
+[data-theme=halloween] .toast{background:#241a33ef;border-color:#ff8a2a66;color:#f1e3c4}
+[data-theme=halloween] .modal-backdrop{background:#0b061980;backdrop-filter:blur(8px)}
+[data-theme=halloween] .intro-card{background:#241a33;border-color:#4b3366;color:#f1e3c4;box-shadow:0 12px 0 #ff8a2a55,0 30px 80px #0b0619aa}
+[data-theme=halloween] .intro-card h1{color:#f1e3c4}
+[data-theme=halloween] .intro-card h1 em{color:#ff8a2a}
+[data-theme=halloween] .intro-kicker,[data-theme=halloween] .intro-world{color:#9dffc2}
+[data-theme=halloween] .intro-card p{color:#cbbbe0}
+[data-theme=halloween] .intro-badges span{background:#3b2a52;color:#e0d2f2}
+[data-theme=halloween] .intro-badges span:nth-child(2){background:#ff8a2a2e;color:#ffb36b}
+[data-theme=halloween] .fine-aim-button{border-color:#4b3366;background:#2b1d3a;color:#f1e3c4}
+[data-theme=halloween] .secondary-button{border-color:#4b3366;background:#2b1d3a;color:#f1e3c4}
+[data-theme=halloween] .help-step,[data-theme=halloween] .help-card{background:#f3ecf8}
+[data-theme=halloween] .win-score,[data-theme=halloween] .win-stars{color:#f1e3c4}
+[data-theme=halloween] .step-strip span{color:#cbbbe0}
+.hole-card[data-world=halloween]{background:linear-gradient(110deg,#2b1d3a,#3b2552);border-color:#5b4080;color:#f1e3c4}
+.hole-card[data-world=halloween] .hole-number{color:#ff8a2a}.hole-card[data-world=halloween] small,.hole-card[data-world=halloween] .hole-meta{color:#cbbbe0}
+.world-section[data-world=halloween] h3{color:#d0621a}
+.menu-world.special{background:linear-gradient(115deg,#241a33,#3b2552 60%,#5a2a1a);border-color:#ff8a2a;color:#f1e3c4;box-shadow:0 6px 0 #a8400f55}
+.menu-world.special .menu-world-head span{color:#9dffc2}.menu-world.special small{color:#cbbbe0}
+.menu-world.special .menu-world-head strong:after{content:' 🎃'}
+.menu-world.special .menu-progress i{background:#4b3366}.menu-world.special .menu-progress i.built{background:#ff8a2a}
+.menu-world.special .world-stars{color:#ffc24a}
+.menu-world.special .world-play{background:#ff8a2a;color:#2b1d3a;box-shadow:0 4px 0 #a8400f}

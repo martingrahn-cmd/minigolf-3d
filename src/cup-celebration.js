@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { modelInstance } from './models.js';
+import { modelInstance, tintMaterials } from './models.js';
 
 // The moment the putt drops. The game slows to slow motion and the camera
 // comes down to the cup. The ball curls round the lip, tips over the edge
@@ -7,7 +7,8 @@ import { modelInstance } from './models.js';
 // critter pops up with the ball in its mouth, gulps it down, chews, waves
 // and ducks back into the hole before the scorecard shows. Molnskogen has a
 // mole in a miner's helmet, Urverkets stad a cuckoo on a spring and
-// Månkarnevalen an alien.
+// Månkarnevalen an alien. In Spökhamnen a skeleton hand reaches up out of the
+// cup, clutches the ball, drums its fingers and pulls it down into the dark.
 
 export const HOLE_RADIUS=.55,HOLE_DEPTH=1.05;
 // The opening sits just above the felt (+0.04) and its flush edge ring (+0.047).
@@ -50,7 +51,7 @@ export function createCupHole(scene,x,y,z,theme){
   }));
   for(const [mesh,order] of [[mark,1],[clear,1.5]]){mesh.rotation.x=-Math.PI/2;mesh.position.set(x,y+LIP,z);mesh.renderOrder=order;mesh.castShadow=false;scene.add(mesh)}
   // A pale cup liner at the top, then earth (or brass, or violet) going dark.
-  const [band,top,bottom]=theme==='forest'?[0xf1ead8,0x8a6244,0x2a1a10]:theme==='moon'?[0xe8e0ff,0x6a56b0,0x1a1238]:[0xf0ca7e,0x9a7448,0x2a2018];
+  const [band,top,bottom]=theme==='forest'?[0xf1ead8,0x8a6244,0x2a1a10]:theme==='moon'?[0xe8e0ff,0x6a56b0,0x1a1238]:theme==='halloween'?[0xf1e3c4,0x4a2f5a,0x0b0610]:[0xf0ca7e,0x9a7448,0x2a2018];
   const wall=new THREE.CylinderGeometry(HOLE_RADIUS,HOLE_RADIUS,HOLE_DEPTH,32,10,true),colors=[],p=wall.attributes.position;
   const a=new THREE.Color(top),b=new THREE.Color(bottom),c0=new THREE.Color(band);
   for(let i=0;i<p.count;i++){const k=(p.getY(i)+HOLE_DEPTH/2)/HOLE_DEPTH,c=k>.86?c0.clone().multiplyScalar(.8+.2*(k-.86)/.14):b.clone().lerp(a,Math.pow(k/.86,1.6));colors.push(c.r,c.g,c.b)}
@@ -70,18 +71,22 @@ function springGeometry(){
 
 // The critter for this world, hidden in the hole until it is called.
 export function createCupCritter(scene,theme,cup){
-  const name=theme==='forest'?'forest/mole':theme==='clockwork'?'clockwork/cuckoo-bird':theme==='moon'?'moon/alien':null;
+  const name=theme==='forest'?'forest/mole':theme==='clockwork'?'clockwork/cuckoo-bird':theme==='moon'?'moon/alien':theme==='halloween'?'halloween/skeleton-hand':null;
   const model=name&&modelInstance(name);if(!model)return null;
+  const hand=theme==='halloween';
   const root=new THREE.Group();root.position.set(cup.x,cup.y,cup.z);root.visible=false;scene.add(root);
   const body=new THREE.Group();root.add(body);body.add(model);
   if(theme==='moon')model.scale.setScalar(.95);
+  // A big bony hand, so the ball sits in it rather than on it.
+  if(hand)model.scale.setScalar(1.35);
   const parts={};model.traverse(o=>{if(o.name)parts[o.name]=o;if(o.isMesh){o.renderOrder=3;o.castShadow=true}});
   let spring=null;
   if(theme==='clockwork'){
     spring=new THREE.Mesh(springGeometry(),new THREE.MeshStandardMaterial({color:0xf0ca7e,metalness:.7,roughness:.3}));
     spring.renderOrder=3;root.add(spring);
   }
-  const mouth=new THREE.Vector3(...(theme==='forest'?[0,.56,.38]:theme==='clockwork'?[0,.5,.5]:[0,.5,.55]));
+  // Where the ball rides: in the mouth, or in the skeleton hand's palm.
+  const mouth=new THREE.Vector3(...(theme==='forest'?[0,.56,.38]:theme==='clockwork'?[0,.5,.5]:hand?[0,.85,.14]:[0,.5,.55]));
   const out=new THREE.Vector3();
   return {
     // `t` is game time since the capture; returns where the ball sits (in its mouth) and how big it is.
@@ -98,6 +103,18 @@ export function createCupCritter(scene,theme,cup){
       let sy=1,sxz=1;
       if(t>SINK.gulp&&t<SINK.swallowed){const k=(t-SINK.gulp)/(SINK.swallowed-SINK.gulp);sy=1-.18*Math.sin(k*Math.PI);sxz=1+.14*Math.sin(k*Math.PI)}
       if(t>=SINK.swallowed&&t<SINK.duck){const k=t-SINK.swallowed;sy=1+Math.sin(k*18)*.05*Math.max(0,1-k/1.1);sxz=1-Math.sin(k*18)*.03*Math.max(0,1-k/1.1)}
+      if(hand){
+        // Clutch the ball, squeeze it, drum the fingers, wave the wrist, pull it under.
+        const squeeze=t>SINK.gulp&&t<SINK.swallowed?Math.sin((t-SINK.gulp)/(SINK.swallowed-SINK.gulp)*Math.PI)*.35:0;
+        for(let i=0;i<5;i++){
+          const finger=parts[`finger-${i}`];if(!finger)continue;
+          const drum=t>SINK.swallowed&&t<SINK.duck?Math.max(0,Math.sin((t-SINK.swallowed)*16-i*.9))*.55:0;
+          // Negative curls the bony fingers up round the ball.
+          finger.rotation.x=-((i?1.25:.9)+squeeze-drum);
+        }
+        body.rotation.z=t>SINK.swallowed&&t<SINK.duck?Math.sin((t-SINK.swallowed)*5)*.18:0;
+        sy=sxz=1;
+      }
       body.scale.set(sxz,sy,sxz);
       // A wave of a paw, a flap of wings, a wobble.
       const happy=t>SINK.swallowed&&t<SINK.duck?Math.sin((t-SINK.swallowed)*10):0;
@@ -109,7 +126,8 @@ export function createCupCritter(scene,theme,cup){
       if(theme==='moon')body.rotation.z=happy*.15;
       // The ball rides in the mouth, then disappears down it.
       root.updateMatrixWorld(true);out.copy(mouth).applyMatrix4(body.matrixWorld);
-      const scale=t<SINK.gulp?.75:t<SINK.swallowed?.75*(1-clamp01((t-SINK.gulp)/(SINK.swallowed-SINK.gulp))):0;
+      // The hand keeps the ball and takes it down with it; the others swallow it.
+      const scale=hand?(t<SINK.done-.05?.75:0):t<SINK.gulp?.75:t<SINK.swallowed?.75*(1-clamp01((t-SINK.gulp)/(SINK.swallowed-SINK.gulp))):0;
       return {ball:out,scale};
     },
     hide(){root.visible=false},
@@ -152,10 +170,16 @@ export function catPaw(t,at){
 }
 
 export function createLipRescuer(scene,theme,heightAt){
-  const name=theme==='forest'?'forest/mole':theme==='clockwork'?'clockwork/house-cat':theme==='moon'?'moon/alien':null;
+  const cat=['clockwork','halloween'].includes(theme);
+  const name=theme==='forest'?'forest/mole':cat?'clockwork/house-cat':theme==='moon'?'moon/alien':null;
   const model=name&&modelInstance(name);if(!model)return null;
   const root=new THREE.Group();root.rotation.order='YXZ';root.visible=false;scene.add(root);root.add(model);
-  if(theme==='clockwork')model.scale.setScalar(.85);
+  if(cat)model.scale.setScalar(.85);
+  // Spökhamnen's helper is a black cat with glowing eyes and a witch's hat.
+  if(theme==='halloween'){
+    tintMaterials(model,{Fur:0x221c29,FurLight:0x3a3044,FurStripe:0x17121d,Pink:0x8a5a6a,Eye:0xffd34a});
+    model.traverse(o=>{if(o.isMesh&&o.material.name==='Eye'){o.material.emissive.set(0xffb020);o.material.emissiveIntensity=1.6}});
+  }
   const parts={};model.traverse(o=>{if(o.name)parts[o.name]=o;if(o.isMesh)o.castShadow=true});
   let mound=null;
   if(theme==='forest'){
@@ -163,57 +187,59 @@ export function createLipRescuer(scene,theme,heightAt){
     mound.scale.set(1,.45,1);mound.visible=false;scene.add(mound);
   }
   const lamp=parts.lamp?.material;if(lamp){parts.lamp.material=lamp.clone()}
+  const hat=theme==='halloween'&&parts.head?modelInstance('halloween/witch-hat'):null;
+  if(hat){hat.scale.setScalar(.78);hat.position.set(.02,.27,.04);hat.rotation.set(-.15,0,.22);parts.head.add(hat)}
   // How far behind the ball the helper stands to reach it.
-  const reach=theme==='clockwork'?1.05:theme==='moon'?.78:.74;
+  const reach=cat?1.05:theme==='moon'?.78:.74;
   const face=new THREE.Vector3(),stand=new THREE.Vector3(),from=new THREE.Vector3(),side=new THREE.Vector3();
   const curve=new THREE.QuadraticBezierCurve3(new THREE.Vector3(),new THREE.Vector3(),new THREE.Vector3()),pos=new THREE.Vector3(),tangent=new THREE.Vector3();
   // The cat's smoothed pose, carried from frame to frame.
-  const cat={last:-1,heading:0,head:0,tilt:0,pitch:0,gait:0,phase:0,crouch:0,tail:0};
+  const pose={last:-1,heading:0,head:0,tilt:0,pitch:0,gait:0,phase:0,crouch:0,tail:0};
   function animateCat(t,y,towardCup,towardCamera){
-    const dt=t<cat.last||cat.last<0?0:Math.min(.1,t-cat.last);
+    const dt=t<pose.last||pose.last<0?0:Math.min(.1,t-pose.last);
     // A gentle arc in from the side, and the same arc back out.
     const mid=from.clone().lerp(stand,.5).addScaledVector(face,-.9);
     curve.v0.copy(from);curve.v1.copy(mid);curve.v2.copy(stand);
     const leaving=t>RESCUE.leave,s=t<RESCUE.arrive?smoother(t/RESCUE.arrive):leaving?1-smoother((t-RESCUE.leave)/(RESCUE.gone-RESCUE.leave-.2)):1;
     curve.getPoint(s,pos);curve.getTangent(Math.min(.999,Math.max(.001,s)),tangent);
-    const moved=cat.last<0?0:pos.distanceTo(root.position.clone().setY(pos.y)),speed=dt>0?moved/dt:0;
-    if(cat.last<0){cat.heading=Math.atan2(tangent.x,tangent.z);cat.last=t}
+    const moved=pose.last<0?0:pos.distanceTo(root.position.clone().setY(pos.y)),speed=dt>0?moved/dt:0;
+    if(pose.last<0){pose.heading=Math.atan2(tangent.x,tangent.z);pose.last=t}
     root.position.set(pos.x,y,pos.z);
     // Face along the path while walking, at the ball otherwise; turns are smoothed.
     const walkingOut=leaving&&s<.995,walkingIn=t<RESCUE.arrive*.98;
     const target=walkingIn?Math.atan2(tangent.x,tangent.z):walkingOut?Math.atan2(-tangent.x,-tangent.z):towardCup;
-    cat.heading=dampAngle(cat.heading,target,walkingIn||walkingOut?7:4.5,dt);
+    pose.heading=dampAngle(pose.heading,target,walkingIn||walkingOut?7:4.5,dt);
     // Gait follows the distance walked, so the paws do not slide; it fades in and out.
-    cat.gait=damp(cat.gait,Math.min(1,speed/2.2),8,dt);cat.phase+=moved/.62*Math.PI;
-    const g=cat.gait;
-    for(const [n,ph] of [['leg-fl',0],['leg-br',0],['leg-fr',Math.PI],['leg-bl',Math.PI]])if(parts[n])parts[n].rotation.x=Math.sin(cat.phase+ph)*.5*g;
+    pose.gait=damp(pose.gait,Math.min(1,speed/2.2),8,dt);pose.phase+=moved/.62*Math.PI;
+    const g=pose.gait;
+    for(const [n,ph] of [['leg-fl',0],['leg-br',0],['leg-fr',Math.PI],['leg-bl',Math.PI]])if(parts[n])parts[n].rotation.x=Math.sin(pose.phase+ph)*.5*g;
     // Looking: at the camera on arrival with a curious tilt, then at the ball.
     // And a sideways glance at the camera just as it pushes, the way cats do.
     const lookAtCamera=(t>RESCUE.arrive-.1&&t<RESCUE.look+.15)||(t>RESCUE.tap-.25&&t<RESCUE.tap+.7);
-    const yaw=lookAtCamera?THREE.MathUtils.clamp(Math.atan2(Math.sin(towardCamera-cat.heading),Math.cos(towardCamera-cat.heading)),-1.1,1.1):0;
-    cat.head=damp(cat.head,yaw,6,dt);cat.tilt=damp(cat.tilt,lookAtCamera?.28:0,4,dt);
+    const yaw=lookAtCamera?THREE.MathUtils.clamp(Math.atan2(Math.sin(towardCamera-pose.heading),Math.cos(towardCamera-pose.heading)),-1.1,1.1):0;
+    pose.head=damp(pose.head,yaw,6,dt);pose.tilt=damp(pose.tilt,lookAtCamera?.28:0,4,dt);
     // A small nod towards the ball; the head stays well clear of it.
     const aiming=t>RESCUE.look+.15&&t<RESCUE.tap+.1;
-    cat.pitch=damp(cat.pitch,aiming?.08:t>RESCUE.tap+.1&&t<RESCUE.leave?.15:0,6,dt);
-    if(parts.head)parts.head.rotation.set(cat.pitch,cat.head,cat.tilt);
+    pose.pitch=damp(pose.pitch,aiming?.08:t>RESCUE.tap+.1&&t<RESCUE.leave?.15:0,6,dt);
+    if(parts.head)parts.head.rotation.set(pose.pitch,pose.head,pose.tilt);
     // Crouch and wiggle before the real push.
-    cat.crouch=damp(cat.crouch,t>RESCUE.tap-1&&t<RESCUE.tap+.05?1:0,5,dt);
-    model.position.y=Math.abs(Math.sin(cat.phase))*.035*g-cat.crouch*.06;
-    model.rotation.z=Math.sin(t*13)*.035*Math.max(0,cat.crouch-.5)*2+Math.sin(cat.phase)*.03*g;
+    pose.crouch=damp(pose.crouch,t>RESCUE.tap-1&&t<RESCUE.tap+.05?1:0,5,dt);
+    model.position.y=Math.abs(Math.sin(pose.phase))*.035*g-pose.crouch*.06;
+    model.rotation.z=Math.sin(t*13)*.035*Math.max(0,pose.crouch-.5)*2+Math.sin(pose.phase)*.03*g;
     // One careful paw strike. The leg stretches a little as it reaches out level,
     // so the paw touches the ball while the nose stays well clear of it.
     if(parts['leg-fr']&&g<.5){const a=catPaw(t,RESCUE.tap);parts['leg-fr'].rotation.x=a;parts['leg-fr'].scale.y=1+.38*clamp01((-a-.3)/(-PAW_STRIKE-.3))}
     else if(parts['leg-fr'])parts['leg-fr'].scale.y=1;
     // The tail stands up while walking and swishes slowly while watching.
-    cat.tail=damp(cat.tail,g>.3?-.5:0,4,dt);
-    if(parts.tail)parts.tail.rotation.set(cat.tail,0,Math.sin(t*2.1)*(.25+.15*(1-g)));
-    root.rotation.set(cat.crouch*.06,cat.heading,0);
-    cat.last=t;
+    pose.tail=damp(pose.tail,g>.3?-.5:0,4,dt);
+    if(parts.tail)parts.tail.rotation.set(pose.tail,0,Math.sin(t*2.1)*(.25+.15*(1-g)));
+    root.rotation.set(pose.crouch*.06,pose.heading,0);
+    pose.last=t;
   }
   return {
     // `t` is time since the ball settled; `ball` where it stopped; `dir` the unit direction to the cup.
     update(t,ball,dir,camera){
-      if(t>=RESCUE.gone){root.visible=false;if(mound)mound.visible=false;cat.last=-1;return}
+      if(t>=RESCUE.gone){root.visible=false;if(mound)mound.visible=false;pose.last=-1;return}
       root.visible=true;
       const y=heightAt(ball.x,ball.z);
       stand.set(ball.x-dir.x*reach,y,ball.z-dir.z*reach);
@@ -222,7 +248,7 @@ export function createLipRescuer(scene,theme,heightAt){
       from.copy(stand).addScaledVector(side,3.6);face.set(dir.x,0,dir.z);
       const towardCup=Math.atan2(dir.x,dir.z),towardCamera=Math.atan2(camera.position.x-stand.x,camera.position.z-stand.z);
       let heading=towardCup,walking=0;
-      if(theme==='clockwork'){animateCat(t,y,towardCup,towardCamera);return {walking:cat.gait>.3}}
+      if(cat){animateCat(t,y,towardCup,towardCamera);return {walking:pose.gait>.3}}
       if(theme==='forest'){
         // Dig up, look about with the lamp on, tap, wave, dig back down.
         const rise=t<.4?0:t<1?ease((t-.4)/.6):t<RESCUE.leave?1:1-ease(Math.min(1,(t-RESCUE.leave)/.5));
@@ -244,6 +270,6 @@ export function createLipRescuer(scene,theme,heightAt){
       root.rotation.y=heading;
       return {walking};
     },
-    hide(){root.visible=false;if(mound)mound.visible=false;cat.last=-1},
+    hide(){root.visible=false;if(mound)mound.visible=false;pose.last=-1},
   };
 }

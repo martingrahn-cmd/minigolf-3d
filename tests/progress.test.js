@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { WORLDS, ROUND } from '../src/round.js';
+import { WORLDS, ROUND, CAMPAIGN } from '../src/round.js';
 import { starsFor, starText, worldStars, startWorldRun, activeRun, recordRunHole, endWorldRun, nextRunHole, runScorecard } from '../src/progress.js';
 
 const memory=()=>{const data=new Map();return {getItem:k=>data.has(k)?data.get(k):null,setItem:(k,v)=>data.set(k,String(v)),removeItem:k=>data.delete(k)}};
@@ -57,8 +57,18 @@ test('the campaign adds up every hole, its stars and the best strokes against pa
   p=campaignProgress(storage);
   assert.equal(p.played,2);assert.equal(p.stars,3+1);assert.equal(p.strokes,first.par+second.par);assert.equal(p.par,first.par+second.par);
   assert.equal(p.next.hole,3);assert.equal(p.worlds[0].played,2);assert.equal(p.worlds[0].stars,4);
-  for(const slot of ROUND)storage.setItem(slot.level.recordKey,slot.level.par);
+  for(const slot of CAMPAIGN)storage.setItem(slot.level.recordKey,slot.level.par);
   p=campaignProgress(storage);
   assert.ok(p.complete);assert.equal(p.next,null);assert.equal(p.stars,36);
-  assert.ok(isCampaignFinale(ROUND.at(-1)));assert.ok(!isCampaignFinale(ROUND[5]));
+  assert.ok(isCampaignFinale(CAMPAIGN.at(-1)));assert.ok(!isCampaignFinale(ROUND[5]));
+  assert.ok(!isCampaignFinale(ROUND.find(slot=>slot.world.special&&slot.level)),'Spökhamnen is outside the campaign');
+});
+
+test('Spökhamnen keeps its own stars, outside the campaign', async () => {
+  const { campaignProgress, worldProgress } = await import('../src/progress.js');
+  const storage=memory(),spook=WORLDS.find(w=>w.special),holes=ROUND.filter(s=>s.world===spook&&s.level);
+  storage.setItem(holes[0].level.recordKey,holes[0].level.par-1);
+  assert.deepEqual([worldProgress(storage,spook).stars,worldProgress(storage,spook).max,worldProgress(storage,spook).played],[3,15,1]);
+  assert.equal(campaignProgress(storage).stars,0);assert.equal(campaignProgress(storage).max,54);
+  assert.ok(!campaignProgress(storage).worlds.some(w=>w.world===spook));
 });

@@ -2,11 +2,14 @@ import * as THREE from 'three';
 import { gatePose } from './gates.js';
 const material=(color,emissive=0)=>new THREE.MeshStandardMaterial({color,roughness:.5,metalness:.2,emissive,emissiveIntensity:.7});
 function box(group,w,h,d,x,y,z,mat){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;group.add(m);return m}
-export function createBridge(scene,bridge){
+// The seesaw bridge. `look` recolours it (Spökhamnen's gangplank: dark wet
+// planks, iron, ghost-green arrows and an orange spring).
+export const PLANK_LOOK={wood:0x5a4030,woodAlt:0x4a3326,metal:0x2b2734,glow:[0x9dffc2,0x3fbf6a],accent:[0xff8a2a,0xa8400f]};
+export function createBridge(scene,bridge,look={}){
   if(!bridge)return null;
   const group=new THREE.Group(),center=(bridge.x1+bridge.x2)/2,length=bridge.x2-bridge.x1;
   group.position.set(center,bridge.pivotY+.04,bridge.z);scene.add(group);
-  const wood=material(0xd3a574),woodAlt=material(0xdeb887),metal=material(0x333e61),cyan=material(0x7cffe8,0x31cdb7),pink=material(0xf79bcf,0xab397d);
+  const wood=material(look.wood??0xd3a574),woodAlt=material(look.woodAlt??0xdeb887),metal=material(look.metal??0x333e61),cyan=material(...(look.glow??[0x7cffe8,0x31cdb7])),pink=material(...(look.accent??[0xf79bcf,0xab397d]));
   for(let i=0;i<24;i++)box(group,length/24-.025,.22,bridge.halfWidth*2,-length/2+(i+.5)*length/24,-.11,0,i%2?wood:woodAlt);
   for(const side of [-1,1]){
     box(group,length,.32,.18,0,-.32,side*(bridge.halfWidth-.18),metal);
@@ -72,12 +75,13 @@ export function createGates(scene,gates=[]){
   });
 }
 
-export function createIceFeatures(scene,level,heightAt,heightSlope){
+// The slippery strip. `look` turns frost into something else (Spökhamnen's slime).
+export function createIceFeatures(scene,level,heightAt,heightSlope,look={}){
   const ice=(level.surfaces||[]).filter(surface=>surface.kind==='ice');
   if(!ice.length)return;
-  const frost=new THREE.MeshStandardMaterial({color:0xc5f6ff,roughness:.16,metalness:.25,emissive:0x3c8299,emissiveIntensity:.35});
-  const white=new THREE.MeshBasicMaterial({color:0xe7ffff,transparent:true,opacity:.65,depthWrite:false});
-  const warning=new THREE.MeshBasicMaterial({color:0xffca8b});
+  const frost=new THREE.MeshStandardMaterial(look.sheet??{color:0xc5f6ff,roughness:.16,metalness:.25,emissive:0x3c8299,emissiveIntensity:.35});
+  const white=new THREE.MeshBasicMaterial({color:look.streak??0xe7ffff,transparent:true,opacity:.65,depthWrite:false});
+  const warning=new THREE.MeshBasicMaterial({color:look.warning??0xffca8b});
   for(const strip of ice){
     const width=strip.z2-strip.z1,center=(strip.z1+strip.z2)/2;
     const vertices=[strip.x1,heightAt(strip.x1,center)+.048,strip.z1,strip.x1,heightAt(strip.x1,center)+.048,strip.z2,strip.x2,heightAt(strip.x2,center)+.048,strip.z1,strip.x2,heightAt(strip.x2,center)+.048,strip.z2];
@@ -89,7 +93,9 @@ export function createIceFeatures(scene,level,heightAt,heightSlope){
     }
     for(const side of [-1,1])for(let i=0;i<17;i++){
       const x=strip.x1+.3+i*(strip.x2-strip.x1-.6)/16,z=center+side*(width/2-.035),h=.25+(i%4)*.16;
-      const icicle=new THREE.Mesh(new THREE.ConeGeometry(.10,h,5),frost);icicle.rotation.z=Math.PI;icicle.position.set(x,heightAt(x,z)-h/2,z);scene.add(icicle);
+      // Icicles, or slime dripping off the edge (rounder, with a drop at the end).
+      const icicle=new THREE.Mesh(look.drip?new THREE.CapsuleGeometry(.07,h*.8,3,6):new THREE.ConeGeometry(.10,h,5),frost);
+      if(!look.drip)icicle.rotation.z=Math.PI;icicle.position.set(x,heightAt(x,z)-h/2,z);scene.add(icicle);
     }
     for(const x of [strip.x1+.6,strip.x2-.6]){
       const shape=new THREE.Shape();shape.moveTo(.25,0);shape.lineTo(-.18,.26);shape.lineTo(-.18,-.26);shape.closePath();
@@ -103,6 +109,7 @@ export function createIceFeatures(scene,level,heightAt,heightSlope){
     box(scene,.16,.025,.25,x,heightAt(x,edge.z)+.075,edge.z,warning);
   }
   // Snowflake medallion on the tee, outside the line of play.
+  if(look.drip)return;
   const x=level.start.x+1.1,z=2.4;
   const ring=new THREE.Mesh(new THREE.RingGeometry(.64,.69,40),white);ring.rotation.x=-Math.PI/2;ring.position.set(x,heightAt(x,z)+.055,z);scene.add(ring);
   for(let i=0;i<3;i++){

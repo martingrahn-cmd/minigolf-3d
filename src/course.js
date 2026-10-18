@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { createEnvironment, themeFor } from './environment.js';
-import { createBridge, createBumpers, createGates, createIceFeatures } from './obstacles.js';
+import { createBridge, createBumpers, createGates, createIceFeatures, PLANK_LOOK } from './obstacles.js';
 import { createForestCourse } from './forest.js';
 import { createRavineCourse } from './ravine.js';
 import { createAcornCourse, createAcornPendulum } from './acorn.js';
@@ -17,7 +17,8 @@ import {createClockHandVisuals} from './clock-hand-visuals.js';
 import {createMotherTreeCourse,createMotherTree} from './mother-tree-visuals.js';
 import {createMoonCourse,createRocketPads,createPlanetBumpers,createBlackHole,createCometCannon,createGondolaWheel,createMoonRocket} from './moon.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { preloadModels, modelInstance, tintMaterials, COMMON_MODELS, CLOCK_MODELS, FOREST_MODELS, MOON_MODELS } from './models.js';
+import { preloadModels, modelInstance, tintMaterials, COMMON_MODELS, CLOCK_MODELS, FOREST_MODELS, MOON_MODELS, HALLOWEEN_MODELS } from './models.js';
+import { createHalloweenCourse, dressHalloweenCourse, createPumpkinBumpers, createCryptGates, createScarecrow, createWitchCircles, createGraveGates, SLIME_STYLE } from './halloween.js';
 
 import { LEVEL, CUP, CANNON, LANDING, PIPE_IN, PIPE_OUT, PIPE_DIRECTION, PIPE_ENTRY, PIPE_GUIDES, pipeWorld, SPRINGS, SPINNER, TILES, CELLS, BOUNDARIES, heightAt, heightSlope, onCourse } from './layout.js';
 export * from './layout.js';
@@ -28,7 +29,8 @@ const cream = mat(theme.rail);
 if(theme.key==='neon'){cream.emissive.set(theme.rail);cream.emissiveIntensity=.25}
 const deep = mat(theme.base);
 const dark = mat(0x18344b);
-const water = mat(0x5bb8d3, .28, .12);
+const spook=theme.key==='halloween';
+const water = mat(spook?0x3f8a3a:0x5bb8d3, .28, .12);
 
 function box(scene, w, h, d, x, y, z, material, shadow = true) {
   const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
@@ -62,10 +64,10 @@ function makeLabel(scene, text, x, z, color = '#203e52') {
   canvas.height = 128;
   const ctx = canvas.getContext('2d');
   const forest=['forest','clockwork'].includes(theme.key);
-  ctx.fillStyle = forest?'#795438':'#fff9e7';
-  ctx.beginPath();ctx.roundRect(5, 5, 502, 118, forest?8:28);ctx.fill();
-  ctx.strokeStyle = forest?'#d4b683':'#e4d5b4';ctx.lineWidth = 6;ctx.stroke();
-  ctx.fillStyle = forest?'#fff0c6':color;ctx.font = '800 48px Fredoka, sans-serif';ctx.textAlign = 'center';ctx.textBaseline = 'middle';
+  ctx.fillStyle = spook?'#2b1d3a':forest?'#795438':'#fff9e7';
+  ctx.beginPath();ctx.roundRect(5, 5, 502, 118, forest||spook?8:28);ctx.fill();
+  ctx.strokeStyle = spook?'#ff8a2a':forest?'#d4b683':'#e4d5b4';ctx.lineWidth = 6;ctx.stroke();
+  ctx.fillStyle = spook?'#ffd9a0':forest?'#fff0c6':color;ctx.font = '800 48px Fredoka, sans-serif';ctx.textAlign = 'center';ctx.textBaseline = 'middle';
   ctx.fillText(text, 256, 66);
   const texture = new THREE.CanvasTexture(canvas);texture.colorSpace = THREE.SRGBColorSpace;
   const mesh = new THREE.Mesh(new THREE.PlaneGeometry(3.5, .88), new THREE.MeshBasicMaterial({ map:texture, transparent:true, side:THREE.DoubleSide }));
@@ -76,18 +78,18 @@ function makeLabel(scene, text, x, z, color = '#203e52') {
 }
 
 export async function createCourse(scene) {
-  await preloadModels([...COMMON_MODELS,...({moon:MOON_MODELS,forest:FOREST_MODELS,clockwork:CLOCK_MODELS}[theme.key]??[])]);
+  await preloadModels([...COMMON_MODELS,...({moon:MOON_MODELS,forest:FOREST_MODELS,clockwork:CLOCK_MODELS,halloween:HALLOWEEN_MODELS}[theme.key]??[])]);
   const environment=createEnvironment(scene,LEVEL);
-  const bridge=createBridge(scene,LEVEL.bridge);
-  const bumpers=LEVEL.clockWheel?createClockBumpers(scene,LEVEL.bumpers):theme.key==='moon'?createPlanetBumpers(scene,LEVEL.bumpers):createBumpers(scene,LEVEL.bumpers);
+  const bridge=createBridge(scene,LEVEL.bridge,spook?PLANK_LOOK:{});
+  const bumpers=LEVEL.clockWheel?createClockBumpers(scene,LEVEL.bumpers):theme.key==='moon'?createPlanetBumpers(scene,LEVEL.bumpers):spook?createPumpkinBumpers(scene,LEVEL.bumpers):createBumpers(scene,LEVEL.bumpers);
   const blackHole=createBlackHole(scene,LEVEL.blackHole);
   const cometCannon=LEVEL.scenery==='moonrocket'?createMoonRocket(scene,LEVEL.cometCannon,onCourse):createCometCannon(scene,LEVEL.cometCannon,onCourse);
   const ferris=createGondolaWheel(scene,LEVEL.ferris);
-  const gates=theme.key==='clockwork'?createClockGates(scene,LEVEL.gates):createGates(scene,LEVEL.gates);
+  const gates=theme.key==='clockwork'?createClockGates(scene,LEVEL.gates):spook?createCryptGates(scene,LEVEL.gates):createGates(scene,LEVEL.gates);
   const carnival=createCarnival(scene,LEVEL);
   const pendulum=createAcornPendulum(scene,LEVEL.pendulum);
   const trapdoors=createTrapdoors(scene,LEVEL.trapdoors);
-  createIceFeatures(scene,LEVEL,heightAt,heightSlope);
+  createIceFeatures(scene,LEVEL,heightAt,heightSlope,spook?SLIME_STYLE:{});
 
   // One contiguous playing surface, with the same boundary used by ball physics.
   let floor;
@@ -95,6 +97,8 @@ export async function createCourse(scene) {
     floor=createClockCourse(scene,CELLS,BOUNDARIES,LEVEL,heightAt);
   }else if(theme.key==='moon'){
     floor=createMoonCourse(scene,CELLS,BOUNDARIES,heightAt,LEVEL);
+  }else if(spook){
+    floor=createHalloweenCourse(scene,CELLS,BOUNDARIES,heightAt,LEVEL);
   }else if(theme.key==='forest'){
     floor=(LEVEL.scenery==='mothertree'?createMotherTreeCourse:LEVEL.scenery==='crown'?createCrownCourse:LEVEL.scenery==='loop'?createLoopCourse:LEVEL.scenery==='acorn'?createAcornCourse:LEVEL.scenery==='ravine'?createRavineCourse:createForestCourse)(scene,CELLS,BOUNDARIES,heightAt);
   }else{
@@ -158,7 +162,7 @@ export async function createCourse(scene) {
   }
 
   // Floating structural details make the hole read as one toy-sized set.
-  for(const [x,z,s] of theme.key==='forest'?[]:LEVEL.supports){
+  for(const [x,z,s] of theme.key==='forest'||spook?[]:LEVEL.supports){
     cylinder(scene,1.25*s,1.05*s,2.3+(LEVEL.heightProfile?heightAt(x,z):0),x,-2.2+(LEVEL.heightProfile?heightAt(x,z)/2:0),z,mat(0x568e9d));
     cylinder(scene,1.6*s,1.25*s,.25,x,-3.4,z,mat(0x2f6477));
   }
@@ -172,7 +176,7 @@ export async function createCourse(scene) {
   torus(scene,.83,.025,CUP.x,cupHeight+.04,CUP.z,new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.6}));
   // The flagpole now goes into the actual cup. The Blender pin replaces the
   // procedural pole, rim and pennant when it has loaded.
-  const flagColor=theme.key==='forest'?0xffc35c:0xed6655,pin=modelInstance('common/flag');
+  const flagColor=theme.key==='forest'?0xffc35c:spook?0xff8a2a:0xed6655,pin=modelInstance('common/flag');
   // The flag stands in a group so the sink celebration can lift it out of the cup.
   const flagstick=new THREE.Group();flagstick.position.set(CUP.x,cupHeight,CUP.z);scene.add(flagstick);
   if(pin){
@@ -194,7 +198,7 @@ export async function createCourse(scene) {
   if(spinner){spinner.position.set(SPINNER.x,.04,SPINNER.z);scene.add(spinner)}
 
   const rocketPads=theme.key==='moon'?createRocketPads(scene,SPRINGS,heightAt):null;
-  const springGlows=rocketPads?rocketPads.glows:SPRINGS.map(spring=>{
+  const springGlows=rocketPads?rocketPads.glows:spook?createWitchCircles(scene,SPRINGS):SPRINGS.map(spring=>{
     const glow=cylinder(scene,.88,.88,.08,spring.x,.1,spring.z,mat(0xffd36f));
     torus(scene,.95,.07,spring.x,.16,spring.z,cream);
     // Painted chevrons make the outgoing boost direction visible before a shot.
@@ -221,6 +225,7 @@ export async function createCourse(scene) {
     }catch(e){console.warn('Kunde inte läsa modell',url,e);return null}
   }
   if(SPINNER?.custom==='thorn')createThornSpinner(spinner,SPINNER);
+  else if(SPINNER&&spook)createScarecrow(spinner,SPINNER);
   else if(SPINNER){
     const swiper=await model(SPINNER.model,SPINNER.folder,0,0,0,1,0,spinner);
     if(swiper)swiper.scale.set(SPINNER.scale,.45,SPINNER.scale);
@@ -235,11 +240,13 @@ export async function createCourse(scene) {
   const inletRamp=new THREE.BufferGeometry();
   inletRamp.setAttribute('position',new THREE.Float32BufferAttribute(rampVertices,3));
   inletRamp.setIndex([0,1,2,1,3,2]);inletRamp.computeVertexNormals();
-  const scoop=new THREE.Mesh(inletRamp,new THREE.MeshStandardMaterial({color:0x80c4d4,roughness:.7,side:THREE.DoubleSide}));
+  // In Spökhamnen the pipe is a mossy slime pipe with orange bands.
+  const pipeColors=spook?{scoop:0x3b5a3a,guide:0x2b2734,tube:0x2e6b3c,inside:0x173a1f,band:0xff8a2a,lip:0xff8a2a,mouth:0x2b2734}:{scoop:0x80c4d4,guide:0x479fba,tube:0x148ab6,inside:0x145578,band:0x92d4df,lip:0x69c9e1};
+  const scoop=new THREE.Mesh(inletRamp,new THREE.MeshStandardMaterial({color:pipeColors.scoop,roughness:.7,side:THREE.DoubleSide}));
   scoop.receiveShadow=true;scene.add(scoop);
   for(const {a,b} of PIPE_GUIDES){
     const start=new THREE.Vector3(a.x,.12,a.z),end=new THREE.Vector3(b.x,.12+PIPE_ENTRY.rise,b.z);
-    const rail=new THREE.Mesh(new THREE.CylinderGeometry(.065,.065,start.distanceTo(end),12),mat(0x479fba));
+    const rail=new THREE.Mesh(new THREE.CylinderGeometry(.065,.065,start.distanceTo(end),12),mat(pipeColors.guide));
     rail.position.copy(start).add(end).multiplyScalar(.5);
     rail.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),end.sub(start).normalize());
     rail.castShadow=true;scene.add(rail);
@@ -260,12 +267,12 @@ export async function createCourse(scene) {
     [.7,2.35,-4.8],[1.55,1.95,-4.55],[2.3,.65,-4.1],[PIPE_OUT.x-.56,.65,PIPE_OUT.z],
   ].map(p=>new THREE.Vector3(...p));
   const tubeCurve=new THREE.CatmullRomCurve3(middlePoints);
-  const tubeMat=mat(0x148ab6,.3,.08);
+  const tubeMat=mat(pipeColors.tube,.3,.08);
   const shell=new THREE.Mesh(new THREE.TubeGeometry(tubeCurve,96,.78,24,false),tubeMat);
   shell.castShadow=true;shell.receiveShadow=true;scene.add(shell);
-  const inside=new THREE.Mesh(new THREE.TubeGeometry(tubeCurve,96,.621,24,false),new THREE.MeshStandardMaterial({color:0x145578,roughness:.7,side:THREE.BackSide}));scene.add(inside);
+  const inside=new THREE.Mesh(new THREE.TubeGeometry(tubeCurve,96,.621,24,false),new THREE.MeshStandardMaterial({color:pipeColors.inside,roughness:.7,side:THREE.BackSide}));scene.add(inside);
   for(const t of [0,.25,.66,1]){
-    const band=new THREE.Mesh(new THREE.TorusGeometry(.785,.045,8,32),mat(0x92d4df,.35,.15));
+    const band=new THREE.Mesh(new THREE.TorusGeometry(.785,.045,8,32),mat(pipeColors.band,.35,.15));
     band.position.copy(tubeCurve.getPointAt(t));
     band.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),tubeCurve.getTangentAt(t));
     band.castShadow=true;scene.add(band);
@@ -280,10 +287,10 @@ export async function createCourse(scene) {
   ]);
   const mouthDirections=[new THREE.Vector3(PIPE_DIRECTION.x,0,PIPE_DIRECTION.z),new THREE.Vector3(1,0,0)];
   mouths.forEach((mouth,i)=>{
-    if(mouth){mouth.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),mouthDirections[i]);mouth.scale.set(.78,.28,.78)}
+    if(mouth){mouth.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),mouthDirections[i]);mouth.scale.set(.78,.28,.78);if(spook)tintMaterials(mouth,{'*':pipeColors.mouth})}
   });
   [[PIPE_IN,PIPE_ENTRY.centerY],[PIPE_OUT,.65]].forEach(([position,y],i)=>{
-    const lip=new THREE.Mesh(new THREE.TorusGeometry(.702,.082,10,40),mat(0x69c9e1,.27,.1));
+    const lip=new THREE.Mesh(new THREE.TorusGeometry(.702,.082,10,40),mat(pipeColors.lip,.27,.1));
     lip.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),mouthDirections[i]);
     lip.position.set(position.x,y,position.z);scene.add(lip);
   });
@@ -291,18 +298,24 @@ export async function createCourse(scene) {
   const startOffset=LEVEL.id>=12?LEVEL.start.x+16.8:0;
   const decorHeight=(x,z)=>LEVEL.heightProfile?heightAt(x,z):0;
   // Set dressing lives behind the edge rail instead of obstructing playable turf.
-  if(!['forest','clockwork','moon'].includes(theme.key))for(const [x,z,w] of [[(LEVEL.heightProfile?-17.2:-16)+startOffset,4.8,LEVEL.heightProfile?3:5.8],[-18+startOffset,-4.8,1.5],[LEVEL.shelf.x,LEVEL.shelf.z,1.7]]){
+  if(!['forest','clockwork','moon','halloween'].includes(theme.key))for(const [x,z,w] of [[(LEVEL.heightProfile?-17.2:-16)+startOffset,4.8,LEVEL.heightProfile?3:5.8],[-18+startOffset,-4.8,1.5],[LEVEL.shelf.x,LEVEL.shelf.z,1.7]]){
     box(scene,w,.45,1.35,x,-.20+decorHeight(x,z),z,deep);
     box(scene,w,.05,1.35,x,.05+decorHeight(x,z),z,cream);
   }
   await Promise.all([
-    ...(CANNON?[model('cannon_base_red','red',CANNON.x,.05,CANNON.z,.68,Math.atan2(LANDING.x-CANNON.x,LANDING.z-CANNON.z))]:[]),
-    ...(rocketPads?[]:SPRINGS.map(spring=>model('spring_pad_yellow','yellow',spring.x,.08,spring.z,.68))),
-    ...LEVEL.arches.map(arch=>model('arch_wide_yellow','yellow',arch.x,.04,arch.z,.72,Math.PI/2)),
-    ...(['forest','clockwork','moon'].includes(theme.key)?[]:[model('star_yellow','yellow',(LEVEL.heightProfile?-16:-14.2)+startOffset,.1+decorHeight(-14.2+startOffset,4.75),4.75,.60),
+    ...(CANNON?[model('cannon_base_red','red',CANNON.x,.05,CANNON.z,.68,Math.atan2(LANDING.x-CANNON.x,LANDING.z-CANNON.z)).then(cannon=>{if(cannon&&spook)tintMaterials(cannon,{'*':0x2b2734});return cannon})]:[]),
+    ...(rocketPads||spook?[]:SPRINGS.map(spring=>model('spring_pad_yellow','yellow',spring.x,.08,spring.z,.68))),
+    ...(spook?[]:LEVEL.arches.map(arch=>model('arch_wide_yellow','yellow',arch.x,.04,arch.z,.72,Math.PI/2))),
+    ...(['forest','clockwork','moon','halloween'].includes(theme.key)?[]:[model('star_yellow','yellow',(LEVEL.heightProfile?-16:-14.2)+startOffset,.1+decorHeight(-14.2+startOffset,4.75),4.75,.60),
     model('star_yellow','yellow',LEVEL.shelf.x,.1+decorHeight(LEVEL.shelf.x,LEVEL.shelf.z),LEVEL.shelf.z,.65),
     model('chest_red','red',-17+startOffset,.08+decorHeight(-17+startOffset,4.8),4.8,.48,Math.PI/4),
     model('diamond_blue','blue',-18.1+startOffset,.4+decorHeight(-18.1+startOffset,-4.8),-4.8,.5)]),
   ]);
+  if(spook){
+    createGraveGates(scene,LEVEL.arches,heightAt);
+    // The course's own jack-o'-lanterns flicker along with the world.
+    const decor=dressHalloweenCourse(scene,LEVEL,heightAt,environment),update=environment.update;
+    environment.update=(time,...rest)=>{update(time,...rest);decor.update(time)};
+  }
   return { flagstick, cupCritter, lipRescuer, cupHeight, spinner, springGlows, pipePath, bridge, bumpers, gates, carnival, pendulum, trapdoors, environment, funnel, bellBridge, lift, clockWheel, clockHand, motherTree, rocketPads, blackHole, cometCannon, ferris, aimSurface:floor };
 }

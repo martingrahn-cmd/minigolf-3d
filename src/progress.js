@@ -1,4 +1,4 @@
-import { ROUND } from './round.js';
+import { ROUND, CAMPAIGN } from './round.js';
 
 // Stars turn a score into a goal that reads the same on every hole:
 // birdie or better ★★★, par ★★, bogey ★, worse still counts as cleared.
@@ -56,19 +56,23 @@ export function runScorecard(run,world){
   };
 }
 
+const holeBest=storage=>slot=>{
+  const best=Number(storage.getItem(slot.level.recordKey))||0;
+  return {slot,best,stars:starsFor(best,slot.level.par)};
+};
+// One world's progress from each built hole's best score (special worlds too).
+export function worldProgress(storage,world){
+  const own=ROUND.filter(slot=>slot.world===world&&slot.level).map(holeBest(storage)),done=own.filter(h=>h.best);
+  return {world,played:done.length,total:own.length,stars:own.reduce((s,h)=>s+h.stars,0),max:own.length*STARS_PER_HOLE,
+    strokes:done.reduce((s,h)=>s+h.best,0),par:done.reduce((s,h)=>s+h.slot.level.par,0)};
+}
+
 // The whole campaign, from each hole's best score: how many holes are cleared,
 // the stars, and the best strokes against par for the holes played so far.
 export function campaignProgress(storage){
-  const holes=ROUND.filter(slot=>slot.level).map(slot=>{
-    const best=Number(storage.getItem(slot.level.recordKey))||0;
-    return {slot,best,stars:starsFor(best,slot.level.par)};
-  });
+  const holes=CAMPAIGN.filter(slot=>slot.level).map(holeBest(storage));
   const played=holes.filter(h=>h.best);
-  const worlds=[...new Set(holes.map(h=>h.slot.world))].map(world=>{
-    const own=holes.filter(h=>h.slot.world===world),done=own.filter(h=>h.best);
-    return {world,played:done.length,total:own.length,stars:own.reduce((s,h)=>s+h.stars,0),max:own.length*STARS_PER_HOLE,
-      strokes:done.reduce((s,h)=>s+h.best,0),par:done.reduce((s,h)=>s+h.slot.level.par,0)};
-  });
+  const worlds=[...new Set(holes.map(h=>h.slot.world))].map(world=>worldProgress(storage,world));
   return {
     holes,worlds,played:played.length,total:holes.length,complete:played.length===holes.length,
     stars:holes.reduce((s,h)=>s+h.stars,0),max:holes.length*STARS_PER_HOLE,
@@ -77,4 +81,4 @@ export function campaignProgress(storage){
   };
 }
 // The last hole of the campaign (the moon rocket), where the ending is offered.
-export const isCampaignFinale=slot=>!!slot&&slot.hole===ROUND.filter(s=>s.level).at(-1).hole;
+export const isCampaignFinale=slot=>!!slot&&slot.hole===CAMPAIGN.filter(s=>s.level).at(-1).hole;

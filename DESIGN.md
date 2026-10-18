@@ -1,6 +1,6 @@
 # Mini Mayhem – banrytm och temavärldar
 
-Uppdaterat 15 oktober 2026. **Rundan är numrerad 1–18 i `src/round.js`.** Urverkets stad (1–6) är klar. Molnskogen är hål 7–12: Skybowling, Rotravinen, Ekollonsvingen, Rotvolten, Törnkronan och Moderträdet som final och set piece. Månkarnevalen (13–18) är klar: Raketrampen, Tyngdlösa tältet, Svarta hålet, Kanonkometen, Pariserhjulet och finalen Månraketen. Alla 18 hål i rundan är byggda. Solskensöarna och Neonhamnen ligger kvar som spelbara prototyper utanför rundan.
+Uppdaterat 15 oktober 2026. **Rundan är numrerad 1–18 i `src/round.js`.** Urverkets stad (1–6) är klar. Molnskogen är hål 7–12: Skybowling, Rotravinen, Ekollonsvingen, Rotvolten, Törnkronan och Moderträdet som final och set piece. Månkarnevalen (13–18) är klar: Raketrampen, Tyngdlösa tältet, Svarta hålet, Kanonkometen, Pariserhjulet och finalen Månraketen. Alla 18 hål i rundan är byggda. De fem gamla prototyperna är nu halloweenvärlden Spökhamnen (hål 19–23), som står vid sidan av kampanjen.
 
 ## Aktuellt förslag – tre världar med sex hål
 
@@ -97,7 +97,59 @@ Allt räknas från varje håls bästa resultat (`campaignProgress` i `src/progre
 
 Fyrverkerier smäller över banan medan kortet är öppet. Saknas hål visar kortet hur många som är kvar och leder till nästa ospelade hål. Är allt klart leder det i stället till första hålet som saknar stjärnor. När kampanjen är klar finns *Se slutet igen* på menyn.
 
-De fem gamla prototyperna heter nu *Bonusbanor* och räknas inte till kampanjen. Alla världar är fortfarande öppna, så den som redan spelar blir inte utelåst.
+De fem gamla prototyperna har blivit halloweenvärlden Spökhamnen och räknas inte till kampanjen (se nedan). Alla världar är fortfarande öppna, så den som redan spelar blir inte utelåst.
+
+## Spökhamnen – halloweenvärlden
+
+De fem tidiga prototyperna (Kanonkurvan, Dubbelstudsen, Vippvarvet, Neonslussen och Frostfallet) är ombyggda till en halloweenvärld. Hålens fysik är densamma; det är tema, namn, par och ordning som är nya.
+
+**Placering.** Spökhamnen är en specialvärld, hål 19–23, med en plats för en final på hål 24.
+- Den har egna stjärnor (15) men räknas inte till kampanjens 54, och kampanjens slut efter Månraketen är oförändrat.
+- Menyn visar den först, med ett eget mörkt kort, så länge den är i säsong.
+- Rundan i kampanjen går aldrig vidare in i Spökhamnen. Inne i världen leder *Nästa hål* vidare till nästa spökhål.
+- Gamla länkar som `?proto=kanonkurvan` hittar hålet.
+- Rekorden har nya nycklar eftersom flera par har ändrats.
+
+**Hålen i ordning**
+
+| Hål | Namn | Var | Par | Parbotens snitt |
+| --- | --- | --- | --- | --- |
+| 19 | Kryptporten | Neonslussen | 3 | 2,1 |
+| 20 | Spökplankan | Vippvarvet | 3 | 2,4 |
+| 21 | Pumpastudsen | Dubbelstudsen | 3 (var 4) | 2,4 |
+| 22 | Slemrännan | Frostfallet | 4 | 2,6 |
+| 23 | Spökkanonen | Kanonkurvan | 4 (var 5) | 3,4 |
+| 24 | Spökskeppet | final, byggs | – | – |
+
+Ordningen går från lätt till svår och slutar med kanonen. Par är satt med samma regel som i balanspasset: minst 1,5 slag under par sänker det. Slemrännan ligger precis under gränsen och får behålla par 4 för den säkra vägen runt gravarna.
+
+**Miljön** (`src/halloween.js`). Natt under en stor, låg orange måne i färdriktningen, med ett glittrande spår i det svarta vattnet. I översikten syns månen som en spegling i vattnet.
+- Banan står på trästolpar. Filten behåller varje prototyps färgton men i mörk nattversion, så att vägvalen fortfarande syns. Slemrännan är självlysande grön.
+- Sargerna är randiga som godismajs i orange och benvitt. De har järnstolpar med små lyktor. Öppna kanter har orange och violetta chevroner.
+- Runt banan finns:
+  - kyrkogårdsöar med gravstenar, döda träd och järnstaket
+  - ett spökskepp med trasiga, självlysande segel
+  - en fyr vars ljuskägla sveper genom dimman
+  - lyktstolpar
+  - spöken som driver runt banan och vinkar
+  - fladdermöss
+  - dimbankar
+  - en häxa som flyger över månen
+- Alla pumplyktor fladdrar var för sig.
+
+**Mekanismerna klär ut sig**
+- Lyftporten är ett kryptgaller mellan stenpelare, med rött, gult och grönt häxljus.
+- Flipperstötarna är pumplyktor som trycks ihop och lyser upp vid träff.
+- Snurrorna är fågelskrämmor med pumphuvud och häxhatt. Ärmarna täcker exakt den yta bollen kan träffa.
+- Studsplattorna är häxringar med runor.
+- Vippbron är en gungplanka.
+- Isrännan är slem som droppar från kanterna.
+- Bågarna är låga kyrkogårdsgrindar.
+- Röret är ett mossgrönt slemrör och kanonen är svart.
+
+**Koppens invånare och kanthjälpen.** En skeletthand kommer upp ur koppen med bollen i handflatan. Fingrarna kröker sig runt den, klämmer, trummar och vinkar, och sedan drar handen ner bollen i mörkret: *HEHEHE! Skeletthanden tog bollen*. Stannar bollen på kanten smyger en svart katt med gula ögon och häxhatt fram och knuffar ner den.
+
+**Ljud.** Ljudmiljön har vind som tjuter, vågor mot stolparna, en uggla, ett knarrande spökskepp, pipande fladdermöss och en varg långt bort. Musiken är en dödsdans: vals i d-moll med xylofon av ben, pizzicatobas och orgel. Fanfaren går i moll.
 
 ## När putten sänks
 

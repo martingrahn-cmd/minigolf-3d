@@ -150,9 +150,20 @@ Följande räknas fram ur spelmatematiken och ska fortsätta genereras i kod:
 
 Alla sex hål är byggda.
 
-## Prototyper (Solskensöarna och Neonhamnen)
+## Spökhamnen (hål 19–23, halloween)
 
-Kanonkurvan, Dubbelstudsen, Vippvarvet, Neonslussen och Frostfallet använder KayKit Platformer Pack (CC0) och enkel kodgrafik. De ska byggas om och ingå i rundan, så **gör inga Blender-modeller för dem** innan de har fått en plats och ett tema.
+De fem prototyperna har fått tema och plats som Spökhamnen. Modellerna byggs i `blender/assets/halloween.py`:
+
+| Modell | Används till |
+| --- | --- |
+| `halloween/jack-o-lantern-0`, `-1` | Pumplyktor runt banan, stötarna vid flaggan och huvudet på fågelskrämman. Ansiktet har materialet `Glow`, som fladdrar i spelet. |
+| `halloween/gravestone-0`, `-1`, `-2` | Gravstenar på kyrkogårdsöarna och vid hyllan. |
+| `halloween/ghost` | Spöken som driver i dimman. Armarna `arm-l` och `arm-r` vinkar. |
+| `halloween/bat` | Fladdermöss. Vingarna `wing-l` och `wing-r` flaxar. |
+| `halloween/skeleton-hand` | Koppens invånare. Fingrarna `finger-0` till `finger-4` kröker sig runt bollen. |
+| `halloween/witch-hat` | Häxhatten på den svarta katten (Urverkets katt, omfärgad). |
+
+KayKit-delarna finns kvar för rör och kanon men färgas om. Spökskepp, fyr, döda träd, kryptgaller, fågelskrämmor och häxringar är kodgrafik och kan bli Blender-modeller senare.
 
 ## Föreslagen arbetsordning
 
