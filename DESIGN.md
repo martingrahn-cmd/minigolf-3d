@@ -1,6 +1,6 @@
 # Mini Mayhem – banrytm och temavärldar
 
-Uppdaterat 15 oktober 2026. **Rundan är numrerad 1–18 i `src/round.js`.** Urverkets stad (1–6) är klar. Molnskogen är hål 7–12: Skybowling, Rotravinen, Ekollonsvingen, Rotvolten, Törnkronan och Moderträdet som final och set piece. Månkarnevalen (13–18) är klar: Raketrampen, Tyngdlösa tältet, Svarta hålet, Kanonkometen, Pariserhjulet och finalen Månraketen. Alla 18 hål i rundan är byggda. Solskensöarna och Neonhamnen ligger kvar som spelbara prototyper utanför rundan.
+Uppdaterat 15 oktober 2026. **Rundan är numrerad 1–18 i `src/round.js`.** Urverkets stad (1–6) är klar. Molnskogen är hål 7–12: Skybowling, Rotravinen, Ekollonsvingen, Rotvolten, Törnkronan och Moderträdet som final och set piece. Månkarnevalen (13–18) är klar: Raketrampen, Tyngdlösa tältet, Svarta hålet, Kanonkometen, Pariserhjulet och finalen Månraketen. Alla 18 hål i rundan är byggda. De fem gamla prototyperna är nu halloweenvärlden Spökhamnen (hål 19–23), som står vid sidan av kampanjen.
 
 ## Aktuellt förslag – tre världar med sex hål
 
@@ -97,7 +97,7 @@ Allt räknas från varje håls bästa resultat (`campaignProgress` i `src/progre
 
 Fyrverkerier smäller över banan medan kortet är öppet. Saknas hål visar kortet hur många som är kvar och leder till nästa ospelade hål. Är allt klart leder det i stället till första hålet som saknar stjärnor. När kampanjen är klar finns *Se slutet igen* på menyn.
 
-De fem gamla prototyperna heter nu *Bonusbanor* och räknas inte till kampanjen. Alla världar är fortfarande öppna, så den som redan spelar blir inte utelåst.
+De fem gamla prototyperna har blivit halloweenvärlden Spökhamnen och räknas inte till kampanjen (se nedan). Alla världar är fortfarande öppna, så den som redan spelar blir inte utelåst.
 
 ## När putten sänks
 
