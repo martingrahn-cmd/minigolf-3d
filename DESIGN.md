@@ -119,7 +119,7 @@ De fem tidiga prototyperna (Kanonkurvan, Dubbelstudsen, Vippvarvet, Neonslussen 
 | 21 | Pumpastudsen | Dubbelstudsen | 3 (var 4) | 2,4 |
 | 22 | Slemrännan | Frostfallet | 4 | 2,6 |
 | 23 | Spökkanonen | Kanonkurvan | 4 (var 5) | 3,4 |
-| 24 | Spökskeppet | ny final | 4 | se nedan |
+| 24 | Spökskeppet | ny final | 4 | 3,2 |
 
 Ordningen går från lätt till svår och slutar med kanonen. Par är satt med samma regel som i balanspasset: minst 1,5 slag under par sänker det. Slemrännan ligger precis under gränsen och får behålla par 4 för den säkra vägen runt gravarna.
 
@@ -155,7 +155,7 @@ Ordningen går från lätt till svår och slutar med kanonen. Par är satt med s
 - Under plankorna lyser lastrummet grönt. Sargerna längs gången gör att det enda som fäller bollen är en öppen planka.
 - Koppen står på kaptenens däck i aktern.
 - Den trygga vägen går runt: bryggan längs skeppet, landgången ombord och sidogången förbi kajutorna.
-- Ett perfekt kraftslag med rätt tajming kan landa direkt på plankorna eller ända bort på kaptenens däck. Parboten hittar en tvåa, alltså eagle.
+- Ett perfekt kraftslag med rätt tajming kan landa direkt på plankorna eller ända bort på kaptenens däck. Parboten hittar en tvåa, alltså eagle. Normalspelaren snittar 3,2 (2–5 slag), så par 4 står kvar.
 - Skeppet: ett mörkt skrov med lysande ventiler och ett galjonsskelett i fören. Det enda masten står i aktern, med trasiga självlysande segel och en dödskalleflagga som fladdrar.
 - Masten står i aktern med flit. Kameran står över fören och midskepps när man spelar, och ett segel där skulle hänga rakt framför den.
 - Kanonerna längs skrovet skjuter då och då med blixt, rök och en dov smäll.
