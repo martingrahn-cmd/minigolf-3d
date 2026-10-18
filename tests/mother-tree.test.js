@@ -59,7 +59,7 @@ test('one tee shot can chain loop, drum and eye: a narrow power window, max powe
   assert.ok(shot({x:-5,z:-3.2},.2,{x:5,z:-3.2}).bark,'A soft drum shot from the runway hits the tree');
 });
 
-test('the set piece gives birdie, the guarded Barkstigen gives par without the drum',()=>{
+test('the set piece gives birdie, the guarded Barkstigen is a safe bogey without the drum',()=>{
   let b=shot(S,.825,mouth);assert.ok(b.eye&&!b.fell);
   b=shot(b,.4,C);assert.ok(b.won||putt(b).won,'Chain, approach and putt: three strokes');
   b=shot(S,1,{x:-12,z:5.3});assert.ok(!b.fell&&!b.loop&&b.z>3.8);

@@ -27,13 +27,13 @@ test('the thrust gauge: too little and too much are space, the base is wide, the
   assert.ok(at(8.5).missed&&at(31).missed,'Short of the base and past the top');
   for(const r of [11,14,17])assert.ok(onBase(at(r)),`${r} m: the moon base`);
   assert.ok(at(22).missed,'The crater between them');
-  for(const r of [24.5,26,28])assert.ok(onTop(at(r))&&(at(r).won||putt(at(r)).won),`${r} m: the top, then a putt for eagle`);
+  for(const r of [24.5,26,28])assert.ok(onTop(at(r))&&(at(r).won||putt(at(r)).won),`${r} m: the top, then a putt for birdie`);
   const tally={miss:0,base:0,top:0};let n=0;
   for(let t=0;t<rocket.period;t+=.01){n++;const b=at(cometRange(rocket,t));tally[b.fell?'miss':onTop(b)?'top':'base']++}
   assert.ok(tally.base>tally.top&&tally.top/n>.12&&tally.top/n<.3,JSON.stringify(tally));
 });
 
-test('from the weightless base a float over the crater gives birdie; too hard bounces back into it',()=>{
+test('from the weightless base a float over the crater gives par; too hard bounces back into it',()=>{
   const base=launch(15);assert.ok(onBase(base));
   for(const p of [.45,.5,.55,.6]){const b=shot(base,p,{x:C.x,z:0});assert.ok(onTop(b)&&b.floats===1&&putt(b).won,`${p}: floats over, then a putt`)}
   assert.ok(shot(base,.4,{x:C.x,z:0}).fell,'Too soft sinks in the crater');

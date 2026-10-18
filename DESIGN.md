@@ -160,6 +160,49 @@ Allt ljud syntetiseras med Web Audio i `src/audio.js`, så spelet behöver inga 
 - *Urverkets stad:* tre klockor tickar i olika takt från olika håll i rummet. Göken gal ibland. Leksakståget tuffar förbi i stereo och visslar, speldosan på karusellen spelar sin vals, fontänen porlar och katten spinner då och då.
 - *Månkarnevalen:* en kalliopvals hörs från tivolit och rymden surrar mjukt. Åkattraktionerna ger glada tjut och folkmassan sorlar. Fyrverkerierna smäller en stund efter att de syns, från rätt håll.
 
+## Balanspass av par och stjärnor
+
+Efter att den förenklade putten togs bort spelades alla 18 hål om av en bot. Spelet öppnas med `?qa&bot` och drivs av `scripts/par-bot.mjs`. Boten använder spelets egen fysik och samma slag som spelaren: sikte, kraft, precisionsnål och närputt i meter. Den kan också vänta på mekanismer och tajma FYR.
+
+Inför varje slag söker boten fram en plan. Den läser hålet som en spelare gör, till exempel att klockknappen måste träffas för att bron ska fällas ner. Den väljer slag som håller även när de blir lite fel. Slaget slås sedan med mänskliga fel:
+- sikte ±1°
+- kraft ±3,5 procentenheter
+- precisionsnål ±0,1
+- putt ±0,2 m
+- tajming ±0,07 s
+
+Varje hål spelades 16 gånger. Boten kan banan bättre än en ny spelare, så en verklig förstagångsrunda blir högre än botens snitt.
+
+| Hål | Par | Snitt | Kommentar |
+| --- | --- | --- | --- |
+| 1 Gökporten | 3 | 2,2 | |
+| 2 Rörposten | 3 | 2,6 | |
+| 3 Klangbron | 3 | 2,9 | |
+| 4 Lodverket | 4 | 4,3 | svårt men jämnt, aldrig under 4 |
+| 5 Sekundvalvet | 4 | 3,4 | |
+| 6 Tolvslaget | 4 | 3,6 | |
+| 7 Skybowling | 4 | 3,4 | stor spridning, 2–7 |
+| 8 Rotravinen | 4 | 4,6 | världens svåraste mot par, spången straffar |
+| 9 Ekollonsvingen | 4 | 4,3 | |
+| 10 Rotvolten | 4 | 4,0 | |
+| 11 Törnkronan | 5 | 4,4 | |
+| 12 Moderträdet | 5 → **4** | 2,6 | kedjan lyckas nästan alltid |
+| 13 Raketrampen | 3 | 2,3 | |
+| 14 Tyngdlösa tältet | 4 | 3,1 | |
+| 15 Svarta hålet | 3 | 1,9 | slungskottet förlåter mycket, var fjärde runda blir hole in one |
+| 16 Kanonkometen | 3 | 3,1 | |
+| 17 Pariserhjulet | 3 | 2,7 | |
+| 18 Månraketen | 4 → **3** | 2,1 | toppens fönster är 0,6 s brett och lätt att tajma |
+
+**Regeln.** Par ska ligga ett halvt till ett helt slag över botens snitt, eftersom människor spelar sämre än boten. Ett hål justeras när botens snitt ligger minst 1,5 slag under par eller mer än ett slag över par.
+
+**Ändringar och läget efter passet.**
+- Bara de två finalerna ändrades. Moderträdet och Månraketen gav birdie till nästan alla, och en final ska kännas som en prövning. Enligt regeln borde Moderträdet få par 3. Det fick par 4 så att den säkra Barkstigen, fem slag, fortfarande ger en stjärna.
+- Svarta hålet och Rotravinen ligger kvar på par 3 respektive 4. De är sina världars lättaste och svåraste hål och behöver speltest av en människa innan något ändras.
+- Stjärnreglerna gäller oförändrat: birdie ger tre stjärnor, par två och bogey en.
+- Rekorden sparas som slag, så stjärnorna räknas om mot det nya parvärdet. Ett tidigare rekord på 4 slag på Moderträdet ger nu två stjärnor i stället för tre.
+- Kampanjens totala par blir 21 + 25 + 18 = 64, tidigare 66.
+
 ## Den guidade första rundan
 
 Den som aldrig har spelat lär sig slaget genom att göra det, inte genom att läsa hjälpen. Första gången varje steg dyker upp visas en kort pratbubbla bredvid kontrollen den gäller (`src/coach.js`):
@@ -394,13 +437,13 @@ Webbläsarprov med de vanliga kontrollerna fullföljde genvägen till mål på f
 
 ## Molnskogen – hål 12: Moderträdet
 
-**Par 5, världens final och set piece.** Varje värld ska sluta med ett landmärke som också är mekaniken. Törnkronan flyttades till hål 11 och Moderträdet tog finalplatsen.
+**Par 4, världens final och set piece.** Parvärdet sänktes från 5 i balanspasset (se *Balanspass av par och stjärnor*). Varje värld ska sluta med ett landmärke som också är mekaniken. Törnkronan flyttades till hål 11 och Moderträdet tog finalplatsen.
 
 Ett jätteträd växer upp ur molnhavet mellan utslaget och den svävande kronön. Genom stammen går en rund tunnel, trädets öga, i flygriktningen. Ett enda slag kan kedja två redan kända idéer: rotvolten från hål 10 och studstrumman från hål 7. Volten lämnar bollen på en smal rotbro som leder rakt in på trumman. Trumman kastar bollen genom ögat mot kronön.
 
 Kraften avgör allt. Under cirka 77 procent rullar bollen tillbaka ur volten utan pliktslag. Runt 80–87 procent går kedjan hela vägen. Ett svagare hopp landar i barken eller före ön, och maxkraft seglar förbi ön och över den öppna bortre kanten. Flygningen räknas bara som lyckad genom själva tunneln. Stammen, sidogrenarna och rankridåerna inom 5,6 meter från ögat räknas som träd, så det finns ingen osynlig väg runt stammen. Fysikens öppning och den byggda tunneln provas mot varandra med strålar i testerna.
 
-Barkstigen är en sargad hängbro söder om trädet. Den kräver tre placeringsslag, ett inspel och en putt, det vill säga par. Kedjan ger inspel och putt efteråt, alltså birdie, och ett exakt inspel kan ge eagle. Vid ett misslyckat hopp återgår bollen till slagplatsen med ett pliktslag, precis som på övriga skogshål.
+Barkstigen är en sargad hängbro söder om trädet. Den kräver tre placeringsslag, ett inspel och en putt, det vill säga fem slag och bogey. Kedjan följd av ett inspel och en putt ger birdie, och ett exakt inspel kan ge eagle. Vid ett misslyckat hopp återgår bollen till slagplatsen med ett pliktslag, precis som på övriga skogshål.
 
 En vid sidokamera följer flygningen så att stammen aldrig skymmer bollen. När bollen sjunker lyser ögat upp och fyra blommor runt koppen slår ut.
 
@@ -460,16 +503,16 @@ Rampen längs sidan leder 2,5 meter upp till greenen och ger par. Kanten mot rym
 
 ## Månkarnevalen – hål 18: Månraketen (final)
 
-**Par 4, världens final och set piece.** Finalen följer samma regel som de andra världarnas finaler: två idéer som spelaren redan känner kombineras. Här är det kanonen från hål 16 och den låga gravitationen från hål 14.
+**Par 3, världens final och set piece.** Parvärdet sänktes från 4 i balanspasset. Finalen följer samma regel som de andra världarnas finaler: två idéer som spelaren redan känner kombineras. Här är det kanonen från hål 16 och den låga gravitationen från hål 14.
 
 Den trasiga månraketen, ungefär 12 meter hög och lappad, står på en startplatta bredvid ett gammalt startbord med en kraftmätare. Utslaget rullar ner i samma laddningstratt som på hål 16, och bollen blåses upp i raketen. Raketen sveper inte. I stället laddas kraftmätaren upp linjärt från 8 till 33 meter på 3,2 sekunder och börjar sedan om. FYR avgör alltså längden, inte riktningen. Svepet är linjärt i stället för sinusformat som på hål 16, så varje fönster är lika långt i tid som det är brett. Medan raketen är laddad byter kameran till översikt, eftersom raketkroppen annars skymmer flyglinjen. Ljus längs linjen och ett sikte visar var bollen landar.
 
 - Under 10 meter och över cirka 29 meter hamnar bollen i rymden. Det ger ett pliktslag, och raketen laddas om.
 - Månbasen (10–20 meter, cirka 35 procent av tiden) är bred. Landar bollen nära kratern kan den glida ner i den.
 - Kratern ligger mellan 20 och 24 meter.
-- Toppen med koppen (24–29 meter, cirka 20 procent av tiden) ger en putt för eagle.
+- Toppen med koppen (24–29 meter, cirka 20 procent av tiden) ger en putt för birdie.
 
-Månbasen är en zon med svag gravitation och hal filt. Ett slag på 45–65 procent från basen svävar över kratern och landar på toppen. Toppen har sarger, så ett för hårt slag studsar i bakre sargen och rullar tillbaka ner i kratern. Därför valdes sargen framför en öppen kant: överfart straffas på ett sätt som syns. Vägen runt kratern glider utan att sväva och når också toppen. Vägen via basen ger birdie och marginal för par. När bollen sjunker skjuts fyrverkerier upp över toppen. Skylten MÅNRAKETEN, fyrverkerimörsare, en glödande kraterbotten och ljusslingor ramar in finalen.
+Månbasen är en zon med svag gravitation och hal filt. Ett slag på 45–65 procent från basen svävar över kratern och landar på toppen. Toppen har sarger, så ett för hårt slag studsar i bakre sargen och rullar tillbaka ner i kratern. Därför valdes sargen framför en öppen kant: överfart straffas på ett sätt som syns. Vägen runt kratern glider utan att sväva och når också toppen. Vägen via basen ger par. När bollen sjunker skjuts fyrverkerier upp över toppen. Skylten MÅNRAKETEN, fyrverkerimörsare, en glödande kraterbotten och ljusslingor ramar in finalen.
 
 ### Plan för resten av världen
 
