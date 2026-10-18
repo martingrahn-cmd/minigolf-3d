@@ -255,7 +255,7 @@ export const LEVELS = [
     // with a thrust gauge: the timing of FYR sets how far it throws the ball.
     // The moon base beyond is weightless, so from there the ball floats over the
     // crater to the summit green, or glides the long way round it.
-    id:25,theme:'moon',scenery:'moonrocket',worldFinale:true,name:'Månraketen',title:['MÅN','RAKETEN'],par:4,recordKey:'minimayhem-moon-18-manraketen',
+    id:25,theme:'moon',scenery:'moonrocket',worldFinale:true,name:'Månraketen',title:['MÅN','RAKETEN'],par:3,recordKey:'minimayhem-moon-18-manraketen',
     description:'Månkarnevalens final! Rulla in bollen i den trasiga månraketen. Kraftmätaren laddas upp om och om igen – tryck FYR när siktet står där du vill landa. Månbasen är lätt att träffa, toppen med koppen är svårare. På basen är tyngdkraften svag: sväva över kratern med rätt fart eller glid den långa vägen runt.',
     feature:'Raketkraft & låg gravitation',hasPipe:false,hasRamp:false,start:{x:-19,z:0},cup:{x:18.6,z:1.4},
     cannon:null,landing:null,overview:{x:1,z:0,span:50,cameraX:-8,targetY:2},cameraSide:2.5,spinner:null,arches:[],springs:[],
@@ -372,7 +372,7 @@ export const LEVELS = [
   {
     // Molnskogens set piece: the root loop feeds the drum, which throws the ball
     // through the tunnel in the Mother Tree's trunk to the floating crown island.
-    id:19,theme:'forest',scenery:'mothertree',worldFinale:true,name:'Moderträdet',title:['MODER','TRÄDET'],par:5,recordKey:'minimayhem-forest-12-mothertree',
+    id:19,theme:'forest',scenery:'mothertree',worldFinale:true,name:'Moderträdet',title:['MODER','TRÄDET'],par:4,recordKey:'minimayhem-forest-12-mothertree',
     description:'Molnskogens final! Volta genom roten, studsa på trumman och flyg rakt genom ögat i Moderträdets stam till kronön. För lite fart och du träffar barken, för mycket och du seglar förbi. Barkstigen runt trädet är längre men har sarger hela vägen.',
     feature:'Rotvolt, trumma & trädets öga',hasPipe:false,hasRamp:false,start:{x:-18,z:0},cup:{x:23.6,z:-8.6},
     cannon:null,landing:null,overview:{x:1,z:-1.5,span:56,cameraX:-17,targetY:1},cameraSide:2.5,spinner:null,springs:[],arches:[],
