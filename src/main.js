@@ -1114,7 +1114,10 @@ function startBot(){
   const look=()=>({phase:state.phase,x:state.x,z:state.z,y:surfaceHeight(state.x,state.z),strokes:state.strokes,putt:nearPutt?.distance??null,flags:{bridge:bellBridgeState.open,lift:liftState.mode==='top'}});
   window.minigolfBot={
     level:{name:LEVEL.name,par:LEVEL.par,start:{...START},cup:{x:CUP.x,z:CUP.z,y:surfaceHeight(CUP.x,CUP.z)}},
-    restart(){reset(false);state.strokes=0;elapsed=0;cometTime=0;wheelTime=0;accumulator=0;return look()},
+    restart(){
+      // Without drawing nothing ages the particles away, so clear them here.
+      for(const p of particles){scene.remove(p.mesh);p.mesh.geometry.dispose();p.mesh.material.dispose()}particles.length=0;
+      reset(false);state.strokes=0;elapsed=0;cometTime=0;wheelTime=0;accumulator=0;return look()},
     look,
     onCourse:(x,z)=>onCourse(x,z),
     // True where a wall or post would push a resting ball out of the spot.
