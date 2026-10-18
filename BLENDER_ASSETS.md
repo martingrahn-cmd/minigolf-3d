@@ -150,7 +150,7 @@ Följande räknas fram ur spelmatematiken och ska fortsätta genereras i kod:
 
 Alla sex hål är byggda.
 
-## Spökhamnen (hål 19–23, halloween)
+## Spökhamnen (hål 19–24, halloween)
 
 De fem prototyperna har fått tema och plats som Spökhamnen. Modellerna byggs i `blender/assets/halloween.py`:
 
@@ -163,7 +163,7 @@ De fem prototyperna har fått tema och plats som Spökhamnen. Modellerna byggs i
 | `halloween/skeleton-hand` | Koppens invånare. Fingrarna `finger-0` till `finger-4` kröker sig runt bollen. |
 | `halloween/witch-hat` | Häxhatten på den svarta katten (Urverkets katt, omfärgad). |
 
-KayKit-delarna finns kvar för rör och kanon men färgas om. Spökskepp, fyr, döda träd, kryptgaller, fågelskrämmor och häxringar är kodgrafik och kan bli Blender-modeller senare.
+KayKit-delarna finns kvar för rör och kanon men färgas om. Spökskeppet (både i bakgrunden och som bana på hål 24), fyr, döda träd, kryptgaller, ruttna plankor, fågelskrämmor och häxringar är kodgrafik och kan bli Blender-modeller senare.
 
 ## Föreslagen arbetsordning
 
