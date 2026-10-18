@@ -1,6 +1,6 @@
 export const LEVELS = [
   {
-    id:9,theme:'halloween',name:'Spökkanonen',title:['SPÖK','KANONEN'],par:5,recordKey:'minimayhem-spook-5-spokkanonen',
+    id:9,theme:'halloween',name:'Spökkanonen',title:['SPÖK','KANONEN'],par:4,recordKey:'minimayhem-spook-5-spokkanonen',
     description:'Rulla upp i det gröna slemröret och låt spökkanonen skjuta dig över det svarta vattnet. Eller ta den lugnare vägen runt.',
     feature:'Slemrör & spökkanon',hasPipe:true,start:{x:-16.8,z:0},cup:{x:20.25,z:0},
     cannon:{x:5.2,z:-4.1},landing:{x:11.7,z:-1.7},overview:{x:1.8,z:0},
@@ -22,7 +22,7 @@ export const LEVELS = [
     routes:[['Spökkanonen','Genom röret och kanonen'],['Omvägen','Längre & tryggare']],
   },
   {
-    id:10,theme:'halloween',name:'Pumpastudsen',title:['PUMPA','STUDSEN'],par:4,recordKey:'minimayhem-spook-3-pumpastudsen',
+    id:10,theme:'halloween',name:'Pumpastudsen',title:['PUMPA','STUDSEN'],par:3,recordKey:'minimayhem-spook-3-pumpastudsen',
     description:'Träffa första pumpan så kastar två pumpor bollen runt hörnet. Vid flaggan snurrar fågelskrämman – välj sida, tajma slaget och putta hem.',
     feature:'Studspumpor & fågelskrämma',routeHeading:'RUNDA SVÄNGEN',hasPipe:false,start:{x:-16.8,z:0},cup:{x:19.5,z:-8.3},
     cannon:null,landing:null,overview:{x:1.5,z:-3.9},
