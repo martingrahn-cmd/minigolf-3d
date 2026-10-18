@@ -2,6 +2,9 @@
 // game's set pieces on demand, to look them over one at a time. Nothing played
 // here is saved as a score.
 export const QA=typeof location!=='undefined'&&new URLSearchParams(location.search).has('qa');
+// `?qa&bot` hands the hole to a script instead (scripts/par-bot.mjs): no drawing,
+// and the physics only steps when the script plays a shot.
+export const BOT=QA&&new URLSearchParams(location.search).has('bot');
 
 const WORLDS=[['Urverket',1],['Molnskogen',7],['Månen',13]];
 

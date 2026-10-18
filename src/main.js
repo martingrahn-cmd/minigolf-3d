@@ -13,7 +13,7 @@ import { hydrateIcons, setIcon } from './icons.js';
 import { WORLDS, ROUND, PROTOTYPES, holeLabel, builtCount, nextInRound } from './round.js';
 import { createGolfBall } from './ball.js';
 import * as activeLayout from './layout.js';
-import { puttingContext, puttSpeed, puttLengthAt } from './putting.js';
+import { puttingContext, puttSpeed, puttLengthAt, PUTT_MAX } from './putting.js';
 import { entersFunnel,createFunnelTrack,startFunnelRide,sampleFunnelRide } from './funnel.js';
 import { createTubeCameraRail,tubeCameraPose,tubeCameraBlend } from './tube-camera.js';
 import {createBellBridgeState,stepBellBridge,strikeBell,collideBellBridge,restoreBellBridge} from './bell-bridge.js';
@@ -28,7 +28,7 @@ import {wheelTurn,docked,crossesDock,ridePose} from './ferris.js';
 import {starsFor,starText,bestStars,worldStars,startWorldRun,activeRun,recordRunHole,endWorldRun,nextRunHole,runScorecard,campaignProgress,isCampaignFinale} from './progress.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { createAudio } from './audio.js';
-import { QA, setupQA } from './qa.js';
+import { QA, BOT, setupQA } from './qa.js';
 import { createCoach } from './coach.js';
 import { SINK, SLOW_MOTION, sinkPose, RESCUE, onTheLip } from './cup-celebration.js';
 import './style.css';
@@ -1076,7 +1076,9 @@ async function init(){
     forestRenderer=createForestRenderer(renderer,scene,camera);resize();
   }
   $('playButton').disabled=false;
-  $('loading').classList.add('done');updateUI();frame();
+  $('loading').classList.add('done');updateUI();
+  if(BOT){startBot();return}
+  frame();
   if(QA)startQA();
 }
 // The event bench: start straight into play, with a panel of set pieces to fire.
@@ -1101,5 +1103,33 @@ function startQA(){
     fall(){state.x=CUP.x-dir.x*2;state.z=CUP.z-dir.z*2;doFall()},
     win(){state.x=CUP.x;state.z=CUP.z;win()},
   });
+}
+// The par bot's handle on the hole: it plays shots with the game's own physics,
+// stepped as fast as the page can, and reads back where the ball came to rest.
+function startBot(){
+  $('intro').classList.add('hidden');
+  const step=()=>{elapsed+=1/120;physics(1/120)};
+  const run=(seconds,done)=>{for(let t=0;t<seconds&&!done();t+=1/120)step()};
+  const settled=()=>['idle','win','loaded'].includes(state.phase);
+  const look=()=>({phase:state.phase,x:state.x,z:state.z,y:surfaceHeight(state.x,state.z),strokes:state.strokes,putt:nearPutt?.distance??null});
+  window.minigolfBot={
+    level:{name:LEVEL.name,par:LEVEL.par,start:{...START},cup:{x:CUP.x,z:CUP.z,y:surfaceHeight(CUP.x,CUP.z)}},
+    restart(){reset(false);state.strokes=0;elapsed=0;cometTime=0;wheelTime=0;accumulator=0;return look()},
+    look,
+    onCourse:(x,z)=>onCourse(x,z),
+    // True where a wall or post would push a resting ball out of the spot.
+    blocked(x,z){const probe={x,z,vx:0,vz:0};collideWalls(probe,activeLayout.WALLS,activeLayout.POST_COLLIDERS);return Math.hypot(probe.x-x,probe.z-z)>.005},
+    // wait: seconds to hold before striking (moving obstacles), putt: metres of roll
+    // on the meter when the putting meter is offered, fire: delay before the cannon fires.
+    shot({aim,power=.5,needle=0,putt,wait=0,fire=0}){
+      run(wait,()=>false);run(20,settled);
+      if(state.phase==='win')return look();
+      state.aim=aim;state.power=putt!==undefined?(putt-.25)/(PUTT_MAX-.25):power;state.accuracy=needle;
+      shoot(putt!==undefined&&nearPutt?puttSpeed(putt,nearPutt.friction):undefined);
+      run(60,settled);
+      if(state.phase==='loaded'){run(fire,()=>false);fireComet();run(60,settled)}
+      return look();
+    },
+  };
 }
 init();
