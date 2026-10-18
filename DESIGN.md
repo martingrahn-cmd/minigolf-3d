@@ -103,8 +103,8 @@ De fem gamla prototyperna har blivit halloweenvärlden Spökhamnen och räknas i
 
 De fem tidiga prototyperna (Kanonkurvan, Dubbelstudsen, Vippvarvet, Neonslussen och Frostfallet) är ombyggda till en halloweenvärld. Hålens fysik är densamma; det är tema, namn, par och ordning som är nya.
 
-**Placering.** Spökhamnen är en specialvärld, hål 19–23, med en plats för en final på hål 24.
-- Den har egna stjärnor (15) men räknas inte till kampanjens 54, och kampanjens slut efter Månraketen är oförändrat.
+**Placering.** Spökhamnen är en specialvärld, hål 19–24, med Spökskeppet som final.
+- Den har egna stjärnor (18) men räknas inte till kampanjens 54, och kampanjens slut efter Månraketen är oförändrat.
 - Menyn visar den först, med ett eget mörkt kort, så länge den är i säsong.
 - Rundan i kampanjen går aldrig vidare in i Spökhamnen. Inne i världen leder *Nästa hål* vidare till nästa spökhål.
 - Gamla länkar som `?proto=kanonkurvan` hittar hålet.
@@ -119,7 +119,7 @@ De fem tidiga prototyperna (Kanonkurvan, Dubbelstudsen, Vippvarvet, Neonslussen 
 | 21 | Pumpastudsen | Dubbelstudsen | 3 (var 4) | 2,4 |
 | 22 | Slemrännan | Frostfallet | 4 | 2,6 |
 | 23 | Spökkanonen | Kanonkurvan | 4 (var 5) | 3,4 |
-| 24 | Spökskeppet | final, byggs | – | – |
+| 24 | Spökskeppet | ny final | 4 | 3,2 |
 
 Ordningen går från lätt till svår och slutar med kanonen. Par är satt med samma regel som i balanspasset: minst 1,5 slag under par sänker det. Slemrännan ligger precis under gränsen och får behålla par 4 för den säkra vägen runt gravarna.
 
@@ -148,6 +148,17 @@ Ordningen går från lätt till svår och slutar med kanonen. Par är satt med s
 - Röret är ett mossgrönt slemrör och kanonen är svart.
 
 **Koppens invånare och kanthjälpen.** En skeletthand kommer upp ur koppen med bollen i handflatan. Fingrarna kröker sig runt den, klämmer, trummar och vinkar, och sedan drar handen ner bollen i mörkret: *HEHEHE! Skeletthanden tog bollen*. Stannar bollen på kanten smyger en svart katt med gula ögon och häxhatt fram och knuffar ner den.
+
+**Spökskeppet (hål 24), finalen.** Finalen kombinerar två idéer som spelaren redan känner. Spökplankans gungplanka tar bollen ombord på spökskeppet. Ruttna plankor, samma fallluckor som i Törnkronan, faller undan på vägen mot aktern.
+- Utslaget ligger på bryggan. Gungplankan kastar bollen över vattnet till stora däck. Cirka 80–90 procent kraft landar på däck. För lite eller för mycket hamnar i vattnet eller ute på plankorna, med pliktslag.
+- Mellan två låga kajutor går en smal gång med tre ruttna plankor. De faller undan i en våg (stängda 3,2 s, öppna 2 s, förskjutna 0,7 s). Häxljus på kajutväggarna visar grönt, gult och rött.
+- Under plankorna lyser lastrummet grönt. Sargerna längs gången gör att det enda som fäller bollen är en öppen planka.
+- Koppen står på kaptenens däck i aktern.
+- Den trygga vägen går runt: bryggan längs skeppet, landgången ombord och sidogången förbi kajutorna.
+- Ett perfekt kraftslag med rätt tajming kan landa direkt på plankorna eller ända bort på kaptenens däck. Parboten hittar en tvåa, alltså eagle. Normalspelaren snittar 3,2 (2–5 slag), så par 4 står kvar.
+- Skeppet: ett mörkt skrov med lysande ventiler och ett galjonsskelett i fören. Det enda masten står i aktern, med trasiga självlysande segel och en dödskalleflagga som fladdrar.
+- Masten står i aktern med flit. Kameran står över fören och midskepps när man spelar, och ett segel där skulle hänga rakt framför den.
+- Kanonerna längs skrovet skjuter då och då med blixt, rök och en dov smäll.
 
 **Ljud.** Ljudmiljön har vind som tjuter, vågor mot stolparna, en uggla, ett knarrande spökskepp, pipande fladdermöss och en varg långt bort. Musiken är en dödsdans: vals i d-moll med xylofon av ben, pizzicatobas och orgel. Fanfaren går i moll.
 

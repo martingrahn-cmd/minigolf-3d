@@ -9,8 +9,9 @@ test('the campaign has three worlds of six holes numbered 1–18, and Spökhamne
   for (const world of WORLDS) assert.equal(world.slots.length, 6);
   const spook = ROUND.filter(slot => slot.world.key === 'halloween');
   assert.deepEqual(spook.map(slot => slot.hole), [19, 20, 21, 22, 23, 24]);
-  assert.deepEqual(spook.map(slot => slot.level?.name ?? slot.placeholder.name), ['Kryptporten', 'Spökplankan', 'Pumpastudsen', 'Slemrännan', 'Spökkanonen', 'Spökskeppet']);
-  assert.ok(spook.every(slot => !slot.level || slot.level.theme === 'halloween'));
+  assert.deepEqual(spook.map(slot => slot.level.name), ['Kryptporten', 'Spökplankan', 'Pumpastudsen', 'Slemrännan', 'Spökkanonen', 'Spökskeppet']);
+  assert.ok(spook[5].finale && spook[5].level.worldFinale, 'Spökskeppet is the finale');
+  assert.ok(spook.every(slot => slot.level.theme === 'halloween'));
 });
 
 test('every built level appears exactly once in the round', () => {
@@ -41,7 +42,8 @@ test('URLs pick round holes, prototypes or the menu',()=>{
   assert.equal(resolveSelection('?hole=17').level.name,'Pariserhjulet');
   assert.equal(resolveSelection('?hole=18').level.name,'Månraketen');
   assert.equal(resolveSelection('?hole=19').level.name,'Kryptporten');
-  assert.equal(resolveSelection('?hole=24').menu,true,'The finale is not built yet');
+  assert.equal(resolveSelection('?hole=24').level.name,'Spökskeppet');
+  assert.equal(resolveSelection('?hole=25').menu,true);
 });
 
 test('the next hole follows the round and stops when nothing more is built',()=>{
@@ -59,7 +61,6 @@ test('the next hole follows the round and stops when nothing more is built',()=>
   assert.equal(afterFinale.slot,null);
   assert.deepEqual(afterFinale.skipped,[],'All 18 holes are built; the campaign does not run on into Spökhamnen');
   assert.equal(nextInRound(19).slot.level.name,'Spökplankan');
-  const afterSpook=nextInRound(23);
-  assert.equal(afterSpook.slot,null);
-  assert.deepEqual(afterSpook.skipped.map(slot=>slot.hole),[24]);
+  assert.equal(nextInRound(23).slot.level.name,'Spökskeppet');
+  assert.equal(nextInRound(24).slot,null,'The finale ends the world');
 });

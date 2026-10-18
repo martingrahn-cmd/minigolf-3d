@@ -18,7 +18,7 @@ import {createMotherTreeCourse,createMotherTree} from './mother-tree-visuals.js'
 import {createMoonCourse,createRocketPads,createPlanetBumpers,createBlackHole,createCometCannon,createGondolaWheel,createMoonRocket} from './moon.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { preloadModels, modelInstance, tintMaterials, COMMON_MODELS, CLOCK_MODELS, FOREST_MODELS, MOON_MODELS, HALLOWEEN_MODELS } from './models.js';
-import { createHalloweenCourse, dressHalloweenCourse, createPumpkinBumpers, createCryptGates, createScarecrow, createWitchCircles, createGraveGates, SLIME_STYLE } from './halloween.js';
+import { createHalloweenCourse, dressHalloweenCourse, createPumpkinBumpers, createCryptGates, createScarecrow, createWitchCircles, createGraveGates, createRottenPlanks, SLIME_STYLE } from './halloween.js';
 
 import { LEVEL, CUP, CANNON, LANDING, PIPE_IN, PIPE_OUT, PIPE_DIRECTION, PIPE_ENTRY, PIPE_GUIDES, pipeWorld, SPRINGS, SPINNER, TILES, CELLS, BOUNDARIES, heightAt, heightSlope, onCourse } from './layout.js';
 export * from './layout.js';
@@ -88,7 +88,7 @@ export async function createCourse(scene) {
   const gates=theme.key==='clockwork'?createClockGates(scene,LEVEL.gates):spook?createCryptGates(scene,LEVEL.gates):createGates(scene,LEVEL.gates);
   const carnival=createCarnival(scene,LEVEL);
   const pendulum=createAcornPendulum(scene,LEVEL.pendulum);
-  const trapdoors=createTrapdoors(scene,LEVEL.trapdoors);
+  const trapdoors=spook?createRottenPlanks(scene,LEVEL.trapdoors):createTrapdoors(scene,LEVEL.trapdoors);
   createIceFeatures(scene,LEVEL,heightAt,heightSlope,spook?SLIME_STYLE:{});
 
   // One contiguous playing surface, with the same boundary used by ball physics.

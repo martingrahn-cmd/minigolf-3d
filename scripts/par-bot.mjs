@@ -34,6 +34,8 @@ const HOLES={
   18:{aims:12,fine:[-.1,0,.1],powers:[.5,.7,.9],fires:fires(3.2)},
   // Spökhamnen: the crypt gate, and the scarecrows on 21 and 23.
   19:{waits,aims:24},21:{waits,aims:24},23:{waits,aims:24},
+  // Spökskeppet: the rotten planks fall open in a wave; wait for them.
+  24:{waits:[...waits,3,3.6,4.2,4.8],aims:24},
 };
 
 const browser=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});

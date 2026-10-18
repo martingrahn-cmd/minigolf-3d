@@ -3,6 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { modelInstance } from './models.js';
 import { bakeStatic, softTexture, canvasTexture } from './life-kit.js';
 import { gatePose } from './gates.js';
+import { trapdoorPose } from './trapdoors.js';
 
 // Spökhamnen, the Halloween harbour: a night under a huge orange moon. The
 // course stands on wooden piles in black water. Round it are a graveyard
@@ -212,7 +213,9 @@ export function createHalloweenEnvironment(scene,level){
   graveyardIsland(statics,box.x2+12,box.z2+9,4.6,11,animated,pumpkins);
   graveyardIsland(statics,(box.x1+box.x2)/2-4,box.z2+15,4,23,animated,pumpkins);
   lighthouse(scene,box.x2+20,box.z1-22,animated);
-  ghostShip(scene,box.x1+6,box.z1-34,.25,animated);
+  // On the finale the course is the ghost ship itself; otherwise it lies off the harbour.
+  if(level.scenery==='ghostship')createGhostShipScenery(scene,level,animated);
+  else ghostShip(scene,box.x1+6,box.z1-34,.25,animated);
   // Crooked lamp posts with orange lanterns along the outer shore.
   const iron=material(C.iron),lanternGlow=glow(C.amber,2.4);
   const posts=[[box.x1-3,box.z2+3],[box.x2+3,box.z1-3],[(box.x1+box.x2)/2,box.z1-5],[box.x2+4,(box.z1+box.z2)/2+4],[box.x1-4,(box.z1+box.z2)/2-5]];
@@ -299,8 +302,10 @@ export function createHalloweenCourse(scene,cells,boundaries,heightAt,level){
   const skirtGeometry=new THREE.BufferGeometry();skirtGeometry.setAttribute('position',new THREE.Float32BufferAttribute(skirt,3));skirtGeometry.computeVertexNormals();
   add(scene,skirtGeometry,material(C.plank,{side:THREE.DoubleSide,flatShading:true}));
   const piles=[];
+  // On the ghost ship the hull carries the deck; only the pier stands on piles.
+  const aboard=t=>level.scenery==='ghostship'&&t.x1>=5&&t.z2<=4.6;
   for(const t of level.tiles){
-    if(t.dynamic)continue;
+    if(t.dynamic||aboard(t))continue;
     for(const x of [t.x1+.5,t.x2-.5])for(const z of [t.z1+.5,t.z2-.5]){
       const top=flat(x,z)-.85;piles.push(new THREE.CylinderGeometry(.24,.28,top+6.6,7).translate(x,(top-6.6)/2,z));
     }
@@ -353,9 +358,16 @@ export function createHalloweenCourse(scene,cells,boundaries,heightAt,level){
 // by the flag, a gravestone or two, all behind the rails.
 export function dressHalloweenCourse(scene,level,heightAt,environment){
   const flat=level.bridge?()=>0:heightAt,pumpkins=[];
-  const spots=[[level.start.x-1.2,level.start.z-3.4,0],[level.start.x-1.2,level.start.z+3.4,1],[level.shelf.x,level.shelf.z,0]];
-  for(const [x,z,v] of spots){const p=placed(scene,`halloween/jack-o-lantern-${v}`,x,flat(x,z)+.04,z,.75,Math.atan2(level.cup.x-x,level.cup.z-z)*0+Math.PI);if(p)pumpkins.push(p)}
-  placed(scene,'halloween/gravestone-0',level.shelf.x+1.2,flat(level.shelf.x,level.shelf.z)+.04,level.shelf.z,.8,Math.PI);
+  // Just outside the tee's rails (they have no collision, so never on the felt).
+  const tee=level.tiles.find(t=>level.start.x>=t.x1&&level.start.x<=t.x2&&level.start.z>=t.z1&&level.start.z<=t.z2)??{z1:-4,z2:4};
+  const spots=[[level.start.x-1.2,tee.z1-.75,0],[level.start.x-1.2,tee.z2+.75,1],[level.shelf.x,level.shelf.z,0]];
+  const post=material(C.plankDark,{flatShading:true});
+  for(const [x,z,v] of spots){
+    // Each one sits on its own pile, out over the water.
+    add(scene,new THREE.CylinderGeometry(.36,.42,6.5,8),post,x,-3.2,z);
+    const p=placed(scene,`halloween/jack-o-lantern-${v}`,x,.05,z,.75,Math.PI);if(p)pumpkins.push(p);
+  }
+  if(level.scenery!=='ghostship')placed(scene,'halloween/gravestone-0',level.shelf.x+1.2,flat(level.shelf.x,level.shelf.z)+.04,level.shelf.z,.8,Math.PI);
   if(environment?.pumpkins)environment.pumpkins.push(...pumpkins);
   const mats=[];for(const p of pumpkins)p.traverse(o=>{if(o.isMesh&&o.material.name==='Glow'){o.material=o.material.clone();mats.push(o.material)}});
   return {update(t){mats.forEach((m,i)=>m.emissiveIntensity=4+Math.sin(t*12+i*2.3)*.9+Math.sin(t*21+i)*.5)}};
@@ -474,3 +486,142 @@ export function createGraveGates(scene,arches=[],heightAt=()=>0){
 
 // Slime instead of frost on the slippery chute: bright, glossy and dripping.
 export const SLIME_STYLE={sheet:{color:0x7fe24a,roughness:.12,metalness:.05,emissive:0x2f8a1a,emissiveIntensity:.45},streak:0xd9ffb8,warning:0xff8a2a,drip:true};
+
+// --- Spökskeppet, the finale: the course is the deck of the ghost ship. ---
+// Rotten planks over the hold. They fall open on the same cycle as the
+// trapdoors' physics (trapdoors.js); witch-fire lanterns on the deckhouse walls
+// show green (holds), amber (about to go) and red (open).
+export function createRottenPlanks(scene,doors){
+  if(!doors?.length)return null;
+  const wood=material(0x5a4030,{flatShading:true}),rot=material(0x3a2a20,{flatShading:true}),iron=material(C.iron);
+  // The hold below glows sickly green through the gaps.
+  const hold=glow(0x3fbf6a,.5);
+  const panels=doors.map((d,index)=>{
+    const x=(d.x1+d.x2)/2,length=d.x2-d.x1,flaps=[];
+    add(scene,new THREE.BoxGeometry(length,.05,d.halfWidth*2),hold,x,-1.1,d.z).castShadow=false;
+    for(const side of [-1,1]){
+      const flap=new THREE.Group();flap.position.set(x,.04,d.z+side*d.halfWidth);scene.add(flap);
+      // Four planks per flap, one of them broken short.
+      for(let k=0;k<4;k++){
+        const w=d.halfWidth/4-.03,zc=-side*(k+.5)*d.halfWidth/4,short=k===2&&index%2===0;
+        add(flap,new THREE.BoxGeometry(short?length*.7:length-.04,.1,w),k%2?rot:wood,short?-length*.15:0,-.05,zc);
+      }
+      add(flap,new THREE.BoxGeometry(length-.1,.04,.08),iron,0,.01,-side*.1);
+      flaps.push({flap,side});
+    }
+    const flames=[-1,1].map(side=>{
+      const m=glow(0x6dff7a,1.6),f=add(scene,new THREE.SphereGeometry(.16,10,8),m,x,1.45,d.z+side*(d.halfWidth+.32));f.scale.y=1.5;f.castShadow=false;
+      add(scene,new THREE.CylinderGeometry(.05,.05,.5,6),iron,x,1.05,d.z+side*(d.halfWidth+.32));return m;
+    });
+    return {door:d,flaps,flames};
+  });
+  return {update(time){
+    for(const {door,flaps,flames} of panels){
+      const pose=trapdoorPose(time,door);
+      for(const {flap,side} of flaps)flap.rotation.x=side*pose.angle;
+      const color=pose.signal==='green'?0x6dff7a:pose.signal==='amber'?0xffb23a:0xff4a5a;
+      for(const m of flames){m.color.setHex(color);m.emissive.setHex(color);m.emissiveIntensity=1.6+Math.sin(time*13)*.3}
+    }
+  }};
+}
+
+function flagTexture(){
+  return canvasTexture(256,160,(ctx,w,h)=>{
+    ctx.fillStyle='#120a1c';ctx.fillRect(0,0,w,h);ctx.fillStyle='#efe4c6';ctx.strokeStyle='#efe4c6';
+    // A grinning skull over crossed bones.
+    ctx.beginPath();ctx.arc(w/2,h*.42,34,0,Math.PI*2);ctx.fill();ctx.fillRect(w/2-22,h*.42+18,44,22);
+    ctx.fillStyle='#120a1c';for(const s of [-1,1]){ctx.beginPath();ctx.ellipse(w/2+s*13,h*.42,9,11,0,0,Math.PI*2);ctx.fill()}
+    ctx.beginPath();ctx.moveTo(w/2,h*.48);ctx.lineTo(w/2-5,h*.56);ctx.lineTo(w/2+5,h*.56);ctx.fill();
+    for(let i=-2;i<=2;i++)ctx.fillRect(w/2+i*8-1,h*.42+26,2,14);
+    ctx.lineWidth=12;ctx.lineCap='round';ctx.strokeStyle='#efe4c6';
+    ctx.beginPath();ctx.moveTo(w/2-70,h*.2);ctx.lineTo(w/2+70,h*.88);ctx.moveTo(w/2+70,h*.2);ctx.lineTo(w/2-70,h*.88);ctx.globalCompositeOperation='destination-over';ctx.stroke();
+  },[1,1]);
+}
+
+// The ship round the course: hull, deck, deckhouses either side of the rotten
+// planks, masts with torn glowing sails, a skull flag, a figurehead and cannons
+// that fire now and then (the audio hears the 'ship-cannon' event).
+export function createGhostShipScenery(scene,level,animated){
+  // Static parts are baked into few draw calls; sails, flag and smoke stay live.
+  const ship=new THREE.Group(),live=new THREE.Group();scene.add(ship,live);
+  const hull=material(0x2a2230,{flatShading:true}),band=material(0x4a3428,{flatShading:true}),deck=material(0x3a2c26,{flatShading:true});
+  const trim=material(0x6a5a3a,{flatShading:true,metalness:.3}),windowGlow=glow(C.ghostGreen,1.4),iron=material(C.iron,{metalness:.4});
+  // The hull, from the deck outline down into the water.
+  const outline=[[2.4,-1.65],[5.4,-7.4],[9,-8.2],[28.5,-8.4],[31.4,-6.6],[31.8,3.1],[28.5,4.9],[9,4.75],[5.4,4.1]];
+  const outlineShape=flip=>{const sh=new THREE.Shape();outline.forEach(([x,z],i)=>i?sh.lineTo(x,flip*z):sh.moveTo(x,flip*z));sh.closePath();return sh};
+  const shape=outlineShape(1);
+  const body=new THREE.Mesh(new THREE.ExtrudeGeometry(shape,{depth:6.6,bevelEnabled:true,bevelThickness:.5,bevelSize:.6,bevelSegments:2,curveSegments:4}),hull);
+  // The bevel grows the extrusion by its thickness at both ends; keep the top under the felt.
+  body.rotation.x=Math.PI/2;body.position.y=-.56;body.castShadow=body.receiveShadow=true;ship.add(body);
+  const deckTop=new THREE.Mesh(new THREE.ShapeGeometry(outlineShape(-1)),deck);deckTop.rotation.x=-Math.PI/2;deckTop.position.y=-.02;deckTop.receiveShadow=true;ship.add(deckTop);
+  // A painted band along the hull and portholes.
+  for(const [z,dir] of [[-8.75,1],[5.25,-1]]){
+    add(ship,new THREE.BoxGeometry(24,.35,.12),band,19,-.9,z);
+    for(let x=8;x<=29;x+=3)add(ship,new THREE.CircleGeometry(.22,12),windowGlow,x,-1.7,z+dir*-.07).rotation.y=dir>0?Math.PI:0;
+  }
+  // Low cabins either side of the rotten planks, with glowing windows; low
+  // enough that the planks can be read from anywhere.
+  for(const [z1,z2] of [[1.5,4.3],[-4.75,-1.5]]){
+    const z=(z1+z2)/2,d=z2-z1;
+    add(ship,new THREE.BoxGeometry(8.4,1.05,d),band,17.5,.52,z);
+    add(ship,new THREE.BoxGeometry(8.8,.14,d+.4),trim,17.5,1.1,z);
+    const face=z>0?z1-.02:z2+.02;
+    for(let x=14.5;x<=20.5;x+=2)add(ship,new THREE.PlaneGeometry(.55,.4),windowGlow,x,.6,face).rotation.y=z>0?Math.PI:0;
+  }
+  // One mast, at the stern: the camera stands over the bow and amidships while
+  // you play, and a sail there would hang right in front of it.
+  const sailMat=new THREE.MeshBasicMaterial({map:sailTexture(),transparent:true,opacity:.7,depthWrite:false,side:THREE.DoubleSide});
+  const sails=[];
+  for(const [mx,mz,h] of [[31.2,-1.65,14]]){
+    beam(ship,[mx,0,mz],[mx,h,mz],.2,trim,8,.16);
+    for(const [y,w] of [[h*.55,5.2],[h*.82,4]]){
+      beam(ship,[mx,y+1.5,mz-w/2-.3],[mx,y+1.5,mz+w/2+.3],.08,trim);
+      const sail=add(live,new THREE.PlaneGeometry(w,2.8,6,3),sailMat,mx+.3,y,mz);sail.rotation.y=Math.PI/2;sail.castShadow=false;
+      sails.push(sail);
+    }
+    add(ship,new THREE.CylinderGeometry(.5,.5,.4,10),trim,mx,h*.9,mz);
+  }
+  // The skull flag on the stern mast.
+  const flag=add(live,new THREE.PlaneGeometry(2.4,1.5,8,2),new THREE.MeshStandardMaterial({map:flagTexture(),side:THREE.DoubleSide,roughness:.9}),31.2,14.6,-2.85);
+  flag.rotation.y=Math.PI/2;flag.castShadow=false;const flagBase=flag.geometry.attributes.position.array.slice();
+  // Figurehead: a skull at the bow, lanterns at the stern, the wheel.
+  add(ship,new THREE.SphereGeometry(.5,14,10),material(C.bone),2.2,.3,-1.65);
+  beam(ship,[3,0,-1.65],[3,1.6,-1.65],.07,iron);add(ship,new THREE.BoxGeometry(.32,.42,.32),glow(C.ghostGreen,2),3,1.8,-1.65).castShadow=false;
+  for(const s of [-1,1])add(ship,new THREE.SphereGeometry(.12,8,6),glow(C.ghostGreen,2),1.78,.36,-1.65+s*.2);
+  for(const z of [-6.2,2.6]){beam(ship,[31.3,0,z],[31.3,1.9,z],.06,iron);add(ship,new THREE.BoxGeometry(.32,.42,.32),glow(C.ghostGreen,2),31.3,2.1,z).castShadow=false}
+  const wheel=new THREE.Group();wheel.position.set(30.6,1.15,2.6);wheel.rotation.y=Math.PI/2;ship.add(wheel);
+  add(wheel,new THREE.TorusGeometry(.55,.06,6,20),trim);
+  for(let i=0;i<8;i++){const a=i/8*Math.PI*2;beam(wheel,[0,0,0],[Math.cos(a)*.72,Math.sin(a)*.72,0],.035,trim,5)}
+  beam(ship,[30.6,0,2.6],[30.6,1.1,2.6],.08,trim);
+  // Cannons along the hull. Now and then one fires: flash, smoke and a bang.
+  const cannons=[];
+  for(const [x,z,dir] of [[8,-8.5,-1],[14,-8.6,-1],[20,-8.6,-1],[26,-8.6,-1],[16,5,1],[22,5,1],[27,5,1]]){
+    const barrel=add(ship,new THREE.CylinderGeometry(.22,.28,1.6,10),iron,x,-.5,z+dir*.5);barrel.rotation.x=Math.PI/2;
+    cannons.push({x,y:-.5,z:z+dir*1.4,dir});
+  }
+  const texture=softTexture(),puffs=[];
+  for(let i=0;i<10;i++){const p=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,color:0xb8b0c8,transparent:true,depthWrite:false,opacity:0}));live.add(p);puffs.push({p,age:9})}
+  const flash=glowSprite(live,texture,0xffa040,0,0,0,3,0);
+  let next=4,shot=null,last=0;
+  animated.push(t=>{
+    const dt=Math.min(.1,Math.max(0,t-last));last=t;
+    const f=flag.geometry.attributes.position;
+    for(let i=0;i<f.count;i++){const x=flagBase[i*3];f.setZ(i,Math.sin(t*3+x*2.2)*.12*(x+1.2))}
+    f.needsUpdate=true;
+    sails.forEach((s,i)=>{s.position.x=s.userData.x??(s.userData.x=s.position.x);s.position.x=s.userData.x+Math.sin(t*.8+i)*.12});
+    if(t>next){
+      shot=cannons[Math.floor(Math.random()*cannons.length)];next=t+5+Math.random()*5;
+      flash.position.set(shot.x,shot.y,shot.z);flash.material.opacity=1;
+      puffs.forEach((q,k)=>{q.age=-k*.03;q.p.position.set(shot.x,shot.y,shot.z);q.v=new THREE.Vector3((Math.random()-.5)*.8,.6+Math.random()*.6,shot.dir*(2+Math.random()*1.5))});
+      window.dispatchEvent(new CustomEvent('ship-cannon',{detail:{x:shot.x}}));
+    }
+    flash.material.opacity=Math.max(0,flash.material.opacity-dt*5);
+    for(const q of puffs){
+      q.age+=dt;if(q.age<0||q.age>3){q.p.material.opacity=0;continue}
+      q.p.position.addScaledVector(q.v,dt);q.v.multiplyScalar(1-dt*1.2);
+      q.p.scale.setScalar(.6+q.age*1.4);q.p.material.opacity=.5*(1-q.age/3);
+    }
+  });
+  bakeStatic(ship);
+  return ship;
+}

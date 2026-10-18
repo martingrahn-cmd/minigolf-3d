@@ -312,6 +312,8 @@ export function createAudio(theme){
         lfo(o.frequency,5,8);o.connect(g);out(g,{pan:.6,wet:.9,bus:ambBus});o.start(at);o.stop(at+3.5);
         return at+38+Math.random()*30;
       }).start();
+      // The ghost ship's cannons (Spökskeppet) go off with a dull bang.
+      window.addEventListener('ship-cannon',e=>api.boom(e.detail?.x??0));
     }};
   }
 

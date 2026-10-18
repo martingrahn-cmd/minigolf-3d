@@ -104,6 +104,36 @@ export const LEVELS = [
     routes:[['Slemrännan','Halt · öppna kanter'],['Säkra vägen','Bredare & med sarger']],
   },
   {
+    // Spökhamnen's finale: two ideas from the world combined. Spökplankan's
+    // gangplank launches the ball aboard the ghost ship; rotten planks (the
+    // trapdoors from Törnkronan) fall open in a wave on the way to the stern.
+    id:26,theme:'halloween',scenery:'ghostship',worldFinale:true,name:'Spökskeppet',title:['SPÖK','SKEPPET'],par:4,recordKey:'minimayhem-spook-6-spokskeppet',
+    description:'Spökhamnens final! Ta sats uppför gungplankan och flyg ombord på spökskeppet. Mot kaptenens däck går de ruttna plankorna – de faller undan i takt, så vänta på grönt. Eller gå runt längs bryggan och sidogången.',
+    feature:'Gungplanka & ruttna plankor',hasPipe:false,hasRamp:false,start:{x:-18,z:0},cup:{x:27,z:-1.5},
+    cannon:null,landing:null,overview:{x:5,z:0,span:62,cameraX:-12,targetY:1.5},spinner:null,springs:[],arches:[],
+    bridge:{x1:-10,x2:2,z:0,halfWidth:1.55,pivotY:.82,maxAngle:Math.atan(.82/6)},
+    trapdoors:[
+      {x1:13,x2:16,z:0,halfWidth:1.2,closed:3.2,travel:.4,opened:2,offset:0},
+      {x1:16,x2:19,z:0,halfWidth:1.2,closed:3.2,travel:.4,opened:2,offset:.7},
+      {x1:19,x2:22,z:0,halfWidth:1.2,closed:3.2,travel:.4,opened:2,offset:1.4},
+    ],
+    tiles:[
+      {x1:-21,x2:-10,z1:-4.5,z2:4.5,color:0x62b5c4},
+      {x1:-10,x2:2,z1:-1.55,z2:1.55,color:0xe8b771,dynamic:true},
+      {x1:5,x2:13,z1:-4.5,z2:4.5,color:0x72c2b0},
+      {x1:13,x2:22,z1:-1.2,z2:1.2,color:0xb08a5a},
+      {x1:22,x2:30,z1:-7,z2:4,color:0x9a7bc4},
+      {x1:-14,x2:-10,z1:3,z2:8,color:0xb088ba},
+      {x1:-14,x2:13,z1:4.8,z2:8,color:0xb088ba},
+      {x1:9,x2:13,z1:4.5,z2:8,color:0xb088ba},
+      {x1:9,x2:13,z1:-7,z2:-4.5,color:0xb088ba},
+      {x1:9,x2:26,z1:-7,z2:-5,color:0xb088ba},
+    ],
+    labels:[['TA SATS →',-14.2,-2.8],['BRYGGAN →',-7,6.4],['VÄNTA PÅ GRÖNT',9,-2.2],['SIDOGÅNGEN →',17,-6],['KAPTENENS DÄCK',26.5,2.6]],
+    supports:[],shelf:{x:-12,z:-5.3},routeHeading:'OMBORD!',
+    routes:[['Gungplankan','Flyg ombord · ruttna plankor'],['Bryggan','Runt skeppet · sidogången']],
+  },
+  {
     id:14,theme:'forest',name:'Skybowling',title:['SKY','BOWLING'],par:4,recordKey:'minimayhem-hole-14-best',
     description:'Vågar du hoppet? Pricka den smala landningsbryggan: för kort, för långt eller snett kostar ett pliktslag. Vält käglorna och putta runt hörnet – eller ta den tryggare bryggan med sarger.',
     feature:'Studstrumma & bowling',hasPipe:false,hasRamp:false,start:{x:-17.5,z:0},cup:{x:21,z:-3.1},

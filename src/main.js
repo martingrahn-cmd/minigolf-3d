@@ -1093,6 +1093,9 @@ async function init(){
 function startQA(){
   window.minigolfAudio=audio;
   $('intro').classList.add('hidden');reset();setPhase('idle');
+  // `&at=x,z,aim` puts the ball anywhere on the hole, to look at a spot.
+  const at=new URLSearchParams(location.search).get('at')?.split(',').map(Number);
+  if(at){state.x=at[0];state.z=at[1];state.aim=at[2]||0;setPhase('idle')}
   // Roll in along the line from the tee, so the camera and the helpers behave as in play.
   const tx=CUP.x-START.x,tz=CUP.z-START.z,td=Math.hypot(tx,tz)||1,dir={x:tx/td,z:tz/td};
   setupQA({

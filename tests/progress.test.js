@@ -68,7 +68,7 @@ test('Spökhamnen keeps its own stars, outside the campaign', async () => {
   const { campaignProgress, worldProgress } = await import('../src/progress.js');
   const storage=memory(),spook=WORLDS.find(w=>w.special),holes=ROUND.filter(s=>s.world===spook&&s.level);
   storage.setItem(holes[0].level.recordKey,holes[0].level.par-1);
-  assert.deepEqual([worldProgress(storage,spook).stars,worldProgress(storage,spook).max,worldProgress(storage,spook).played],[3,15,1]);
+  assert.deepEqual([worldProgress(storage,spook).stars,worldProgress(storage,spook).max,worldProgress(storage,spook).played],[3,18,1]);
   assert.equal(campaignProgress(storage).stars,0);assert.equal(campaignProgress(storage).max,54);
   assert.ok(!campaignProgress(storage).worlds.some(w=>w.world===spook));
 });

@@ -27,7 +27,7 @@ export const WORLDS = [
     // harbour. A world of its own, outside the campaign's stars and ending.
     key:'halloween',name:'Spökhamnen',finale:'Spökhamnens final',special:true,label:'HALLOWEEN',
     tagline:'Fullmåne, dimma och pumplyktor i en hemsökt hamn.',
-    slots:[12,11,10,13,9,{name:'Spökskeppet',idea:'Final: ombord på spökskeppet, med kanon och rangliga plankor'}],
+    slots:[12,11,10,13,9,26],
   },
 ];
 
