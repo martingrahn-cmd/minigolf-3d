@@ -28,7 +28,7 @@
           <a id="menuButton" class="camera-button menu-link" href="./" aria-label="Huvudmeny"><i data-icon="menu"></i><span>Meny</span></a>
           <button id="levelsButton" class="camera-button levels-button" aria-label="Välj bana"><i data-icon="grid"></i><span>Banor</span></button>
           <button id="cameraButton" aria-label="Växla mellan översikt och spelvy" class="camera-button"><i id="cameraIcon" data-icon="map"></i><span id="cameraText">Översikt</span></button>
-          <button id="soundButton" class="icon-button" title="Ljud av/på" aria-label="Ljud av/på"><i id="soundIcon" data-icon="sound"></i></button>
+          <button id="soundButton" class="icon-button" title="Ljud och musik (M stänger av)" aria-label="Ljud och musik"><i id="soundIcon" data-icon="sound"></i></button>
           <button id="resetButton" class="icon-button" title="Börja om hålet (R)" aria-label="Börja om hålet"><i data-icon="restart"></i></button>
           <button id="helpButton" class="icon-button" title="Så spelar du" aria-label="Så spelar du"><i data-icon="help"></i></button>
         </nav>
@@ -74,6 +74,17 @@
       <div id="intro" class="modal-backdrop"><div class="intro-card"><div id="introWorld" class="intro-world"></div><span id="introKicker" class="intro-kicker">VÄLKOMMEN TILL HÅL 09</span><h1 id="introTitle">KANON<br /><em>KURVAN</em><span class="title-star">✦</span></h1><p id="introDescription">Rulla genom röret, sikta på kanonen och flyg över gapet. Eller ta den lugnare vägen runt.</p><div class="intro-badges"><span>✧ 3D-BANA</span><span id="featureBadge">◉ KANON</span><span id="parBadge">⛳ PAR 5</span></div><button id="playButton" class="play-button" disabled>SPELA HÅL 09 <span>→</span></button><div class="card-actions"><button id="introLevels" class="secondary-button"><i data-icon="grid"></i>Välj bana</button><a class="secondary-button" href="./"><i data-icon="menu"></i>Meny</a></div><div class="step-strip" aria-label="Tre tryck per slag"><span><i data-icon="aim"></i>Sikta</span><span><i data-icon="power"></i>Kraft</span><span><i data-icon="target"></i>Pricka</span></div></div></div>
       <div id="win" class="modal-backdrop hidden"><div class="intro-card win-card"><span class="intro-kicker">FLAGGAN ÄR DIN!</span><h1 id="winTitle">SNYGGT<br /><em>SPEL!</em></h1><p id="winText">Vilken runda!</p><div class="win-score"><span>RESULTAT</span><strong id="winStrokes">5</strong><span>SLAG</span></div><div class="win-stars"><strong id="winStars" aria-label="Stjärnor">★★☆</strong><small id="winStarsNote"></small></div><a id="nextHole" class="play-button next-hole-button" hidden></a><button id="againButton" class="secondary-button wide"><i data-icon="restart"></i>Spela igen</button><small id="nextNote" class="next-note" hidden></small><div class="card-actions"><button id="winLevels" class="secondary-button"><i data-icon="grid"></i>Välj bana</button><a id="winMenu" class="secondary-button" href="./"><i data-icon="menu"></i>Meny</a></div></div></div>
       <div id="scorecard" class="modal-backdrop hidden"><div class="intro-card scorecard-card" role="dialog" aria-labelledby="scoreTitle"><span id="scoreKicker" class="intro-kicker">VÄRLDEN KLAR!</span><h1 id="scoreTitle">RESULTAT</h1><div class="score-table" id="scoreRows"></div><div class="score-totals"><div><span>SLAG</span><strong id="scoreStrokes">0</strong><small id="scoreVsPar"></small></div><div><span>STJÄRNOR</span><strong id="scoreStars">0</strong><small id="scoreStarsMax"></small></div></div><p id="scoreText"></p><button id="scoreEnding" class="play-button ending-button" hidden>Kampanjens slut ✦ <span>→</span></button><button id="scoreAgain" class="play-button">Spela världen igen <span>→</span></button><div class="card-actions"><button id="scoreClose" class="secondary-button"><i data-icon="restart"></i>Tillbaka</button><a id="scoreMenu" class="secondary-button" href="./"><i data-icon="menu"></i>Meny</a></div></div></div>
+      <dialog id="soundPanel" class="help-panel sound-panel" aria-labelledby="soundTitle">
+        <button id="closeSound" class="icon-button close-help" aria-label="Stäng ljudinställningar">×</button>
+        <h2 id="soundTitle">Ljud och musik</h2>
+        <label class="sound-switch"><input id="soundOn" type="checkbox" checked /><span class="switch-track" aria-hidden="true"></span><span>Ljud på</span></label>
+        <div class="sound-levels">
+          <label class="sound-row" for="musicLevel"><span>Musik</span><input id="musicLevel" type="range" min="0" max="100" step="5" /><output id="musicValue"></output></label>
+          <label class="sound-row" for="effectsLevel"><span>Effekter</span><input id="effectsLevel" type="range" min="0" max="100" step="5" /><output id="effectsValue"></output></label>
+          <label class="sound-row" for="ambienceLevel"><span>Miljöljud</span><input id="ambienceLevel" type="range" min="0" max="100" step="5" /><output id="ambienceValue"></output></label>
+        </div>
+        <p class="sound-note">Varje värld har sin egen musik. Effekterna är slag, studsar och koppen. Miljöljudet är världens liv runt banan. <span class="keys-only"><kbd>M</kbd> stänger av och på allt ljud.</span> Valen sparas på den här enheten.</p>
+      </dialog>
       <dialog id="levelPanel" class="level-panel" aria-labelledby="levelTitle">
         <button id="closeLevels" class="icon-button close-help" aria-label="Stäng banväljaren">×</button>
         <span class="intro-kicker">RUNDANS 18 HÅL</span>
@@ -118,6 +129,7 @@
             <button id="menuEnding" class="menu-secondary" hidden>✦ Se slutet igen</button>
             <button id="menuLevels" class="menu-secondary"><i data-icon="grid"></i>Välj hål</button>
             <button id="menuHelp" class="menu-secondary"><i data-icon="help"></i>Så spelar du</button>
+            <button id="menuSound" class="menu-secondary"><i data-icon="sound"></i>Ljud och musik</button>
           </div>
           <small id="menuSummary" class="menu-summary"></small>
           <small id="menuVersion" class="menu-version"></small>

@@ -8,18 +8,27 @@
 //   toy train chuffing past and whistling, a music box, the cat purring.
 // Månkarnevalen: a calliope waltz from the fair, the hum of space, squeals
 //   from the rides, and fireworks that bang when the bursts are seen.
+//
+// On top of that each world has its own music (the songs are in music.js).
+// Effects, ambience and music have their own bus and volume.
+import { SONGS, CALLIOPE, eventsAt, AUDIO_DEFAULTS } from './music.js';
 
 const NOTE=n=>440*Math.pow(2,(n-69)/12);
+// Each bus at full volume; the player's settings scale them.
+const BUS_GAIN={effects:2.6,ambience:1.1,music:1};
 
 export function createAudio(theme){
-  let ctx=null,master,sfxBus,ambBus,reverbSend,noise,enabled=true,hidden=false,world=null,roll=null,lastKnock=0;
+  let ctx=null,master,sfxBus,ambBus,musicBus,reverbSend,noise,levels={...AUDIO_DEFAULTS},hidden=false,world=null,roll=null,lastKnock=0,t0=0,ducked=1,duckTimer=0;
 
   function build(){
     ctx=new (window.AudioContext||window.webkitAudioContext)();
     const comp=ctx.createDynamicsCompressor();comp.threshold.value=-14;comp.ratio.value=3;comp.connect(ctx.destination);
-    master=ctx.createGain();master.gain.value=enabled?1:0;master.connect(comp);
-    sfxBus=ctx.createGain();sfxBus.gain.value=2.6;sfxBus.connect(master);
-    ambBus=ctx.createGain();ambBus.gain.value=1.1;ambBus.connect(master);
+    master=ctx.createGain();master.gain.value=levels.on?1:0;master.connect(comp);
+    sfxBus=ctx.createGain();sfxBus.gain.value=BUS_GAIN.effects*levels.effects;sfxBus.connect(master);
+    ambBus=ctx.createGain();ambBus.gain.value=BUS_GAIN.ambience*levels.ambience;ambBus.connect(master);
+    musicBus=ctx.createGain();musicBus.gain.value=BUS_GAIN.music*levels.music;musicBus.connect(master);
+    // The shared clock: music and the fair's calliope count their beats from here.
+    t0=ctx.currentTime+.2;
     // A generated impulse response: a moon-sized hall, a workshop, an open forest.
     const seconds=theme==='moon'?3.2:theme==='clockwork'?1.6:1.1,len=Math.floor(ctx.sampleRate*seconds);
     const ir=ctx.createBuffer(2,len,ctx.sampleRate);
@@ -29,12 +38,13 @@ export function createAudio(theme){
     noise=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate);const n=noise.getChannelData(0);for(let i=0;i<n.length;i++)n[i]=Math.random()*2-1;
     world=({forest:forestAmbience,clockwork:clockAmbience,moon:moonAmbience}[theme]??(()=>null))();
     world?.start();
+    if(SONGS[theme])music(SONGS[theme]);
   }
   // Browsers only allow sound after a tap; call this from a gesture.
   function unlock(){
     try{if(!ctx)build();if(ctx.state==='suspended'&&!hidden)ctx.resume()}catch{}
   }
-  const live=()=>ctx&&enabled&&!hidden&&ctx.state==='running';
+  const live=()=>ctx&&levels.on&&!hidden&&ctx.state==='running';
 
   // --- Building blocks. ---
   function out(node,{pan=0,wet=.25,bus=sfxBus}={}){
@@ -67,8 +77,28 @@ export function createAudio(theme){
   // --- Game effects. ---
   const api={
     unlock,
-    setEnabled(on){enabled=on;if(!ctx)return;master.gain.setTargetAtTime(on?1:0,ctx.currentTime,.08);if(on)unlock()},
-    setHidden(h){hidden=h;if(!ctx)return;try{h?ctx.suspend():enabled&&ctx.resume()}catch{}},
+    // { on, music, effects, ambience }, levels from 0 to 1.
+    setLevels(next){
+      levels={...levels,...next};if(!ctx)return;const t=ctx.currentTime;
+      master.gain.setTargetAtTime(levels.on?1:0,t,.08);
+      sfxBus.gain.setTargetAtTime(BUS_GAIN.effects*levels.effects,t,.05);
+      ambBus.gain.setTargetAtTime(BUS_GAIN.ambience*levels.ambience,t,.1);
+      musicBus.gain.setTargetAtTime(BUS_GAIN.music*levels.music*ducked,t,.1);
+      if(levels.on)unlock();
+    },
+    // The music steps back for a moment, e.g. under the sink and the fanfare.
+    duck(seconds=3){
+      if(!ctx)return;const t=ctx.currentTime;ducked=.3;
+      musicBus.gain.setTargetAtTime(BUS_GAIN.music*levels.music*ducked,t,.15);
+      clearTimeout(duckTimer);duckTimer=setTimeout(()=>{ducked=1;musicBus.gain.setTargetAtTime(BUS_GAIN.music*levels.music,ctx.currentTime,.8)},seconds*1000);
+    },
+    // The QA bench's level meter: loudness of each bus in dBFS right now.
+    meter(){
+      if(!ctx)return null;
+      api.meters??=Object.fromEntries([['music',musicBus],['effects',sfxBus],['ambience',ambBus],['all',master]].map(([k,bus])=>{const a=ctx.createAnalyser();a.fftSize=2048;bus.connect(a);return [k,a]}));
+      return Object.fromEntries(Object.entries(api.meters).map(([k,a])=>{const d=new Float32Array(a.fftSize);a.getFloatTimeDomainData(d);const rms=Math.sqrt(d.reduce((s,v)=>s+v*v,0)/d.length);return [k,+(20*Math.log10(rms||1e-6)).toFixed(1)]}));
+    },
+    setHidden(h){hidden=h;if(!ctx)return;try{h?ctx.suspend():levels.on&&ctx.resume()}catch{}},
     // The old one-line beeps, now with a soft attack and a touch of room.
     tone(freq=440,duration=.13,type='sine',vol=.055,slide=1){
       if(!live())return;const t=ctx.currentTime;
@@ -157,6 +187,13 @@ export function createAudio(theme){
     let timer=null,next=0;
     return {start(){next=ctx.currentTime+.2;timer=setInterval(()=>{if(!live())return;if(next<ctx.currentTime-.1)next=ctx.currentTime+.05;while(next<ctx.currentTime+.4)next=step(next)},90)}};
   }
+  // A beat grid on the shared clock: fn(step, time) for every step, counted from t0,
+  // so two grids with the same beat stay together whatever was skipped.
+  function transport(beat,fn){
+    let last=-1;
+    setInterval(()=>{if(!live())return;const end=ctx.currentTime+.4;
+      for(let k=Math.max(last+1,Math.ceil((ctx.currentTime+.05-t0)/beat));t0+k*beat<end;k++){fn(k,t0+k*beat);last=k}},90);
+  }
   function loopNoise(filterType,freq,q,vol,pan=0){
     const s=ctx.createBufferSource();s.buffer=noise;s.loop=true;const f=ctx.createBiquadFilter();f.type=filterType;f.frequency.value=freq;f.Q.value=q;
     const g=ctx.createGain();g.gain.value=vol;s.connect(f);f.connect(g);out(g,{pan,wet:.2,bus:ambBus});s.start();return {s,f,g};
@@ -203,9 +240,10 @@ export function createAudio(theme){
         if(chuff%90===0){for(const f of [NOTE(81),NOTE(85)])osc(at,'sine',f,f*1.01,.035+near*.03,.06,.7,{pan,wet:.4,bus:ambBus})}
         return at+.24;
       }).start();
-      // The music box on the carousel plays its waltz every so often.
+      // The music box on the carousel plays its waltz every so often, when the
+      // town's own music is off (the two would play over each other).
       const tune=[72,76,79,76,74,77,81,77,76,79,84,79,77,74,71,72];
-      scheduler(at=>{tune.forEach((n,i)=>struck(at+i*.32,NOTE(n),.035,'musicbox',{pan:-.3,wet:.5,bus:ambBus}));return at+tune.length*.32+14+Math.random()*10}).start();
+      scheduler(at=>{if(levels.music<=0)tune.forEach((n,i)=>struck(at+i*.32,NOTE(n),.035,'musicbox',{pan:-.3,wet:.5,bus:ambBus}));return at+tune.length*.32+14+Math.random()*10}).start();
       // The cat purrs.
       const purr=loopNoise('lowpass',260,.8,0);lfo(purr.g.gain,24,.02);
       scheduler(at=>{purr.g.gain.setTargetAtTime(Math.random()<.5?.02:0,at,1.5);return at+8+Math.random()*8}).start();
@@ -221,15 +259,15 @@ export function createAudio(theme){
       scheduler(at=>{chords[chord%4].forEach((n,i)=>voices[i].frequency.setTargetAtTime(NOTE(n)*(1+(i-1)*.003),at,1.2));chord++;return at+8}).start();
       // The calliope waltz drifting over from the fair: oom-pah-pah and a tune.
       const melody=[79,77,76,77,79,84,83,81,79,76,77,74,72,74,76,79,77,74,72,71,72,null];
-      const bass=[48,43,48,43,53,48,55,43];let beat=0;
-      scheduler(at=>{
-        const bar=Math.floor(beat/3),inBar=beat%3,root=bass[bar%bass.length];
+      // It keeps the shared clock, so the moon's music can play along with it.
+      transport(CALLIOPE.beat,(beat,at)=>{
+        const bar=Math.floor(beat/CALLIOPE.bar),inBar=beat%CALLIOPE.bar,root=CALLIOPE.bass[bar%CALLIOPE.bass.length];
         if(inBar===0)osc(at,'triangle',NOTE(root),0,.05,.005,.28,{pan:-.2,wet:.6,bus:ambBus});
         else for(const n of [root+16,root+19])osc(at,'square',NOTE(n),0,.01,.005,.12,{pan:-.2,wet:.6,bus:ambBus});
-        const m=melody[beat%melody.length];
+        // With the moon's music playing, the calliope's own tune gives way to it.
+        const m=levels.music>0?null:melody[beat%melody.length];
         if(m){const o=osc(at,'square',NOTE(m),0,.012,.01,.32,{pan:-.2,wet:.7,bus:ambBus});lfo(o.frequency,5.5,3)}
-        beat++;return at+.4;
-      }).start();
+      });
       // Happy squeals from the rides.
       scheduler(at=>{const f=900+Math.random()*500,pan=Math.random()*1.6-.8;osc(at,'sine',f,f*1.6,.025,.08,.4,{pan,wet:.7,bus:ambBus});osc(at+.45,'sine',f*1.5,f*.9,.02,.05,.35,{pan,wet:.7,bus:ambBus});return at+4+Math.random()*7}).start();
       // A murmuring crowd.
@@ -237,6 +275,32 @@ export function createAudio(theme){
       window.addEventListener('fair-burst',e=>api.boom(e.detail?.x??0));
     }};
   }
+
+  // --- Music. ---
+  // A held note with a soft attack and release, for the flute and the theremin.
+  function held(at,freq,vol,length,{type='sine',vibrato=0,glide=0,attack=.06,opts}={}){
+    const o=ctx.createOscillator(),g=ctx.createGain();o.type=type;
+    o.frequency.setValueAtTime(freq*(1-glide),at);if(glide)o.frequency.exponentialRampToValueAtTime(freq,at+.14);
+    g.gain.setValueAtTime(0,at);g.gain.linearRampToValueAtTime(vol,at+attack);
+    g.gain.setValueAtTime(vol,at+Math.max(attack,length-.1));g.gain.linearRampToValueAtTime(0,at+length+.18);
+    if(vibrato){const l=ctx.createOscillator(),d=ctx.createGain();l.frequency.value=5;d.gain.setValueAtTime(0,at);d.gain.linearRampToValueAtTime(freq*vibrato,at+.45);l.connect(d);d.connect(o.frequency);l.start(at);l.stop(at+length+.25)}
+    o.connect(g);out(g,opts);o.start(at);o.stop(at+length+.25);
+  }
+  function play(e,at,song){
+    const length=e.steps*song.beat,f=NOTE(e.note),bus=musicBus;
+    if(e.voice==='bass'){
+      // Pizzicato in the clockwork town, a round soft bass elsewhere.
+      if(theme==='clockwork'){osc(at,'triangle',f,0,e.accent?.2:.15,.004,.2,{wet:.15,bus});osc(at,'sine',f*2,0,.05,.003,.1,{wet:.15,bus})}
+      else osc(at,'sine',f,0,e.accent?.12:.09,.02,Math.min(.9,length),{wet:.1,bus});
+    }
+    if(e.voice==='stab')e.notes.forEach(n=>osc(at,'triangle',NOTE(n),0,.035,.004,.16,{wet:.25,bus}));
+    if(e.voice==='marimba')struck(at,f,e.accent?.06:.045,'marimba',{wet:.35,bus});
+    if(e.voice==='musicbox')struck(at,f,.065,'musicbox',{wet:.4,bus});
+    if(e.voice==='glass'){osc(at,'sine',f,0,e.accent?.035:.025,.01,.9,{wet:.7,bus});osc(at,'sine',f*2,0,.007,.01,.5,{wet:.7,bus})}
+    if(e.voice==='flute')held(at,f,.05,length,{type:'triangle',vibrato:.005,attack:.07,opts:{wet:.4,bus}});
+    if(e.voice==='theremin')held(at,f,.045,length,{vibrato:.012,glide:.03,attack:.15,opts:{wet:.75,bus}});
+  }
+  function music(song){transport(song.beat,(step,at)=>{if(levels.music>0)for(const e of eventsAt(song,step))play(e,at,song)})}
 
   return api;
 }
