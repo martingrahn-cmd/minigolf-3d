@@ -81,9 +81,7 @@ Månkarnevalen var en ödslig bana bland asteroider. Nu ligger en ring av sväva
 
 Modellerna byggs i `blender/assets/carnival.py`: utomjording, kättingflygare, raketkarusell, kiosk, spelstånd, fritt fall-torn, UFO och berg-och-dalbanevagn. Besökarna ritas med instansering. Öarnas fasta delar och likadana material slås ihop med hjälpfunktionerna i `src/life-kit.js`, som Urverkets stad också använder. Ingenting påverkar bollen.
 
-## Efterforskning och slutsatser
-
-- **Walkabout Mini Golf:** Mighty Coconut beskrive## Kampanjens framsteg och slut
+## Kampanjens framsteg och slut
 
 Menyn visar spelarens framsteg, inte hur många hål som är byggda:
 - **Stjärnor:** totalt antal stjärnor av 54.
@@ -162,7 +160,20 @@ Allt ljud syntetiseras med Web Audio i `src/audio.js`, så spelet behöver inga 
 - *Urverkets stad:* tre klockor tickar i olika takt från olika håll i rummet. Göken gal ibland. Leksakståget tuffar förbi i stereo och visslar, speldosan på karusellen spelar sin vals, fontänen porlar och katten spinner då och då.
 - *Månkarnevalen:* en kalliopvals hörs från tivolit och rymden surrar mjukt. Åkattraktionerna ger glada tjut och folkmassan sorlar. Fyrverkerierna smäller en stund efter att de syns, från rätt håll.
 
-r tematiska 18-hålsbanor med sammanhängande miljöer, utforskande och egna trickslag. Tillämpning här: en tydlig värld per nio hål och en trovärdig plats även utanför sargen. [Utvecklarens spelbeskrivning](https://www.mightycoconut.com/minigolf).
+## Den guidade första rundan
+
+Den som aldrig har spelat lär sig slaget genom att göra det, inte genom att läsa hjälpen. Första gången varje steg dyker upp visas en kort pratbubbla bredvid kontrollen den gäller (`src/coach.js`):
+- **Sikte:** mitt över banan, innan första slaget. Den försvinner när spelaren drar för att sikta.
+- **Kraft:** ovanför mätaren när kraften pendlar. Den försvinner när kraften låses.
+- **Precision:** ovanför mätaren när nålen sveper. Den förklarar det gröna fältet.
+- **Översikt:** vid kameraknappen efter första slaget. Den försvinner när översikten öppnas, efter sju sekunder eller när nästa slag börjar.
+- **Närputt:** första gången bollen ligger nära hålet. Den förklarar att mätaren räknar i meter.
+
+Varje tips visas en gång och sparas lokalt. *Okej* stänger det direkt. Tipsen syns aldrig ovanpå menyer, under banans förhandsvisning eller på QA-bänken. Hjälpen har knappen *Visa tipsen igen*.
+
+## Efterforskning och slutsatser
+
+- **Walkabout Mini Golf:** Mighty Coconut beskriver tematiska 18-hålsbanor med sammanhängande miljöer, utforskande och egna trickslag. Tillämpning här: en tydlig värld per nio hål och en trovärdig plats även utanför sargen. [Utvecklarens spelbeskrivning](https://www.mightycoconut.com/minigolf).
 - **Golf With Your Friends, Bouncy Castle:** Team17:s officiella presentation kopplar 18 hål till ett lekfullt tema, hinder och trickslag. Tillämpning här: temat ska synas i hur hindren fungerar. Neonhamnen får ljussignaler, flipperstötar och mekaniska bryggor. [Team17, 21 juni 2022](https://www.team17.com/news/golf-with-your-friends-bouncy-castle-and-more-out-now).
 - **Cursed to Golf:** spelregissören beskriver genvägar, olika vägar, översiktskamera och återkommande utmaningar som går att lära sig. Tillämpning här: en synlig, riskfylld genväg och en tryggare väg runt. Förklarliga missar gör det meningsfullt att försöka igen. [Utvecklarintervju på PlayStation Blog, 18 augusti 2022](https://blog.playstation.com/2022/08/18/cursed-to-golf-is-out-today-on-ps5-and-ps4/).
 
