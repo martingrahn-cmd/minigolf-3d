@@ -1111,7 +1111,7 @@ function startBot(){
   const step=()=>{elapsed+=1/120;physics(1/120)};
   const run=(seconds,done)=>{for(let t=0;t<seconds&&!done();t+=1/120)step()};
   const settled=()=>['idle','win','loaded'].includes(state.phase);
-  const look=()=>({phase:state.phase,x:state.x,z:state.z,y:surfaceHeight(state.x,state.z),strokes:state.strokes,putt:nearPutt?.distance??null});
+  const look=()=>({phase:state.phase,x:state.x,z:state.z,y:surfaceHeight(state.x,state.z),strokes:state.strokes,putt:nearPutt?.distance??null,flags:{bridge:bellBridgeState.open,lift:liftState.mode==='top'}});
   window.minigolfBot={
     level:{name:LEVEL.name,par:LEVEL.par,start:{...START},cup:{x:CUP.x,z:CUP.z,y:surfaceHeight(CUP.x,CUP.z)}},
     restart(){reset(false);state.strokes=0;elapsed=0;cometTime=0;wheelTime=0;accumulator=0;return look()},
