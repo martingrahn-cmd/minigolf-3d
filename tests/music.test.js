@@ -5,7 +5,7 @@ import { SONGS, CALLIOPE, eventsAt, loopLength, AUDIO_DEFAULTS, loadAudioSetting
 const memory=()=>{const m=new Map();return {getItem:k=>m.has(k)?m.get(k):null,setItem:(k,v)=>m.set(k,String(v))}};
 
 test('every world has a song, and every melody fits its loop without overlapping notes',()=>{
-  for(const theme of ['forest','clockwork','moon']){
+  for(const theme of ['forest','clockwork','moon','halloween']){
     const song=SONGS[theme],length=loopLength(song);
     assert.ok(song,theme);assert.equal(length%song.bar,0);
     let end=0;

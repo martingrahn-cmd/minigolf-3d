@@ -22,17 +22,21 @@ export const WORLDS = [
     // cannon.
     slots:[20,21,22,23,24,25],
   },
+  {
+    // The Halloween special: the five early prototypes, rebuilt as a haunted
+    // harbour. A world of its own, outside the campaign's stars and ending.
+    key:'halloween',name:'Spökhamnen',finale:'Spökhamnens final',special:true,label:'HALLOWEEN',
+    tagline:'Fullmåne, dimma och pumplyktor i en hemsökt hamn.',
+    slots:[12,11,10,13,9,{name:'Spökskeppet',idea:'Final: ombord på spökskeppet, med kanon och rangliga plankor'}],
+  },
 ];
 
-// Older prototypes outside the 18-hole round. Still playable, waiting to be rebuilt
-// into one of the worlds (their ideas may be reused, e.g. the cannon on the moon).
-export const PROTOTYPES = [
-  {id:9,slug:'kanonkurvan',world:'Solskensöarna'},
-  {id:10,slug:'dubbelstudsen',world:'Neonhamnen'},
-  {id:11,slug:'vippvarvet',world:'Neonhamnen'},
-  {id:12,slug:'neonslussen',world:'Neonhamnen'},
-  {id:13,slug:'frostfallet',world:'Neonhamnen'},
-];
+// The campaign is the three worlds of the 18-hole round; special worlds stand beside it.
+export const isCampaignSlot=slot=>!slot.world.special;
+
+// The early prototypes are now Spökhamnen's holes. Old ?proto= links still find them.
+export const PROTOTYPES = [];
+const LEGACY_PROTOTYPES={kanonkurvan:9,dubbelstudsen:10,vippvarvet:11,neonslussen:12,frostfallet:13};
 
 const levelById=id=>LEVELS.find(level=>level.id===id);
 
@@ -47,10 +51,13 @@ export const builtCount=world=>ROUND.filter(slot=>slot.world===world&&slot.level
 export const slotForLevel=level=>ROUND.find(slot=>slot.level===level);
 export const prototypeForLevel=level=>PROTOTYPES.find(p=>p.id===level.id);
 
-// Next playable hole after `hole`, plus the placeholders skipped on the way.
+export const CAMPAIGN = ROUND.filter(isCampaignSlot);
+
+// Next playable hole after `hole`, plus the placeholders skipped on the way. The
+// campaign and a special world each run on their own.
 export function nextInRound(hole){
-  const skipped=[];
-  for(const slot of ROUND.filter(s=>s.hole>hole)){
+  const skipped=[],from=ROUND.find(s=>s.hole===hole),own=from?isCampaignSlot(from):true;
+  for(const slot of ROUND.filter(s=>s.hole>hole&&isCampaignSlot(s)===own)){
     if(slot.level)return {slot,skipped};
     skipped.push(slot);
   }
@@ -62,8 +69,8 @@ export function nextInRound(hole){
 // main menu, with hole 1 as the backdrop.
 export function resolveSelection(search=''){
   const params=new URLSearchParams(search);
-  const proto=PROTOTYPES.find(p=>p.slug===params.get('proto'));
-  if(proto)return {level:levelById(proto.id),prototype:proto,menu:false};
+  const legacy=ROUND.find(s=>s.level&&s.level.id===LEGACY_PROTOTYPES[params.get('proto')]);
+  if(legacy)return {level:legacy.level,slot:legacy,menu:false};
   const hole=Number(params.get('hole'));
   const slot=ROUND.find(s=>s.hole===hole);
   if(slot?.level)return {level:slot.level,slot,menu:false};

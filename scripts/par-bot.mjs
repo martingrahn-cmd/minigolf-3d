@@ -2,7 +2,7 @@
 // reports what a normal player scores. Used for the balance pass in DESIGN.md.
 //
 //   npm run dev -- --port 5199            (in another terminal)
-//   node scripts/par-bot.mjs 1,2,3        (holes; default all 18)
+//   node scripts/par-bot.mjs 1,2,3        (holes; default all 18; Spökhamnen is 19–23)
 //   node scripts/par-bot.mjs 15 --trials 32 --best
 //
 // --best searches the fewest strokes with flawless shots instead. Playwright is
@@ -32,6 +32,8 @@ const HOLES={
   16:{aims:12,fine:[-.1,0,.1],powers:[.5,.7,.9],fires:fires(3)},
   17:{waits:[...waits,3,3.6],aims:24},
   18:{aims:12,fine:[-.1,0,.1],powers:[.5,.7,.9],fires:fires(3.2)},
+  // Spökhamnen: the crypt gate, and the scarecrows on 21 and 23.
+  19:{waits,aims:24},21:{waits,aims:24},23:{waits,aims:24},
 };
 
 const browser=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});

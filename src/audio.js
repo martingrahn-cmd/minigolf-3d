@@ -8,6 +8,8 @@
 //   toy train chuffing past and whistling, a music box, the cat purring.
 // Månkarnevalen: a calliope waltz from the fair, the hum of space, squeals
 //   from the rides, and fireworks that bang when the bursts are seen.
+// Spökhamnen: a howling wind, waves against the piles, an owl, the ghost ship
+//   creaking, bats squeaking and now and then a wolf far away.
 //
 // On top of that each world has its own music (the songs are in music.js).
 // Effects, ambience and music have their own bus and volume.
@@ -30,13 +32,13 @@ export function createAudio(theme){
     // The shared clock: music and the fair's calliope count their beats from here.
     t0=ctx.currentTime+.2;
     // A generated impulse response: a moon-sized hall, a workshop, an open forest.
-    const seconds=theme==='moon'?3.2:theme==='clockwork'?1.6:1.1,len=Math.floor(ctx.sampleRate*seconds);
+    const seconds=theme==='moon'?3.2:theme==='halloween'?2.4:theme==='clockwork'?1.6:1.1,len=Math.floor(ctx.sampleRate*seconds);
     const ir=ctx.createBuffer(2,len,ctx.sampleRate);
     for(let c=0;c<2;c++){const d=ir.getChannelData(c);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,theme==='moon'?2.2:3)}
     const convolver=ctx.createConvolver();convolver.buffer=ir;
-    reverbSend=ctx.createGain();reverbSend.gain.value=theme==='moon'?.5:.3;reverbSend.connect(convolver);convolver.connect(master);
+    reverbSend=ctx.createGain();reverbSend.gain.value=theme==='moon'?.5:theme==='halloween'?.45:.3;reverbSend.connect(convolver);convolver.connect(master);
     noise=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate);const n=noise.getChannelData(0);for(let i=0;i<n.length;i++)n[i]=Math.random()*2-1;
-    world=({forest:forestAmbience,clockwork:clockAmbience,moon:moonAmbience}[theme]??(()=>null))();
+    world=({forest:forestAmbience,clockwork:clockAmbience,moon:moonAmbience,halloween:spookAmbience}[theme]??(()=>null))();
     world?.start();
     if(SONGS[theme])music(SONGS[theme]);
   }
@@ -137,10 +139,11 @@ export function createAudio(theme){
     },
     fanfare(stars=2){
       if(!live())return;const t=ctx.currentTime+.25;
-      const kind=theme==='forest'?'marimba':theme==='clockwork'?'musicbox':'glock';
-      const run=[72,76,79,84,88,91].slice(0,3+stars);
+      const kind=theme==='forest'||theme==='halloween'?'marimba':theme==='clockwork'?'musicbox':'glock';
+      // Spökhamnen's fanfare is in a minor key, rattled out on bones.
+      const run=(theme==='halloween'?[72,75,79,84,87,91]:[72,76,79,84,88,91]).slice(0,3+stars);
       run.forEach((n,i)=>struck(t+i*.13,NOTE(n),.16,kind,{wet:.4}));
-      const end=t+run.length*.13;[72,76,79].forEach(n=>struck(end+.05,NOTE(n+12),.08,kind,{wet:.5}));
+      const end=t+run.length*.13;(theme==='halloween'?[72,75,79]:[72,76,79]).forEach(n=>struck(end+.05,NOTE(n+12),.08,kind,{wet:.5}));
     },
     // The sink celebration: a slow-motion whoosh, the ball plinking on the bottom,
     // and the critter popping up, gulping and munching.
@@ -154,6 +157,18 @@ export function createAudio(theme){
     },
     critter(event){
       if(!live())return;const t=ctx.currentTime;
+      if(event==='pop'&&theme==='halloween'){
+        // The hand rises: an eerie glide and a rattle of bones.
+        const o=osc(t,'sine',300,900,.12,.15,.6,{wet:.6});lfo(o.frequency,6,14);
+        for(let i=0;i<6;i++)struck(t+.1+i*.05,NOTE(84+(i%3)*3),.05,'marimba',{wet:.3});
+        return;
+      }
+      if(event==='munch'&&theme==='halloween'){
+        // A dry little cackle: heh-heh-heh-heh.
+        for(let i=0;i<4;i++){const o=osc(t+i*.15,'triangle',420-i*25,330-i*25,.1,.01,.12,{wet:.4});lfo(o.frequency,30,25)}
+        return;
+      }
+      if(event==='gulp'&&theme==='halloween'){for(let i=0;i<4;i++)struck(t+i*.06,NOTE(79-i*2),.06,'marimba',{wet:.3});return}
       if(event==='pop'){
         osc(t,'sine',280,950,.3,.005,.13,{wet:.3});
         if(theme==='forest')[0,.14].forEach(d=>osc(t+.18+d,'sine',1350,1850,.12,.01,.09,{wet:.3}));
@@ -276,6 +291,30 @@ export function createAudio(theme){
     }};
   }
 
+  function spookAmbience(){
+    return {start(){
+      // A howling wind that rises and falls, and waves slapping the piles.
+      const wind=loopNoise('bandpass',420,2.2,.05);lfo(wind.g.gain,.09,.04);lfo(wind.f.frequency,.13,260);
+      const swell=loopNoise('lowpass',300,.6,.05);lfo(swell.g.gain,.18,.035);
+      // The owl: hoo... hoo-hoo.
+      scheduler(at=>{
+        for(const [d,len] of [[0,.5],[.75,.22],[1.05,.45]])osc(at+d,'sine',390,360,.035,.06,len,{pan:-.5,wet:.6,bus:ambBus});
+        return at+11+Math.random()*10;
+      }).start();
+      // The ghost ship creaks at its moorings.
+      scheduler(at=>{const f=180+Math.random()*120;hiss(at,'bandpass',f,9,.05,.08,.5,{pan:-.3,wet:.4,bus:ambBus},f*1.6);return at+5+Math.random()*7}).start();
+      // Bats squeak overhead.
+      scheduler(at=>{const pan=Math.random()*1.6-.8;for(let i=0;i<3;i++)osc(at+i*.07,'sine',5200+Math.random()*900,4300,.012,.003,.04,{pan,wet:.3,bus:ambBus});return at+3+Math.random()*6}).start();
+      // A wolf, far away, once in a while.
+      scheduler(at=>{
+        const o=ctx.createOscillator(),g=env(at,.03,.6,2.8);o.type='sine';
+        o.frequency.setValueAtTime(330,at);o.frequency.linearRampToValueAtTime(620,at+.9);o.frequency.linearRampToValueAtTime(560,at+2.2);o.frequency.linearRampToValueAtTime(380,at+3.2);
+        lfo(o.frequency,5,8);o.connect(g);out(g,{pan:.6,wet:.9,bus:ambBus});o.start(at);o.stop(at+3.5);
+        return at+38+Math.random()*30;
+      }).start();
+    }};
+  }
+
   // --- Music. ---
   // A held note with a soft attack and release, for the flute and the theremin.
   function held(at,freq,vol,length,{type='sine',vibrato=0,glide=0,attack=.06,opts}={}){
@@ -290,10 +329,12 @@ export function createAudio(theme){
     const length=e.steps*song.beat,f=NOTE(e.note),bus=musicBus;
     if(e.voice==='bass'){
       // Pizzicato in the clockwork town, a round soft bass elsewhere.
-      if(theme==='clockwork'){osc(at,'triangle',f,0,e.accent?.2:.15,.004,.2,{wet:.15,bus});osc(at,'sine',f*2,0,.05,.003,.1,{wet:.15,bus})}
+      if(theme==='clockwork'||theme==='halloween'){osc(at,'triangle',f,0,e.accent?.2:.15,.004,.2,{wet:.15,bus});osc(at,'sine',f*2,0,.05,.003,.1,{wet:.15,bus})}
       else osc(at,'sine',f,0,e.accent?.12:.09,.02,Math.min(.9,length),{wet:.1,bus});
     }
-    if(e.voice==='stab')e.notes.forEach(n=>osc(at,'triangle',NOTE(n),0,.035,.004,.16,{wet:.25,bus}));
+    // In Spökhamnen the stabs are a reedy organ.
+    if(e.voice==='stab')e.notes.forEach(n=>theme==='halloween'?osc(at,'square',NOTE(n),0,.014,.01,.22,{wet:.5,bus}):osc(at,'triangle',NOTE(n),0,.035,.004,.16,{wet:.25,bus}));
+    if(e.voice==='xylo'){struck(at,f,.06,'marimba',{wet:.35,bus});osc(at,'square',f*2,0,.006,.002,.05,{wet:.2,bus})}
     if(e.voice==='marimba')struck(at,f,e.accent?.06:.045,'marimba',{wet:.35,bus});
     if(e.voice==='musicbox')struck(at,f,.065,'musicbox',{wet:.4,bus});
     if(e.voice==='glass'){osc(at,'sine',f,0,e.accent?.035:.025,.01,.9,{wet:.7,bus});osc(at,'sine',f*2,0,.007,.01,.5,{wet:.7,bus})}

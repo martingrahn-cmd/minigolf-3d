@@ -8,6 +8,7 @@ import { createLoopScenery } from './loop-visuals.js';
 import { createMotherTreeScenery } from './mother-tree-visuals.js';
 import { CLOCK_THEME, createClockEnvironment } from './clockwork.js';
 import { MOON_THEME, createMoonEnvironment } from './moon.js';
+import { HALLOWEEN_THEME, createHalloweenEnvironment } from './halloween.js';
 
 export const THEMES={
   sunset:{key:'sunset',name:'Solskensöarna',range:'PROTOTYP',sky:0x6eabc7,horizon:0xffce9e,water:0x248eaa,rail:0xffefcb,base:0x326773,accent:0xffc367},
@@ -15,6 +16,7 @@ export const THEMES={
   forest:FOREST_THEME,
   clockwork:CLOCK_THEME,
   moon:MOON_THEME,
+  halloween:HALLOWEEN_THEME,
 };
 export const themeFor=id=>THEMES[LEVELS.find(level=>level.id===id)?.theme]||(id<=9?THEMES.sunset:THEMES.neon);
 const standard=(color,extra={})=>new THREE.MeshStandardMaterial({color,roughness:.75,...extra});
@@ -30,6 +32,7 @@ function beam(scene,a,b,r,material){
 export function createEnvironment(scene,level){
   if(themeFor(level.id).key==='clockwork')return createClockEnvironment(scene,level);
   if(themeFor(level.id).key==='moon')return createMoonEnvironment(scene,level);
+  if(themeFor(level.id).key==='halloween')return createHalloweenEnvironment(scene,level);
   if(themeFor(level.id).key==='forest')return createForestEnvironment(scene,level.scenery==='mothertree'?createMotherTreeScenery:level.scenery==='crown'?createCrownScenery:level.scenery==='loop'?createLoopScenery:level.scenery==='acorn'?createAcornScenery:level.scenery==='ravine'?createRavineScenery:undefined,level);
   const night=level.id>=10,theme=themeFor(level.id),animated=[];
   let seed=137;

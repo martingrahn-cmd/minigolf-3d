@@ -11,6 +11,7 @@
 
 const F=[53,57,60],Am=[57,60,64],Bb=[58,62,65],Cmaj=[60,64,67],Dm=[62,65,69];
 const G=[55,59,62],Fmaj=[53,57,60],E7=[52,56,59,62],G7=[55,59,62,65];
+const Dmin=[62,65,69],A7=[57,61,64,67],Gm=[55,58,62],Bb2=[58,62,65];
 
 // The calliope's oom-pah-pah from the moon fair (ambience), one root per bar of
 // three beats. The moon's music is written over the same bars.
@@ -39,6 +40,17 @@ export const SONGS={
       [40,80,2],[42,76,2],[44,74,2],[46,71,2],
       [48,72,2],[50,76,2],[52,81,2],[54,79,1],[55,77,1],
       [56,77,1],[57,74,1],[58,71,2],[60,74,2],[62,79,2]],
+  },
+  // A danse macabre for Spökhamnen: a waltz in D minor with a xylophone of
+  // bones, pizzicato oom and organ pah-pah.
+  halloween:{
+    key:[2,4,5,7,9,10,1],beat:.34,bar:3,rest:3,lead:'xylo',
+    chords:[Dmin,Dmin,A7,Dmin,Gm,Dmin,A7,A7,Dmin,Dmin,A7,Dmin,Gm,Bb2,A7,Dmin],
+    bass:{0:'root',1:'stab',2:'stab'},
+    melody:[[0,74,1],[1,77,1],[2,81,1],[3,86,2],[5,81,1],[6,85,1],[7,81,1],[8,79,1],[9,77,2],[11,74,1],
+      [12,79,1],[13,82,1],[14,86,1],[15,89,2],[17,86,1],[18,85,1],[19,88,1],[20,85,1],[21,81,3],
+      [24,86,1],[25,85,1],[26,86,1],[27,89,1],[28,86,1],[29,81,1],[30,79,1],[31,76,1],[32,73,1],[33,74,3],
+      [36,74,1],[37,79,1],[38,82,1],[39,82,2],[41,77,1],[42,76,1],[43,73,1],[44,76,1],[45,74,3]],
   },
   // Over the calliope's waltz: glassy arpeggios and a theremin drifting in space.
   moon:{
