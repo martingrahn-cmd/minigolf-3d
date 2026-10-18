@@ -29,6 +29,7 @@ import {starsFor,starText,bestStars,worldStars,startWorldRun,activeRun,recordRun
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { createAudio } from './audio.js';
 import { QA, BOT, setupQA } from './qa.js';
+import { loadAudioSettings, saveAudioSettings } from './music.js';
 import { createCoach } from './coach.js';
 import { SINK, SLOW_MOTION, sinkPose, RESCUE, onTheLip } from './cup-celebration.js';
 import './style.css';
@@ -66,7 +67,8 @@ let pointerDownX=0,pointerDownY=0;
 let nearPutt=null,puttEnabled=false,puttLength=1;
 let course;
 let forestRenderer;
-let audioEnabled=true;
+const audioSettings=loadAudioSettings(localStorage);
+let audioEnabled=audioSettings.on;
 let toastTimer;
 const aimKeys=new Set();
 // Touch and mouse/keyboard get their own hints and controls. Starts from the primary
@@ -141,7 +143,7 @@ function burst(x,y,z,color=0xffdb77,count=16,force=1){
 }
 // Sound: game effects and each world's soundscape, synthesised in audio.js.
 // Browsers only start sound after a gesture, so the first tap unlocks it.
-const audio=createAudio(LEVEL.theme);
+const audio=createAudio(LEVEL.theme);audio.setLevels(audioSettings);
 for(const type of ['pointerdown','touchend','click','keydown'])window.addEventListener(type,()=>audio.unlock(),{capture:true});
 function sound(freq=440,duration=.13,type='sine',vol=.055,slide=1){if(audioEnabled)audio.tone(freq,duration,type,vol,slide)}
 function toast(text,ms=2000){
@@ -299,7 +301,7 @@ function updateRescue(dt){
 }
 function startSink(){
   sink={t:0,entry:{x:state.x-CUP.x,z:state.z-CUP.z,vx:state.vx,vz:state.vz},y:0,events:new Set()};
-  state.vx=0;state.vz=0;setPhase('sinking');audio.swoosh();
+  state.vx=0;state.vz=0;setPhase('sinking');audio.swoosh();audio.duck(7);
   if(cameraOverview){cameraOverview=false;$('cameraText').textContent='Översikt';setIcon($('cameraIcon'),'map')}
 }
 function updateSink(dt){
@@ -339,7 +341,7 @@ function win(){
     burst(CUP.x-4+i*1.6,7+(i%3)*1.8,CUP.z+(i%2?-3:3),color,46,2.4);audio.boom(-4+i*1.6);
   },250+i*420));
   if(course?.motherTree){course.motherTree.bloom();burst(LEVEL.treeEye.x,LEVEL.treeEye.y,LEVEL.treeEye.z,0xffb3d4,60,2.2)}
-  audio.fanfare(stars);
+  audio.duck(4);audio.fanfare(stars);
 }
 
 function celebratePins(indices){
@@ -775,7 +777,7 @@ function frame(){
   if(state.phase==='power'&&puttEnabled)puttLength=puttLengthAt(state.power);
   if(state.phase==='idle'&&!wasIdle)aimAtIdle=state.aim;wasIdle=state.phase==='idle';
   coach.update({
-    enabled:!QA&&preview<=0&&['idle','power','accuracy'].includes(state.phase)&&$('intro').classList.contains('hidden')&&$('menu').classList.contains('hidden')&&!$('helpPanel').open&&!$('levelPanel').open,
+    enabled:!QA&&preview<=0&&['idle','power','accuracy'].includes(state.phase)&&$('intro').classList.contains('hidden')&&$('menu').classList.contains('hidden')&&!$('helpPanel').open&&!$('levelPanel').open&&!$('soundPanel').open,
     phase:state.phase,putting:puttEnabled&&!!nearPutt,shots:state.strokes,aimMoved:Math.abs(state.aim-aimAtIdle)>.12,overview:cameraOverview,
   },elapsed);
   if(state.phase==='accuracy')state.needle=precisionAt(elapsed-state.accuracyStart);
@@ -826,10 +828,12 @@ window.addEventListener('keydown',e=>{
   if(e.code==='Escape'){
     if($('helpPanel').open)$('helpPanel').close();
     if($('levelPanel').open)$('levelPanel').close();
+    if($('soundPanel').open)$('soundPanel').close();
     if(['power','accuracy'].includes(state.phase)){state.power=0;setPhase('idle')}
     return;
   }
-  if($('helpPanel').open||$('levelPanel').open)return;
+  if(e.code==='KeyM'&&!e.repeat){applySound({on:!audioSettings.on});toast(audioSettings.on?'Ljudet på':'Ljudet av',1000);return}
+  if($('helpPanel').open||$('levelPanel').open||$('soundPanel').open)return;
   if(e.target instanceof HTMLInputElement&&['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(e.code))return;
   if(e.code==='Space'||e.code==='Enter'){
     if(state.phase==='sinking'){e.preventDefault();finishSink();return}
@@ -868,7 +872,21 @@ $('playButton').addEventListener('click',()=>{lockPortrait();audio.unlock();$('i
 $('againButton').addEventListener('click',()=>{$('win').classList.add('hidden');reset()});
 $('resetButton').addEventListener('click',()=>{if(state.phase!=='intro'){reset();$('win').classList.add('hidden')}});
 $('cameraButton').addEventListener('click',()=>{preview=0;setOverview(!cameraOverview)});
-$('soundButton').addEventListener('click',()=>{audioEnabled=!audioEnabled;audio.setEnabled(audioEnabled);$('soundButton').classList.toggle('off',!audioEnabled);setIcon($('soundIcon'),audioEnabled?'sound':'mute')});
+// Sound settings: everything on or off, and music, effects and ambience apart.
+function applySound(change={}){
+  Object.assign(audioSettings,change);audioEnabled=audioSettings.on;audio.setLevels(audioSettings);saveAudioSettings(localStorage,audioSettings);
+  const silent=!audioSettings.on||audioSettings.music+audioSettings.effects+audioSettings.ambience===0;
+  $('soundButton').classList.toggle('off',silent);setIcon($('soundIcon'),silent?'mute':'sound');
+  $('soundOn').checked=audioSettings.on;$('soundPanel').classList.toggle('muted',!audioSettings.on);
+  for(const key of ['music','effects','ambience']){$(`${key}Level`).value=Math.round(audioSettings[key]*100);$(`${key}Value`).textContent=`${Math.round(audioSettings[key]*100)} %`}
+}
+function openSound(){if(['power','accuracy'].includes(state.phase)){state.power=0;setPhase('idle')}aimKeys.clear();audio.unlock();$('soundPanel').showModal()}
+$('soundButton').addEventListener('click',openSound);
+$('menuSound').addEventListener('click',openSound);
+$('closeSound').addEventListener('click',()=>$('soundPanel').close());
+$('soundOn').addEventListener('change',e=>applySound({on:e.target.checked}));
+for(const key of ['music','effects','ambience'])$(`${key}Level`).addEventListener('input',e=>applySound({[key]:Number(e.target.value)/100,on:true}));
+applySound();
 window.addEventListener('resize',resize);
 document.addEventListener('visibilitychange',()=>audio.setHidden(document.hidden));
 
@@ -1083,6 +1101,7 @@ async function init(){
 }
 // The event bench: start straight into play, with a panel of set pieces to fire.
 function startQA(){
+  window.minigolfAudio=audio;
   $('intro').classList.add('hidden');reset();setPhase('idle');
   // Roll in along the line from the tee, so the camera and the helpers behave as in play.
   const tx=CUP.x-START.x,tz=CUP.z-START.z,td=Math.hypot(tx,tz)||1,dir={x:tx/td,z:tz/td};
@@ -1107,6 +1126,7 @@ function startQA(){
 // The par bot's handle on the hole: it plays shots with the game's own physics,
 // stepped as fast as the page can, and reads back where the ball came to rest.
 function startBot(){
+  window.minigolfAudio=audio;
   $('intro').classList.add('hidden');
   const step=()=>{elapsed+=1/120;physics(1/120)};
   const run=(seconds,done)=>{for(let t=0;t<seconds&&!done();t+=1/120)step()};

@@ -144,7 +144,7 @@ Spelaren tyckte att det förenklade puttsystemet gjorde spelet för lätt. Där 
 
 ## Ljud
 
-Allt ljud syntetiseras med Web Audio i `src/audio.js`, så spelet behöver inga ljudfiler. Ljudet startar vid första tryckningen, eftersom webbläsare kräver det. Ljudknappen stänger av allt, och när fliken döljs pausas ljudet så att det inte drar batteri. Allt går genom en mjuk kompressor och lite rumsklang: lång klang på månen, ett verkstadsrum i Urverket och öppen skog i Molnskogen.
+Allt ljud syntetiseras med Web Audio i `src/audio.js`, så spelet behöver inga ljudfiler. Ljudet startar vid första tryckningen, eftersom webbläsare kräver det. När fliken döljs pausas ljudet så att det inte drar batteri. Allt går genom en mjuk kompressor och lite rumsklang: lång klang på månen, ett verkstadsrum i Urverket och öppen skog i Molnskogen.
 
 **Spelljud**
 - Puttslaget är ett klickande *tock* med en kropp som följer slagets kraft.
@@ -159,6 +159,15 @@ Allt ljud syntetiseras med Web Audio i `src/audio.js`, så spelet behöver inga 
 - *Molnskogen:* vinden i löven sveper fram och tillbaka och fåglarna sjunger.
 - *Urverkets stad:* tre klockor tickar i olika takt från olika håll i rummet. Göken gal ibland. Leksakståget tuffar förbi i stereo och visslar, speldosan på karusellen spelar sin vals, fontänen porlar och katten spinner då och då.
 - *Månkarnevalen:* en kalliopvals hörs från tivolit och rymden surrar mjukt. Åkattraktionerna ger glada tjut och folkmassan sorlar. Fyrverkerierna smäller en stund efter att de syns, från rätt håll.
+
+**Musik.** Varje värld har en egen slinga, skriven som noter och ackord i `src/music.js` och spelad av samma syntar som effekterna. Slingorna är 14–19 sekunder långa. Var tredje varv tystnar melodin och bara ackompanjemanget spelar, så att musiken andas och inte tröttar.
+- *Molnskogen:* en pastoral vaggvisa i 6/8 i F-dur. Marimban spelar brutna ackord, en mjuk bas ligger under och en träflöjt bär melodin.
+- *Urverkets stad:* en tick-tack-marsch i C-dur. Pizzicatobas och ackord spelar humpa-humpa och en speldosa spelar melodin. Speldosan på karusellen i miljöljudet tystnar när musiken spelar, eftersom de annars skulle krocka.
+- *Månkarnevalen:* musiken är skriven över kalliopens vals, med samma takt och ackord. Glasklara arpeggion och en theremin svävar ovanpå, och kalliopen spelar bara sitt komp medan musiken är på. Musiken och kalliopen räknar slagen från samma klocka, så de håller ihop även efter en paus.
+
+Musiken sänks en stund medan bollen sjunker och fanfaren spelar, så att de hörs.
+
+**Ljudinställningar.** Ljudknappen och *Ljud och musik* i menyn öppnar en panel med en strömbrytare för allt ljud och ett reglage var för musik, effekter och miljöljud. Valen sparas på enheten. Från början står musiken på 50 procent, effekterna på 100 och miljöljudet på 80. Tangenten <kbd>M</kbd> slår av och på allt ljud. Mätt i webbläsaren ligger musiken vid standardnivån cirka 8 dB under effekternas toppar och ungefär lika starkt som miljöljudet. På QA-bänken visar `minigolfAudio.meter()` nivån på varje buss.
 
 ## Balanspass av par och stjärnor
 
