@@ -40,6 +40,8 @@
         <div class="score-bottom">BÄSTA <strong id="bestScore">–</strong><span>⛳</span></div><div id="worldName" class="world-name"></div>
       </aside>
 
+      <aside id="mpBoard" class="mp-board" hidden aria-label="Resultattavla"><div id="mpBoardTitle" class="mp-board-title"></div><ol id="mpBoardRows"></ol></aside>
+
       <aside class="route-card"><span id="routeHeading" class="route-eyebrow">TVÅ VÄGAR TILL FLAGGAN</span><div class="route-line"><span class="route-symbol cannon-symbol">◉</span><div><strong id="routeTitle0">Kanonen</strong><small id="routeDetail0">Genom tratt och rör</small></div></div><div class="route-line"><span class="route-symbol safe-symbol">↝</span><div><strong id="routeTitle1">Omvägen</strong><small id="routeDetail1">Längre & tryggare</small></div></div></aside>
 
       <div id="toast" class="toast" role="status" aria-live="polite"></div>
@@ -72,7 +74,7 @@
       </dialog>
 
       <div id="intro" class="modal-backdrop"><div class="intro-card"><div id="introWorld" class="intro-world"></div><span id="introKicker" class="intro-kicker">VÄLKOMMEN TILL HÅL 09</span><h1 id="introTitle">KANON<br /><em>KURVAN</em><span class="title-star">✦</span></h1><p id="introDescription">Rulla genom röret, sikta på kanonen och flyg över gapet. Eller ta den lugnare vägen runt.</p><div class="intro-badges"><span>✧ 3D-BANA</span><span id="featureBadge">◉ KANON</span><span id="parBadge">⛳ PAR 5</span></div><button id="playButton" class="play-button" disabled>SPELA HÅL 09 <span>→</span></button><div class="card-actions"><button id="introLevels" class="secondary-button"><i data-icon="grid"></i>Välj bana</button><a class="secondary-button" href="./"><i data-icon="menu"></i>Meny</a></div><div class="step-strip" aria-label="Tre tryck per slag"><span><i data-icon="aim"></i>Sikta</span><span><i data-icon="power"></i>Kraft</span><span><i data-icon="target"></i>Pricka</span></div></div></div>
-      <div id="win" class="modal-backdrop hidden"><div class="intro-card win-card"><span class="intro-kicker">FLAGGAN ÄR DIN!</span><h1 id="winTitle">SNYGGT<br /><em>SPEL!</em></h1><p id="winText">Vilken runda!</p><div class="win-score"><span>RESULTAT</span><strong id="winStrokes">5</strong><span>SLAG</span></div><div class="win-stars"><strong id="winStars" aria-label="Stjärnor">★★☆</strong><small id="winStarsNote"></small></div><a id="nextHole" class="play-button next-hole-button" hidden></a><button id="againButton" class="secondary-button wide"><i data-icon="restart"></i>Spela igen</button><small id="nextNote" class="next-note" hidden></small><div class="card-actions"><button id="winLevels" class="secondary-button"><i data-icon="grid"></i>Välj bana</button><a id="winMenu" class="secondary-button" href="./"><i data-icon="menu"></i>Meny</a></div></div></div>
+      <div id="win" class="modal-backdrop hidden"><div class="intro-card win-card"><span class="intro-kicker">FLAGGAN ÄR DIN!</span><h1 id="winTitle">SNYGGT<br /><em>SPEL!</em></h1><p id="winText">Vilken runda!</p><div class="win-score"><span>RESULTAT</span><strong id="winStrokes">5</strong><span>SLAG</span></div><div class="win-stars"><strong id="winStars" aria-label="Stjärnor">★★☆</strong><small id="winStarsNote"></small></div><div id="mpWait" class="mp-wait" hidden><strong id="mpWaitText"></strong><ol id="mpWaitBoard"></ol><button id="mpLeaveMatch" class="text-button mp-leave-match">Lämna matchen</button></div><a id="nextHole" class="play-button next-hole-button" hidden></a><button id="againButton" class="secondary-button wide"><i data-icon="restart"></i>Spela igen</button><small id="nextNote" class="next-note" hidden></small><div class="card-actions"><button id="winLevels" class="secondary-button"><i data-icon="grid"></i>Välj bana</button><a id="winMenu" class="secondary-button" href="./"><i data-icon="menu"></i>Meny</a></div></div></div>
       <div id="scorecard" class="modal-backdrop hidden"><div class="intro-card scorecard-card" role="dialog" aria-labelledby="scoreTitle"><span id="scoreKicker" class="intro-kicker">VÄRLDEN KLAR!</span><h1 id="scoreTitle">RESULTAT</h1><div class="score-table" id="scoreRows"></div><div class="score-totals"><div><span>SLAG</span><strong id="scoreStrokes">0</strong><small id="scoreVsPar"></small></div><div><span>STJÄRNOR</span><strong id="scoreStars">0</strong><small id="scoreStarsMax"></small></div></div><p id="scoreText"></p><button id="scoreEnding" class="play-button ending-button" hidden>Kampanjens slut ✦ <span>→</span></button><button id="scoreAgain" class="play-button">Spela världen igen <span>→</span></button><div class="card-actions"><button id="scoreClose" class="secondary-button"><i data-icon="restart"></i>Tillbaka</button><a id="scoreMenu" class="secondary-button" href="./"><i data-icon="menu"></i>Meny</a></div></div></div>
       <dialog id="soundPanel" class="help-panel sound-panel" aria-labelledby="soundTitle">
         <button id="closeSound" class="icon-button close-help" aria-label="Stäng ljudinställningar">×</button>
@@ -85,6 +87,29 @@
         </div>
         <p class="sound-note">Varje värld har sin egen musik. Effekterna är slag, studsar och koppen. Miljöljudet är världens liv runt banan. <span class="keys-only"><kbd>M</kbd> stänger av och på allt ljud.</span> Valen sparas på den här enheten.</p>
       </dialog>
+      <dialog id="mpPanel" class="help-panel mp-panel" data-view="start" aria-labelledby="mpTitle">
+        <button id="mpClose" class="icon-button close-help" aria-label="Stäng">×</button>
+        <span class="intro-kicker">UPP TILL FYRA SPELARE</span>
+        <h2 id="mpTitle">Spela med vänner</h2>
+        <div class="mp-view mp-start">
+          <p>Alla spelar samma hål samtidigt, var och en på sin egen enhet. De andras bollar syns i sina färger.</p>
+          <label class="mp-field" for="mpName"><span>Ditt namn</span><input id="mpName" maxlength="14" autocomplete="nickname" placeholder="Namn" /></label>
+          <button id="mpCreate" class="play-button">Skapa ett rum <span>→</span></button>
+          <div class="mp-or">eller gå med i ett rum</div>
+          <div class="mp-join"><input id="mpCode" maxlength="4" autocapitalize="characters" autocomplete="off" placeholder="KOD" aria-label="Rumskod" /><button id="mpJoin" class="secondary-button">Gå med</button></div>
+        </div>
+        <div class="mp-view mp-connecting"><p>Ansluter till rummet…</p></div>
+        <div class="mp-view mp-room">
+          <div class="mp-code-row"><div><small>RUMSKOD</small><strong id="mpRoomCode">ABCD</strong></div><button id="mpShare" class="secondary-button"><i data-icon="arrow"></i>Bjud in</button></div>
+          <ol id="mpPlayers" class="mp-players"></ol>
+          <p id="mpFull" class="mp-note" hidden>Rummet är fullt (fyra spelare). Du kan titta på men inte spela.</p>
+          <div id="mpHostControls"><span class="mp-label">Välj värld</span><div id="mpWorlds" class="mp-worlds"></div><button id="mpStart" class="play-button">Starta matchen <span>→</span></button></div>
+          <p id="mpGuestWait" class="mp-note">Väntar på att värden väljer värld och startar…</p>
+          <button id="mpLeave" class="text-button">Lämna rummet</button>
+          <small id="mpTransport" class="mp-transport"></small>
+        </div>
+      </dialog>
+      <div id="mpResults" class="modal-backdrop hidden"><div class="intro-card mp-results-card" role="dialog" aria-labelledby="mpResultTitle"><span id="mpResultWorld" class="intro-kicker"></span><h1 id="mpResultTitle">MATCHEN<br /><em>KLAR!</em></h1><ol id="mpResultRows" class="mp-result-rows"></ol><button id="mpResultsAgain" class="play-button">Ny match i samma rum <span>→</span></button><div class="card-actions"><button id="mpResultsLeave" class="secondary-button"><i data-icon="menu"></i>Lämna rummet</button></div></div></div>
       <dialog id="levelPanel" class="level-panel" aria-labelledby="levelTitle">
         <button id="closeLevels" class="icon-button close-help" aria-label="Stäng banväljaren">×</button>
         <span class="intro-kicker">RUNDANS 18 HÅL</span>
@@ -132,6 +157,7 @@
             <button id="menuPlay" class="menu-secondary"><i data-icon="arrow"></i>Hela turneringen · alla hål i rad</button>
             <a id="menuContinue" class="menu-secondary" hidden></a>
             <button id="menuEnding" class="menu-secondary" hidden>✦ Se slutet igen</button>
+            <button id="menuFriends" class="menu-secondary menu-friends" hidden><i data-icon="users"></i>Spela med vänner · upp till fyra</button>
             <button id="menuLevels" class="menu-secondary"><i data-icon="grid"></i>Välj hål</button>
             <button id="menuHelp" class="menu-secondary"><i data-icon="help"></i>Så spelar du</button>
             <button id="menuSound" class="menu-secondary"><i data-icon="sound"></i>Ljud och musik</button>

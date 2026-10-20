@@ -12,6 +12,7 @@
     "models:preview": "blender -b -P blender/preview.py"
   },
   "dependencies": {
+    "@supabase/supabase-js": "2.117.2",
     "three": "^0.180.0"
   },
   "devDependencies": {
