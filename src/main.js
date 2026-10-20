@@ -856,8 +856,11 @@ window.addEventListener('keydown',e=>{
     if(['power','accuracy'].includes(state.phase)){state.power=0;setPhase('idle')}
     return;
   }
+  // Typing a name or a room code: the letters are text, not game keys.
+  const field=e.target instanceof HTMLElement?e.target:null;
+  if(field&&(field.isContentEditable||field instanceof HTMLTextAreaElement||(field instanceof HTMLInputElement&&!['range','checkbox','radio','button'].includes(field.type))))return;
   if(e.code==='KeyM'&&!e.repeat){applySound({on:!audioSettings.on});toast(audioSettings.on?'Ljudet på':'Ljudet av',1000);return}
-  if($('helpPanel').open||$('levelPanel').open||$('soundPanel').open)return;
+  if($('helpPanel').open||$('levelPanel').open||$('soundPanel').open||$('mpPanel').open)return;
   if(e.target instanceof HTMLInputElement&&['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(e.code))return;
   if(e.code==='Space'||e.code==='Enter'){
     if(state.phase==='sinking'){e.preventDefault();finishSink();return}
