@@ -35,6 +35,8 @@ export function createMultiplayer(game){
   let session=code?loadSession(code):null,link=null,players=[],lastSeen={},advanceAt=null,lastBall=0,lastSent='';
   // Turns: whose turn is being played here, and when the next one starts.
   let turnId=null,turnAt=null;
+  // The host decides the world and the way to play; the others see the choice as it is made.
+  let setup=null;
   // In a match on this page's hole: then the hole is played for the room.
   const inMatch=()=>!!(session?.match&&game.hole&&session.match.holes.includes(game.hole));
   const me=()=>session?.me;
@@ -60,6 +62,8 @@ export function createMultiplayer(game){
     const full=mine?.seat===null;
     $('mpFull').hidden=!full;
     $('mpHostControls').hidden=!isHost();$('mpGuestWait').hidden=isHost()||full;
+    const world=game.worlds.find(w=>w.key===setup?.world);
+    $('mpGuestWait').innerHTML=world?`Värden har valt <b>${escape(world.name)}</b> · <b>${setup.mode==='turns'?'Turordning':'Samtidigt'}</b>. Väntar på att värden startar…`:'Väntar på att värden väljer värld och startar…';
     $('mpStart').disabled=!isHost()||seated.filter(p=>p.seat!==null).length<1;
     $('mpTransport').textContent=transportName()==='local'?'Lokalt läge: bara flikar i den här webbläsaren':'';
   }
@@ -78,6 +82,10 @@ export function createMultiplayer(game){
     $('mpPanel').dataset.view='connecting';
     try{await open()}catch(error){$('mpPanel').dataset.view='start';toast(error.message||'Kunde inte ansluta',2400);return}
     renderLobby();
+  }
+  function sendSetup(){
+    if(!link||!isHost())return;
+    link.send('setup',{world:document.querySelector('input[name=mpWorld]:checked')?.value,mode:document.querySelector('input[name=mpMode]:checked')?.value});
   }
   function startMatch(){
     const key=document.querySelector('input[name=mpWorld]:checked')?.value,world=game.worlds.find(w=>w.key===key);if(!world)return;
@@ -103,9 +111,11 @@ export function createMultiplayer(game){
     link.onPlayers(list=>{
       players=list;const t=now();for(const p of list)lastSeen[p.id]=t;
       if(!$('mpPanel').hidden&&$('mpPanel').open)renderLobby();
+      if(!inMatch())sendSetup();
       renderBoard();check();
     });
-    link.on('hello',()=>{if(isHost()&&session.match)link.send('match',session.match);sendScores()});
+    link.on('hello',()=>{if(isHost()&&session.match)link.send('match',session.match);sendSetup();sendScores()});
+    link.on('setup',data=>{setup=data;renderLobby()});
     link.on('match',match=>{
       const fresh=match.id!==session.match?.id;
       session.match=match;if(fresh)session.scores={};save();
@@ -219,6 +229,7 @@ export function createMultiplayer(game){
   $('mpJoin').addEventListener('click',()=>join($('mpCode').value,$('mpName').value));
   $('mpCode').addEventListener('input',e=>{e.target.value=normalizeCode(e.target.value)});
   $('mpStart').addEventListener('click',startMatch);
+  $('mpHostControls').addEventListener('change',sendSetup);
   $('mpShare').addEventListener('click',share);
   $('mpLeave').addEventListener('click',leave);
   $('mpClose').addEventListener('click',()=>$('mpPanel').close());
