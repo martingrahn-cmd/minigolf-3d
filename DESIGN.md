@@ -617,7 +617,7 @@ Två till fyra spelare spelar online med varsin enhet. En spelare skapar ett rum
 Värden kan också välja **Turordning**. Då spelar en spelare hela hålet medan de andra tittar, och sedan går turen vidare. Den som spelar sist på ett hål vet vad de andra har gjort, och det är en liten fördel. Därför lottas ordningen när matchen startar. Den flyttas sedan ett steg för varje hål, så alla börjar och slutar ungefär lika ofta. Med tre spelare och sex hål börjar alla två gånger.
 
 - **Att titta på.** De som tittar ser den riktiga bollen, inte en spökboll. De ser siktet, kraftmätaren, slaget, mekanismerna, ljuden och firandet när bollen går i. Kontrollpanelen visar vem som spelar, vilket slag det är och hur många turer det är kvar till din. Tavlan markerar den som spelar med ▶.
-- **Mellan turerna.** När spelaren har sänkt syns resultatet i tre sekunder. Sedan börjar hålet om från utslaget för nästa spelare.
+- **Mellan turerna.** När spelaren har sänkt får de som tittar en stor skylt i spelarens färg med namn och resultat, till exempel ANN · BIRDIE! · 2 slag. Spelaren själv ser vinstkortet. Tre sekunder senare börjar hålet om från utslaget för nästa spelare, och alla får en skylt om vems tur det är: ANN BÖRJAR! på hålets första tur, sedan BOS TUR! (DU BÖRJAR! och DIN TUR! för den det gäller).
 - **Den som är borta.** Om det blir din tur medan du har varit borta i 30 sekunder räknas hålet som tio slag. Värden bestämmer det och skickar det med matchen, så det gäller även om du kommer tillbaka.
 
 Så här fungerar det tekniskt:

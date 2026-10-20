@@ -103,7 +103,7 @@ const mp=createMultiplayer({
   pars:match=>match.holes.map(h=>ROUND.find(s=>s.hole===h).level.par),
   strokes:()=>state.strokes,onMatchStart:()=>endWorldRun(localStorage),
   onRemoteBall:(player,b)=>mp.mode()==='turns'?followTurn(b):ghosts?.set(player,b),
-  onTurn:(player,mine)=>startTurn(player,mine),onRemoteShot:shot=>replayShot(shot),onRemoteFire:fire=>{pendingFire=fire},onTurnChange:()=>updateUI(),
+  onTurn:(player,mine,turn)=>startTurn(player,mine,turn),onTurnResult:(player,strokes)=>turnResult(player,strokes),onRemoteShot:shot=>replayShot(shot),onRemoteFire:fire=>{pendingFire=fire},onTurnChange:()=>updateUI(),
 });
 // Turns: a cannon shot heard before the replay has loaded the cannon waits for it.
 let pendingFire=null;
@@ -216,7 +216,7 @@ function updateUI(){
 function setOverview(on){
   cameraOverview=on;$('cameraText').textContent=on?'Spelvy':'Översikt';setIcon($('cameraIcon'),on?'follow':'map');resize();updateUI();
 }
-function startPreview(){preview=4.5;setOverview(true);toast('Banöversikt · tryck för att börja',2400)}
+function startPreview(){preview=4.5;setOverview(true);if(!mp.watching())toast('Banöversikt · tryck för att börja',2400)}
 function finishPreview(){preview=0;setOverview(false);toast('Sikta · välj kraft · träffa grönt',2200)}
 function endPreview(){if(preview<=0)return false;finishPreview();return true}
 function action(){
@@ -305,10 +305,30 @@ function followTurn(b){
   updateUI();
 }
 // A new turn: the hole starts over for the next player.
-function startTurn(player,mine){
+function startTurn(player,mine,turn){
   $('win').classList.add('hidden');
   if(state.phase!=='intro'){reset(false);state.strokes=0;updateUI()}
-  toast(mine?'Din tur! ⛳':`${player.name} spelar nu`,2200);
+  const first=turn.turn===1,name=player.name.toUpperCase(),genitive=/[SXZ]$/.test(name)?name:`${name}S`;
+  showSplash({color:player.color,kicker:`HÅL ${turn.hole} · TUR ${turn.turn} AV ${turn.turns}`,
+    title:mine?(first?'DU BÖRJAR!':'DIN TUR!'):first?`${name} BÖRJAR!`:`${genitive} TUR!`,detail:mine?player.name:''});
+}
+// Someone else's turn ended: everyone watching sees how it went (the player has the win card).
+function turnResult(player,strokes){
+  if(player.id===mp.me()?.id)return;
+  showSplash({color:player.color,kicker:player.name.toUpperCase(),title:scoreName(strokes,LEVEL.par),detail:`${strokes} slag`});
+}
+const scoreName=(strokes,par)=>strokes>=STROKE_CAP?'TIO SLAG':strokes===1?'HOLE IN ONE!':strokes<=par-2?'EAGLE!':strokes===par-1?'BIRDIE!':strokes===par?'PAR!':
+  ['BOGEY','DUBBELBOGEY','TRIPPELBOGEY'][strokes-par-1]??`${strokes} SLAG`;
+// The big sign in the player's colour. Kept until the intro card is closed if it is up.
+let splashTimer=null,pendingSplash=null;
+function showSplash(sign){
+  if(!$('intro').classList.contains('hidden')){pendingSplash=sign;return}
+  pendingSplash=null;
+  const el=$('turnSplash');el.style.setProperty('--c',`#${sign.color.toString(16).padStart(6,'0')}`);
+  $('turnSplashKicker').textContent=sign.kicker;$('turnSplashTitle').textContent=sign.title;
+  $('turnSplashDetail').textContent=sign.detail;$('turnSplashDetail').hidden=!sign.detail;
+  el.hidden=false;el.classList.remove('show');void el.offsetWidth;el.classList.add('show');
+  clearTimeout(splashTimer);splashTimer=setTimeout(()=>{el.hidden=true;el.classList.remove('show')},2500);
 }
 function doFall(fromHeight=surfaceHeight(state.x,state.z),reason){
   if(state.phase==='falling')return;
@@ -953,7 +973,7 @@ $('closeHelp').addEventListener('click',()=>$('helpPanel').close());
 $('actionButton').addEventListener('click',action);
 $('cancelShot').addEventListener('click',()=>{if(['power','accuracy'].includes(state.phase)){state.power=0;setPhase('idle')}});
 $('shotMode').addEventListener('click',()=>{if(!mp.watching())puttEnabled=!puttEnabled;updateUI();$('shotMode').blur()});
-$('playButton').addEventListener('click',()=>{lockPortrait();audio.unlock();$('intro').classList.add('hidden');if(!mp.watching()||state.phase==='intro')reset();startPreview()});
+$('playButton').addEventListener('click',()=>{lockPortrait();audio.unlock();$('intro').classList.add('hidden');if(!mp.watching()||state.phase==='intro')reset();startPreview();if(pendingSplash)showSplash(pendingSplash)});
 $('againButton').addEventListener('click',()=>{$('win').classList.add('hidden');reset()});
 $('resetButton').addEventListener('click',()=>{if(state.phase!=='intro'&&!mp.inMatch()){reset();$('win').classList.add('hidden')}});
 $('cameraButton').addEventListener('click',()=>{preview=0;setOverview(!cameraOverview)});
