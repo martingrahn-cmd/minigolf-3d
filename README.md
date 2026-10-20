@@ -14,6 +14,7 @@ npm run dev
 | 01–06 | Urverkets stad | Klar |
 | 07–12 | Molnskogen | Klar – hål 12 Moderträdet är världens set piece |
 | 13–18 | Månkarnevalen | Klar – Raketrampen, Tyngdlösa tältet, Svarta hålet, Kanonkometen, Pariserhjulet och finalen Månraketen |
+| 19–24 | Spökhamnen (specialvärld) | Klar – halloweenvärlden med finalen Spökskeppet |
 | P | Prototyper (Solskensöarna, Neonhamnen) | Spelbara, ska byggas om |
 
 Rundans ordning och platshållarna finns i `src/round.js`. Banornas interna `id` i `src/levels.js` är oförändrade, så rekord och banspecifik logik påverkas inte av numreringen. Länkar: `/?hole=1` … `/?hole=18` för rundan och `/?proto=kanonkurvan`, `dubbelstudsen`, `vippvarvet`, `neonslussen`, `frostfallet` för prototyperna. Ett obyggt hål öppnar menyn med en notis.
@@ -24,6 +25,19 @@ Rundans ordning och platshållarna finns i `src/round.js`. Banornas interna `id`
 - **Versionskoll:** varje bygge får ett versions-id som finns i spelet och i `version.json`. Spelet kollar efter en nyare version vid start, när det kommer tillbaka i förgrunden och var femte minut. Finns en nyare version visas **Ny version av spelet finns · Uppdatera**. Knappen laddar om med `?v=<id>` så att ingen gammal cache blir kvar. Aktuell version står längst ner i huvudmenyn. Kollen är avstängd i `npm run dev`.
 - **Manifest och ikoner:** `public/manifest.webmanifest` och `public/icons/` gör att spelet kan läggas till på hemskärmen och då öppnas i helskärm utan webbläsarlist.
 - **Stående läge:** manifestet låser stående läge när spelet är installerat på Android. iOS tillåter inte låsning, så en liggande telefon får ett tips att vrida den, med knappen *Spela liggande ändå*.
+
+## Spela med vänner
+
+**Spela med vänner** i huvudmenyn öppnar ett rum för två till fyra spelare med varsin enhet. Alla spelar samma hål samtidigt och ser de andras bollar som färgade spökbollar. Logiken beskrivs i [DESIGN.md](DESIGN.md#spela-med-vänner-upp-till-fyra).
+
+Onlineläget använder [Supabase Realtime](https://supabase.com/docs/guides/realtime) och behöver inga tabeller:
+
+1. Skapa ett gratis projekt på supabase.com.
+2. Kopiera *Project URL* och den publika nyckeln (*anon* eller *publishable*) från *Project Settings → API*.
+3. Fyll i dem i `src/supabase-config.js`, eller sätt `VITE_SUPABASE_URL` och `VITE_SUPABASE_ANON_KEY` vid bygget.
+4. Kontrollera under *Realtime → Settings* att publika kanaler är tillåtna, alltså att *Allow public access* är på.
+
+Den publika nyckeln får ligga i klientkoden. Utan konfiguration döljs knappen i det publicerade spelet. I `npm run dev`, eller med `?net=local`, fungerar rum mellan flikar i samma webbläsare.
 
 ## Banorna
 

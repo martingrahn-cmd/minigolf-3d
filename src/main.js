@@ -30,6 +30,9 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { createAudio } from './audio.js';
 import { QA, BOT, setupQA } from './qa.js';
 import { loadAudioSettings, saveAudioSettings } from './music.js';
+import { createMultiplayer } from './multiplayer.js';
+import { createGhostBalls } from './ghost-balls.js';
+import { STROKE_CAP } from './room.js';
 import { createCoach } from './coach.js';
 import { SINK, SLOW_MOTION, sinkPose, RESCUE, onTheLip } from './cup-celebration.js';
 import './style.css';
@@ -93,6 +96,13 @@ let sink=null,timeScale=1,realDt=0;
 let rescue=null;
 // Tips for a first round, shown once each as the moment for them comes.
 const coach=createCoach(localStorage,$);let aimAtIdle=0,wasIdle=false;
+// Online play with friends: the room, the scoreboard and the other players' balls.
+let ghosts=null;
+const mp=createMultiplayer({
+  $,toast:(...a)=>toast(...a),hydrateIcons,worlds:WORLDS,round:ROUND,hole:SELECTION.menu?null:SELECTION.slot?.hole,
+  pars:match=>match.holes.map(h=>ROUND.find(s=>s.hole===h).level.par),
+  strokes:()=>state.strokes,onRemoteBall:(player,b)=>ghosts?.set(player,b),onMatchStart:()=>endWorldRun(localStorage),
+});
 let accumulator=0;
 let bridgeAngle=LEVEL.bridge?.maxAngle||0;
 let launch=null;
@@ -152,6 +162,8 @@ function toast(text,ms=2000){
 }
 function setPhase(phase){
   const previous=state.phase;state.phase=phase;
+  // In a match a hole ends at the stroke cap, so nobody keeps the others waiting.
+  if(phase==='idle'&&previous!=='idle'&&mp.inMatch()&&state.strokes>=STROKE_CAP){capHole();return}
   if(phase==='idle'&&previous!=='idle'){
     nearPutt=puttingContext(state,activeLayout);puttEnabled=!!nearPutt;
   }
@@ -322,6 +334,14 @@ function updateSink(dt){
 function finishSink(){
   if(!sink)return;sink=null;timeScale=1;course?.cupCritter?.hide();rescue=null;course?.lipRescuer?.hide();ball.visible=false;win();
 }
+// The stroke cap in a match: the hole counts as the cap and the player waits for the others.
+function capHole(){
+  state.phase='win';state.vx=0;state.vz=0;updateUI();
+  $('winStars').textContent=starText(0);$('winStarsNote').textContent=`${STROKE_CAP} slag är max i en match`;
+  $('winStrokes').textContent=STROKE_CAP;$('winTitle').innerHTML='TIO<br><em>SLAG</em>';
+  $('winText').textContent='Hålet räknas som tio slag. Nästa hål blir bättre!';
+  $('win').classList.remove('hidden');mp.finishHole(STROKE_CAP);
+}
 function win(){
   setPhase('win');state.vx=0;state.vz=0;
   const best=Number(localStorage.getItem(LEVEL.recordKey))||Infinity;
@@ -343,6 +363,7 @@ function win(){
   },250+i*420));
   if(course?.motherTree){course.motherTree.bloom();burst(LEVEL.treeEye.x,LEVEL.treeEye.y,LEVEL.treeEye.z,0xffb3d4,60,2.2)}
   audio.duck(4);audio.fanfare(stars);
+  mp.finishHole(state.strokes);
 }
 
 function celebratePins(indices){
@@ -623,6 +644,8 @@ function draw(dt){
   if(phase==='sinking'&&sink)extraY=sink.y;
   ball.position.set(state.x,ballHeight+.04+BALL_RADIUS+extraY,state.z);
   ball.visible=phase!=='loaded'&&phase!=='win';ball.scale.setScalar(1);
+  ghosts?.update(dt);
+  mp.reportBall({x:ball.position.x,y:ball.position.y,z:ball.position.z,strokes:state.strokes,hidden:!ball.visible||phase==='sinking'});
   if(rescue)course?.lipRescuer?.update(rescue.t,rescue.ball,rescue.dir,camera);
   if(phase==='sinking'&&sink){
     // The flag comes out of the cup, and the critter takes the ball in its mouth.
@@ -845,7 +868,7 @@ window.addEventListener('keydown',e=>{
   if(['KeyA','KeyD','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight'].includes(e.code)){
     e.preventDefault();aimKeys.add(e.code);
   }
-  if(e.code==='KeyR'&&state.phase!=='intro'){reset();$('win').classList.add('hidden')}
+  if(e.code==='KeyR'&&state.phase!=='intro'&&!mp.inMatch()){reset();$('win').classList.add('hidden')}
 });
 window.addEventListener('keyup',e=>aimKeys.delete(e.code));
 window.addEventListener('keydown',e=>{if(!e.repeat&&e.code!=='Tab')setInput('mouse')},true);
@@ -871,7 +894,7 @@ $('cancelShot').addEventListener('click',()=>{if(['power','accuracy'].includes(s
 $('shotMode').addEventListener('click',()=>{puttEnabled=!puttEnabled;updateUI();$('shotMode').blur()});
 $('playButton').addEventListener('click',()=>{lockPortrait();audio.unlock();$('intro').classList.add('hidden');reset();startPreview()});
 $('againButton').addEventListener('click',()=>{$('win').classList.add('hidden');reset()});
-$('resetButton').addEventListener('click',()=>{if(state.phase!=='intro'){reset();$('win').classList.add('hidden')}});
+$('resetButton').addEventListener('click',()=>{if(state.phase!=='intro'&&!mp.inMatch()){reset();$('win').classList.add('hidden')}});
 $('cameraButton').addEventListener('click',()=>{preview=0;setOverview(!cameraOverview)});
 // Sound settings: everything on or off, and music, effects and ambience apart.
 function applySound(change={}){
@@ -953,6 +976,8 @@ $('menuPlay').addEventListener('click',()=>{
   $('menu').classList.add('hidden');$('intro').classList.remove('hidden');$('playButton').focus();
 });
 $('menuLevels').addEventListener('click',openLevels);
+$('menuFriends').hidden=!mp.available;
+$('menuFriends').addEventListener('click',()=>mp.openLobby());
 $('menuHelp').addEventListener('click',()=>$('helpPanel').showModal());
 $('coachReset').addEventListener('click',()=>{coach.reset();$('helpPanel').close();toast('Tipsen visas igen',1400)});
 $('menuEnding').addEventListener('click',()=>{$('menu').classList.add('hidden');openEnding()});
@@ -978,7 +1003,10 @@ function configureLevelUI(){
   document.title=SELECTION.menu?'Mini Mayhem':`${LEVEL.name} · Hål ${number}`;
   $('holeNumber').textContent=number;$('holeName').textContent=LEVEL.name.toUpperCase();
   $('parCount').textContent=LEVEL.par;
-  $('introKicker').textContent=SELECTION.slot.finale?`${SELECTION.slot.world.finale.toUpperCase()} · ${holeText}`:`VÄLKOMMEN TILL ${holeText}`;
+  $('introKicker').textContent=mp.inMatch()?mp.holeLabel():SELECTION.slot.finale?`${SELECTION.slot.world.finale.toUpperCase()} · ${holeText}`:`VÄLKOMMEN TILL ${holeText}`;
+  // A match cannot be restarted hole by hole: the reset button is gone and the
+  // way onward is the room's, not the round's.
+  $('resetButton').hidden=mp.inMatch();
   $('introTitle').innerHTML=`${LEVEL.title[0]}<br><em>${LEVEL.title[1]}</em><span class="title-star">✦</span>`;
   $('introDescription').textContent=LEVEL.description;
   $('featureBadge').textContent=LEVEL.feature.toUpperCase();$('parBadge').textContent=`⛳ PAR ${LEVEL.par}`;
@@ -991,6 +1019,7 @@ function configureLevelUI(){
 }
 function configureNext(){
   const link=$('nextHole'),note=$('nextNote');
+  if(mp.inMatch()){link.hidden=true;note.hidden=true;$('againButton').hidden=true;$('winLevels').hidden=true;return}
   // The way onward is the primary button; replaying is secondary unless nothing follows.
   const show=(href,label)=>{
     link.hidden=!href;$('againButton').className=href?'secondary-button wide':'play-button';
@@ -1086,8 +1115,11 @@ async function init(){
   $('playButton').disabled=false;
   $('loading').classList.add('done');updateUI();
   if(BOT){startBot();return}
+  ghosts=createGhostBalls(scene,BALL_RADIUS);
   frame();
-  if(QA)startQA();
+  if(QA)startQA();else mp.start();
+  // The browser tests drive a match through this handle; only in development.
+  if(import.meta.env?.DEV)window.minigolfMultiplayer=mp;
 }
 // The event bench: start straight into play, with a panel of set pieces to fire.
 function startQA(){

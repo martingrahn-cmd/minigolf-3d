@@ -599,3 +599,21 @@ Månbasen är en zon med svag gravitation och hal filt. Ett slag på 45–65 pro
 
 Neonslussens lyftport och Vippvarvets vippbro kan dyka upp som delmoment. Prototyperna ligger kvar som bonusbanor tills deras idéer har ersatts.
 
+
+## Spela med vänner (upp till fyra)
+
+Två till fyra spelare spelar online med varsin enhet. En spelare skapar ett rum och får en kod på fyra bokstäver. Koden saknar I, O och Q, så den är lätt att läsa upp. Kompisarna anger koden eller öppnar länken från **Bjud in** (`?rum=KOD`). Värden är den som har varit längst i rummet. Värden väljer värld och startar matchen. Matchen spelar världens sex hål i ordning.
+
+**Alla spelar samtidigt, inte i tur och ordning.** Varje spelare slår sin egen boll på samma hål. De andras bollar syns som spökbollar i spelarens färg (orange, turkos, rosa, lila), med en namnskylt. Spökbollarna krockar aldrig med den egna bollen. Turordning hade inneburit att tre spelare sitter och tittar. Samtidigt spel är snabbare och känns mer som ett sällskap. Det tål också att en kompis tappar uppkopplingen en stund.
+
+- **Tavlan** uppe till höger visar varje spelares slag på hålet och totalen mot par, sorterat som en golfledartavla.
+- **Slagtak:** ett hål tar slut efter tio slag och räknas då som tio. Ingen ska behöva vänta på en spelare som har fastnat.
+- **Nästa hål:** när alla som är kvar i rummet har sänkt visar vinstkortet ställningen. Värden går vidare efter fyra sekunder. En spelare som har varit borta i 30 sekunder håller inte upp hålet. Ett hål som en spelare aldrig avslutade räknas som tio slag, så det lönar sig aldrig att lämna.
+- **Resultat:** efter sista hålet visas en prispall med medaljer och knappen **Ny match i samma rum**.
+- I en match går det inte att börja om hålet. Personliga rekord och stjärnor räknas som vanligt.
+
+**Tekniken.** Matchens regler finns i `src/room.js` och är testade i `tests/room.test.js`: koder, platser, värd, poängsammanslagning, när ett hål är klart och ställning.
+- Varje spelare äger sina egna slag, och alla slår ihop det de hör. Värden äger själva matchen: vilka hål som spelas, vilket hål som är aktuellt och när matchen går vidare.
+- `src/net.js` har två transporter bakom samma gränssnitt. Online används Supabase Realtime (broadcast och presence på kanalen `minimayhem-KOD`), helt utan databastabeller. Lokalt används BroadcastChannel mellan flikar i samma webbläsare (`?net=local`), till utveckling och tester.
+- Rummet sparas i `sessionStorage`, så det överlever sidbytet mellan hålen.
+- `src/multiplayer.js` sköter lobby, tavla, vänteruta och resultat. `src/ghost-balls.js` ritar spökbollarna och mjukar upp positionerna, som skickas cirka tio gånger per sekund.
