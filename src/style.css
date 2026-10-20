@@ -467,3 +467,13 @@ body:has(#win:not(.hidden)) .qa-panel{top:auto;bottom:10px}
 [data-theme=halloween] .mp-board{background:#241a33f2;color:#f1e3c4}[data-theme=halloween] .mp-board-title,[data-theme=halloween] .mp-board li span{color:#b9a6d6}
 [data-theme=halloween] .mp-wait{background:#ffffff0d}[data-theme=halloween] .mp-result-rows li{background:#ffffff0d}[data-theme=halloween] .mp-result-rows li:first-child{background:#ff8a2a22}
 [data-theme=moon] .mp-board{background:#fbf3e6f2;color:#33255e}
+
+/* Turns: the big sign when a turn starts or ends, in the player's colour (--c). */
+.turn-splash{position:absolute;left:50%;top:36%;z-index:6;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:8px;width:max-content;max-width:calc(100% - 32px);text-align:center;pointer-events:none;opacity:0;--c:#f36b53}
+.turn-splash.show{animation:turn-splash 2.5s ease both}
+.turn-splash small{font:800 11px 'DM Sans',sans-serif;letter-spacing:.16em;color:#fff;background:var(--c);padding:6px 13px;border-radius:99px;box-shadow:0 3px 0 #0003}
+.turn-splash strong{font-family:Fredoka,sans-serif;font-size:clamp(46px,12vw,86px);line-height:.92;letter-spacing:-.04em;color:#fff;text-shadow:0 5px 0 var(--c),0 9px 0 #0003,0 14px 34px #0007;overflow-wrap:anywhere}
+.turn-splash span{font-family:Fredoka,sans-serif;font-size:21px;color:#fff;text-shadow:0 2px 10px #000a}
+@keyframes turn-splash{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}12%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}20%{transform:translate(-50%,-50%) scale(1)}84%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-62%) scale(.97)}}
+@keyframes turn-splash-fade{0%,100%{opacity:0}12%,84%{opacity:1}}
+@media(prefers-reduced-motion:reduce){.turn-splash.show{animation-name:turn-splash-fade}}

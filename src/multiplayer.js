@@ -28,7 +28,8 @@ function savedName(){try{return localStorage.getItem(NAME_KEY)||''}catch{return 
 
 // `game` gives the controller what it needs from the page:
 //   {$, toast, hydrateIcons, worlds, round, hole, pars(match)->[par…], strokes(), onRemoteBall(player,ball),
-//    onMatchStart(), and for turns: onTurn(player,mine), onRemoteShot(shot), onRemoteFire(fire), onTurnChange()}
+//    onMatchStart(), and for turns: onTurn(player,mine,{turn,turns,hole}), onTurnResult(player,strokes),
+//    onRemoteShot(shot), onRemoteFire(fire), onTurnChange()}
 export function createMultiplayer(game){
   const {$,toast}=game;
   const code=roomInAddress();
@@ -124,7 +125,14 @@ export function createMultiplayer(game){
       if(game.hole!==match.holes[match.index])location.href=holeUrl(match);
       else{advanceAt=null;renderBoard();check()}
     });
-    link.on('scores',(list,from)=>{session.scores=mergeScores(session.scores,from,list);lastSeen[from]=now();save();renderBoard();check()});
+    link.on('scores',(list,from)=>{
+      const before=scoresNow()[from]?.[session.match?.index];
+      session.scores=mergeScores(session.scores,from,list);lastSeen[from]=now();save();
+      // Turns: tell the watchers how the turn that just ended went.
+      const after=scoresNow()[from]?.[session.match?.index];
+      if(turns()&&!Number.isFinite(before)&&Number.isFinite(after))game.onTurnResult?.(playerFor(from),after);
+      renderBoard();check();
+    });
     link.on('ball',(ball,from)=>{
       lastSeen[from]=now();liveStrokes[from]=ball.strokes;
       if(turns()){catchUp(from);if(from===turnId)game.onRemoteBall?.(playerFor(from),ball)}
@@ -173,7 +181,10 @@ export function createMultiplayer(game){
     if(id===turnId){turnAt=null;game.onTurnChange?.();return}
     if(!immediate&&turnId!==null){turnAt??=now()+TURN_DELAY;if(now()<turnAt){game.onTurnChange?.();return}}
     turnId=id;turnAt=null;
-    if(next)game.onTurn?.(next,id===me().id);
+    if(next){
+      const order=turnOrder(session.match),turn=order.findIndex(p=>p.id===id);
+      game.onTurn?.(next,id===me().id,{turn:turn+1,turns:order.length,hole:session.match.index+1});
+    }
     renderBoard();game.onTurnChange?.();
   }
   // Someone already playing the next turn: no need to wait out the pause.
@@ -243,6 +254,7 @@ export function createMultiplayer(game){
     code:()=>session?.code,
     match:()=>session?.match,
     mode:()=>inMatch()?session.match.mode||'together':null,
+    me:()=>session?.me,
     // Turns: someone else is playing this hole and this game shows their shots.
     watching:()=>turns()&&!!link&&turnId!==me().id,
     turnStatus,
