@@ -602,7 +602,7 @@ Neonslussens lyftport och Vippvarvets vippbro kan dyka upp som delmoment. Protot
 
 ## Spela med vänner (upp till fyra)
 
-Två till fyra spelare spelar online med varsin enhet. En spelare skapar ett rum och får en kod på fyra bokstäver. Koden saknar I, O och Q, så den är lätt att läsa upp. Kompisarna anger koden eller öppnar länken från **Bjud in** (`?rum=KOD`). Värden är den som har varit längst i rummet. Värden väljer värld och startar matchen. Matchen spelar världens sex hål i ordning.
+Två till fyra spelare spelar online med varsin enhet. En spelare skapar ett rum och får en kod på fyra bokstäver. Koden saknar I, O och Q, så den är lätt att läsa upp. Kompisarna anger koden eller öppnar länken från **Bjud in** (`?rum=KOD`). Värden är den som har varit längst i rummet. Värden bestämmer värld och spelsätt och startar matchen. De andra i rummet ser värdens val direkt medan det görs. Matchen spelar världens sex hål i ordning.
 
 **Samtidigt (förvalt).** Varje spelare slår sin egen boll på samma hål. De andras bollar syns som spökbollar i spelarens färg (orange, turkos, rosa, lila), med en namnskylt. Spökbollarna krockar aldrig med den egna bollen. I turordning sitter tre spelare och tittar. Samtidigt spel är snabbare och känns mer som ett sällskap. Det tål också att en kompis tappar uppkopplingen en stund.
 
