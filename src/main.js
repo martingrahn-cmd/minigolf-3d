@@ -208,8 +208,7 @@ function updateUI(){
     $('controlTitle').textContent=turn.title;$('actionText').textContent='Tittar på';$('meterStatus').textContent=turn.detail;
     $('actionButton').disabled=true;$('controlPanel').classList.add('busy');
     $('shotMode').hidden=true;$('fineAim').hidden=true;$('cancelShot').hidden=true;fineAim=0;
-  }
-  if(preview>0){
+  }else if(preview>0){
     $('controlTitle').textContent='Banöversikt';$('actionText').textContent='Börja';$('actionSteps').dataset.step='';$('meter').hidden=true;
     $('meterStatus').textContent=touch?'Så ser banan ut · tryck för att börja':'Så ser banan ut · klicka eller Mellanslag för att börja';
   }
