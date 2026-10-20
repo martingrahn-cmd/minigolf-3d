@@ -336,7 +336,7 @@ body:has(#win:not(.hidden)) .qa-panel{top:auto;bottom:10px}
 .ending-world{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:9px 12px;border-radius:10px;background:#f3f1e8;font-size:13px;text-align:left}
 .ending-world strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ending-world small{color:#8e9aa1;font-weight:700}.ending-world b{color:#d79b2e}
 .credits{position:relative;height:150px;overflow:hidden;margin:0 0 16px;border-radius:12px;background:#26204a;color:#f4ecff;-webkit-mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent);mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent)}
-.credits-roll{position:absolute;left:0;right:0;top:100%;display:flex;flex-direction:column;gap:9px;padding:0 14px;animation:credits 24s linear infinite}
+.credits-roll{position:absolute;left:0;right:0;top:100%;display:flex;flex-direction:column;gap:9px;padding:0 14px;animation:credits 32s linear infinite}
 .credits-roll p{margin:0;font-size:12.5px;line-height:1.35;color:#d8cdf2}.credits-roll b{color:#fff}
 .credits-head{font-family:Fredoka,sans-serif;font-size:15px;letter-spacing:.12em;color:#f2c25c;margin:8px 0 2px}
 .credits-roll small{font-size:10px;color:#a99cd0}
