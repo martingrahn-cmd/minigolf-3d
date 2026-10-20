@@ -240,9 +240,11 @@ export function createMultiplayer(game){
       worldChoices();
       if(!code)return;
       if(!session){if(!game.hole)this.openLobby();return}
+      // Everyone in the match counts as here from the start, before presence has
+      // been heard: nobody is skipped or forfeited in the first moments on a hole.
+      if(inMatch()){const t=now();for(const p of session.match.players)lastSeen[p.id]??=t}
       try{await open()}catch(error){toast(error.message||'Kunde inte ansluta till rummet',2600);return}
       if(inMatch()){
-        const t=now();for(const p of session.match.players)lastSeen[p.id]??=t;
         renderBoard();
         if(session.match.finished)showResults();else check();
         setInterval(()=>{check();renderBoard()},1000);
