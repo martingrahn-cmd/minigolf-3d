@@ -879,7 +879,8 @@ function frame(){
   if(state.phase==='power'&&puttEnabled)puttLength=puttLengthAt(state.power);
   if(state.phase==='idle'&&!wasIdle)aimAtIdle=state.aim;wasIdle=state.phase==='idle';
   coach.update({
-    enabled:!QA&&!mp.watching()&&preview<=0&&['idle','power','accuracy'].includes(state.phase)&&$('intro').classList.contains('hidden')&&$('menu').classList.contains('hidden')&&!$('helpPanel').open&&!$('levelPanel').open&&!$('soundPanel').open,
+    // The first-round tips are for playing alone: never in a match or over the room panel.
+    enabled:!QA&&!mp.inMatch()&&!$('mpPanel').open&&preview<=0&&['idle','power','accuracy'].includes(state.phase)&&$('intro').classList.contains('hidden')&&$('menu').classList.contains('hidden')&&!$('helpPanel').open&&!$('levelPanel').open&&!$('soundPanel').open,
     phase:state.phase,putting:puttEnabled&&!!nearPutt,shots:state.strokes,aimMoved:Math.abs(state.aim-aimAtIdle)>.12,overview:cameraOverview,
   },elapsed);
   if(state.phase==='accuracy')state.needle=precisionAt(elapsed-state.accuracyStart);
