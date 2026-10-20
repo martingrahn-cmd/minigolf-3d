@@ -611,6 +611,7 @@ Två till fyra spelare spelar online med varsin enhet. En spelare skapar ett rum
 - **Nästa hål:** när alla som är kvar i rummet har sänkt visar vinstkortet ställningen. Värden går vidare efter fyra sekunder. En spelare som har varit borta i 30 sekunder håller inte upp hålet. Ett hål som en spelare aldrig avslutade räknas som tio slag, så det lönar sig aldrig att lämna.
 - **Resultat:** efter sista hålet visas en prispall med medaljer och knappen **Ny match i samma rum**.
 - I en match går det inte att börja om hålet. Personliga rekord och stjärnor räknas som vanligt.
+- Tipsen för första rundan ("Dra över banan för att sikta…") visas inte i en match eller medan rummets panel är öppen. De är till för den som spelar ensam. Kanthjälpen (katten, mullvaden …) finns kvar, eftersom inknackningen kostar ett slag precis som annars.
 
 ### Turordning
 
