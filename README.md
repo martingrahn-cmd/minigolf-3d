@@ -28,7 +28,7 @@ Rundans ordning och platshållarna finns i `src/round.js`. Banornas interna `id`
 
 ## Spela med vänner
 
-**Spela med vänner** i huvudmenyn öppnar ett rum för två till fyra spelare med varsin enhet. Alla spelar samma hål samtidigt och ser de andras bollar som färgade spökbollar. Logiken beskrivs i [DESIGN.md](DESIGN.md#spela-med-vänner-upp-till-fyra).
+**Spela med vänner** i huvudmenyn öppnar ett rum för två till fyra spelare med varsin enhet. Värden väljer spelsätt. Med **Samtidigt** spelar alla samma hål på en gång och ser de andras bollar som färgade spökbollar. Med **Turordning** spelar en i taget medan de andra tittar, i en lottad ordning som flyttas ett steg per hål. Logiken beskrivs i [DESIGN.md](DESIGN.md#spela-med-vänner-upp-till-fyra).
 
 Onlineläget använder [Supabase Realtime](https://supabase.com/docs/guides/realtime) och behöver inga tabeller:
 

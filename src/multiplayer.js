@@ -2,14 +2,22 @@
 // scoreboard and moving on together. The rules are in room.js and the network in
 // net.js; the 3D ghost balls in ghost-balls.js. The room lives in the address
 // (`?rum=ABCD`) and in sessionStorage, so each hole can be its own page load.
+//
+// In turns, the player whose turn it is sends each shot (where the ball lay,
+// the clocks of the moving parts and the ball's new velocity). The watchers'
+// games run the same shot themselves, so they see the real ball, the course
+// and the sounds; while the ball is at rest they take its true spot.
 import { connect, multiplayerAvailable, transportName } from './net.js';
-import { roomCode, normalizeCode, cleanName, seatPlayers, electHost, createMatch, mergeScores, waitingFor, holeDone, advance, standings, MAX_PLAYERS, STROKE_CAP } from './room.js';
+import { roomCode, normalizeCode, cleanName, seatPlayers, electHost, createMatch, mergeScores, waitingFor, holeDone, advance, standings, turnOrder, currentTurn, forfeit, withForfeits, MAX_PLAYERS, STROKE_CAP, AWAY_AFTER } from './room.js';
 
 const SESSION_KEY='minimayhem-room',NAME_KEY='minimayhem-player-name';
 const NEXT_DELAY=4;
+// Turns: the finished player's result stays up this long before the next one plays.
+const TURN_DELAY=3;
 const hex=c=>`#${c.toString(16).padStart(6,'0')}`;
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 const now=()=>Date.now()/1000;
+const turnOf=name=>/[sxz]$/i.test(name)?`${name} tur`:`${name}s tur`;
 export const roomInAddress=()=>typeof location!=='undefined'?normalizeCode(new URLSearchParams(location.search).get('rum')||''):'';
 
 function loadSession(code){
@@ -19,17 +27,22 @@ function saveSession(s){try{sessionStorage.setItem(SESSION_KEY,JSON.stringify(s)
 function savedName(){try{return localStorage.getItem(NAME_KEY)||''}catch{return ''}}
 
 // `game` gives the controller what it needs from the page:
-//   {$, toast, hydrateIcons, worlds, round, hole, pars(match)->[par…], onRemoteBall(player,ball), onRemoteGone(id)}
+//   {$, toast, hydrateIcons, worlds, round, hole, pars(match)->[par…], strokes(), onRemoteBall(player,ball),
+//    onMatchStart(), and for turns: onTurn(player,mine), onRemoteShot(shot), onRemoteFire(fire), onTurnChange()}
 export function createMultiplayer(game){
   const {$,toast}=game;
   const code=roomInAddress();
   let session=code?loadSession(code):null,link=null,players=[],lastSeen={},advanceAt=null,lastBall=0,lastSent='';
+  // Turns: whose turn is being played here, and when the next one starts.
+  let turnId=null,turnAt=null;
   // In a match on this page's hole: then the hole is played for the room.
   const inMatch=()=>!!(session?.match&&game.hole&&session.match.holes.includes(game.hole));
   const me=()=>session?.me;
   const isHost=()=>electHost(players)?.id===me()?.id;
   const holeUrl=(match)=>`?hole=${match.holes[match.index]}&rum=${session.code}`;
   const save=()=>saveSession(session);
+  const turns=()=>inMatch()&&session.match.mode==='turns';
+  const scoresNow=()=>withForfeits(session.match,session.scores);
 
   // --- The lobby dialog (menu → Spela med vänner). ---
   function renderLobby(){
@@ -69,7 +82,8 @@ export function createMultiplayer(game){
   function startMatch(){
     const key=document.querySelector('input[name=mpWorld]:checked')?.value,world=game.worlds.find(w=>w.key===key);if(!world)return;
     const holes=game.round.filter(s=>s.world===world&&s.level).map(s=>s.hole);
-    session.match=createMatch(world.key,holes,seatPlayers(players).filter(p=>p.seat!==null));session.scores={};save();
+    const mode=document.querySelector('input[name=mpMode]:checked')?.value;
+    session.match=createMatch(world.key,holes,seatPlayers(players).filter(p=>p.seat!==null),Math.random,mode);session.scores={};save();
     link.send('match',session.match);
     location.href=holeUrl(session.match);
   }
@@ -98,10 +112,17 @@ export function createMultiplayer(game){
       if(fresh)endWorldRunHook();
       if(match.finished){if(inMatch())showResults();return}
       if(game.hole!==match.holes[match.index])location.href=holeUrl(match);
-      else{advanceAt=null;renderBoard()}
+      else{advanceAt=null;renderBoard();check()}
     });
     link.on('scores',(list,from)=>{session.scores=mergeScores(session.scores,from,list);lastSeen[from]=now();save();renderBoard();check()});
-    link.on('ball',(ball,from)=>{lastSeen[from]=now();game.onRemoteBall?.(playerFor(from),ball);liveStrokes[from]=ball.strokes;renderBoard()});
+    link.on('ball',(ball,from)=>{
+      lastSeen[from]=now();liveStrokes[from]=ball.strokes;
+      if(turns()){catchUp(from);if(from===turnId)game.onRemoteBall?.(playerFor(from),ball)}
+      else game.onRemoteBall?.(playerFor(from),ball);
+      renderBoard();
+    });
+    link.on('shot',(shot,from)=>{lastSeen[from]=now();catchUp(from);if(turns()&&from===turnId&&shot.i===session.match.index)game.onRemoteShot?.(shot)});
+    link.on('fire',(fire,from)=>{if(turns()&&from===turnId&&fire.i===session.match.index)game.onRemoteFire?.(fire)});
     link.send('hello',{});sendScores();
   }
   const liveStrokes={};
@@ -113,9 +134,19 @@ export function createMultiplayer(game){
   // Everyone keeps an eye on whether the hole is done; the host moves the room on.
   function check(){
     if(!inMatch()||session.match.finished)return;
-    const match=session.match;
+    const t=now();for(const p of players)lastSeen[p.id]=t;
+    let match=session.match;
     if(game.hole!==match.holes[match.index])return;
-    if(!holeDone(match,session.scores,lastSeen,now())){advanceAt=null;return}
+    if(turns()&&link){
+      // A player who is away when their turn comes loses the hole at the cap.
+      const next=currentTurn(match,scoresNow());
+      if(next&&isHost()&&next.id!==me().id&&t-(lastSeen[next.id]??-Infinity)>=AWAY_AFTER){
+        session.match=match=forfeit(match,next.id);save();link.send('match',match);
+        toast(`${next.name} är borta · hålet räknas som ${STROKE_CAP} slag`,2600);renderBoard();
+      }
+      updateTurn();
+    }
+    if(!holeDone(match,scoresNow(),lastSeen,t)){advanceAt=null;return}
     if(advanceAt===null)advanceAt=now()+NEXT_DELAY;
     renderWait();
     if(now()>=advanceAt&&isHost()){
@@ -124,31 +155,57 @@ export function createMultiplayer(game){
     }
   }
 
+  // --- Turns: who plays now. Everyone works it out from the scores; a short
+  // pause shows the finished player's result before the next one starts. ---
+  function updateTurn(immediate=false){
+    if(!turns()||!link)return;
+    const next=currentTurn(session.match,scoresNow()),id=next?.id??null;
+    if(id===turnId){turnAt=null;game.onTurnChange?.();return}
+    if(!immediate&&turnId!==null){turnAt??=now()+TURN_DELAY;if(now()<turnAt){game.onTurnChange?.();return}}
+    turnId=id;turnAt=null;
+    if(next)game.onTurn?.(next,id===me().id);
+    renderBoard();game.onTurnChange?.();
+  }
+  // Someone already playing the next turn: no need to wait out the pause.
+  function catchUp(from){if(turns()&&from!==turnId&&currentTurn(session.match,scoresNow())?.id===from)updateTurn(true)}
+  function turnStatus(){
+    const match=session.match,scores=scoresNow(),next=currentTurn(match,scores),secs=at=>Math.max(1,Math.ceil(at-now()));
+    if(!next){
+      const last=match.index+1>=match.holes.length;
+      return {title:'Alla i hål!',detail:last?'Resultatet kommer…':`Nästa hål om ${secs(advanceAt??now()+NEXT_DELAY)} s`};
+    }
+    if(turnAt!==null)return {title:next.id===me().id?'Din tur snart':turnOf(next.name),detail:`Börjar om ${secs(turnAt)} s`};
+    const order=turnOrder(match),mine=order.findIndex(p=>p.id===me().id),at=order.findIndex(p=>p.id===next.id);
+    const left=mine>at?mine-at:0;
+    return {title:`${next.name} spelar`,detail:`Slag ${liveStrokes[next.id]??0} · ${left===1?'du är näst på tur':left>1?`du spelar om ${left} turer`:'du har spelat hålet'}`};
+  }
+
   // --- On the course: scoreboard, waiting card and results. ---
   function renderBoard(){
     if(!inMatch())return;
-    const match=session.match,rows=standings(match,session.scores,game.pars(match));
+    const match=session.match,scores=scoresNow(),rows=standings(match,scores,game.pars(match));
     $('mpBoard').hidden=false;
     $('mpBoardTitle').textContent=`RUM ${session.code} · HÅL ${match.index+1}/${match.holes.length}`;
     $('mpBoardRows').innerHTML=rows.map(r=>{
-      const done=Number.isFinite(session.scores[r.player.id]?.[match.index]),here=r.player.id===me().id||now()-(lastSeen[r.player.id]??-1e9)<15;
-      const now_=done?`✓ ${session.scores[r.player.id][match.index]}`:here?`${(r.player.id===me().id?game.strokes?.():liveStrokes[r.player.id])??0} slag`:'borta';
+      const done=Number.isFinite(scores[r.player.id]?.[match.index]),here=r.player.id===me().id||now()-(lastSeen[r.player.id]??-1e9)<15;
+      const playing=turns()&&r.player.id===turnId&&!done,strokes=(r.player.id===me().id?game.strokes?.():liveStrokes[r.player.id])??0;
+      const now_=done?`✓ ${scores[r.player.id][match.index]}`:!here?'borta':turns()?(playing?`▶ ${strokes} slag`:'väntar'):`${strokes} slag`;
       const par=r.toPar===0?'±0':r.toPar>0?`+${r.toPar}`:r.toPar;
-      return `<li class="${done?'done':''}${here?'':' away'}"><i style="background:${hex(r.player.color)}"></i><b>${escape(r.player.name)}</b><span>${now_}</span><em>${par}</em></li>`;
+      return `<li class="${done?'done':''}${here?'':' away'}${playing?' playing':''}"><i style="background:${hex(r.player.color)}"></i><b>${escape(r.player.name)}</b><span>${now_}</span><em>${par}</em></li>`;
     }).join('');
     renderWait();
   }
   function renderWait(){
     if(!inMatch())return;
-    const match=session.match,mineDone=Number.isFinite(myScores()[match.index]);
+    const match=session.match,mineDone=Number.isFinite(scoresNow()[me().id]?.[match.index]);
     $('mpWait').hidden=!mineDone;if(!mineDone)return;
-    const waiting=waitingFor(match,session.scores,lastSeen,now());
-    $('mpWaitText').textContent=waiting.length?`Väntar på ${waiting.map(p=>p.name).join(', ')}…`:
+    const waiting=waitingFor(match,scoresNow(),lastSeen,now());
+    $('mpWaitText').textContent=turns()&&waiting.length?`${turnOf(currentTurn(match,scoresNow()).name)} härnäst`:waiting.length?`Väntar på ${waiting.map(p=>p.name).join(', ')}…`:
       match.index+1>=match.holes.length?'Alla i hål! Resultatet kommer…':`Alla i hål! Nästa hål om ${Math.max(0,Math.ceil((advanceAt??now()+NEXT_DELAY)-now()))} s`;
     $('mpWaitBoard').innerHTML=$('mpBoardRows').innerHTML;
   }
   function showResults(){
-    const match=session.match,rows=standings(match,session.scores,game.pars(match)),medal=['🥇','🥈','🥉',''];
+    const match=session.match,rows=standings(match,withForfeits(match,session.scores),game.pars(match)),medal=['🥇','🥈','🥉',''];
     $('mpResultRows').innerHTML=rows.map(r=>{const par=r.toPar===0?'±0':r.toPar>0?`+${r.toPar}`:r.toPar;
       return `<li><span class="mp-place">${medal[r.place-1]??''}${r.place}</span><i style="background:${hex(r.player.color)}"></i><b>${escape(r.player.name)}</b><span>${r.total} slag</span><em>${par}</em></li>`}).join('');
     const winners=rows.filter(r=>r.place===1).map(r=>r.player.name);
@@ -174,33 +231,43 @@ export function createMultiplayer(game){
     inMatch,
     code:()=>session?.code,
     match:()=>session?.match,
+    mode:()=>inMatch()?session.match.mode||'together':null,
+    // Turns: someone else is playing this hole and this game shows their shots.
+    watching:()=>turns()&&!!link&&turnId!==me().id,
+    turnStatus,
     // On page load: rejoin the room if the address has one.
     async start(){
       worldChoices();
       if(!code)return;
       if(!session){if(!game.hole)this.openLobby();return}
+      // Everyone in the match counts as here from the start, before presence has
+      // been heard: nobody is skipped or forfeited in the first moments on a hole.
+      if(inMatch()){const t=now();for(const p of session.match.players)lastSeen[p.id]??=t}
       try{await open()}catch(error){toast(error.message||'Kunde inte ansluta till rummet',2600);return}
       if(inMatch()){
-        const t=now();for(const p of session.match.players)lastSeen[p.id]??=t;
         renderBoard();
-        if(session.match.finished)showResults();
+        if(session.match.finished)showResults();else check();
         setInterval(()=>{check();renderBoard()},1000);
       }else if(!game.hole)this.openLobby();
     },
     openLobby(){renderLobby();if(!$('mpPanel').open)$('mpPanel').showModal()},
     // The local ball, every frame; sent about ten times a second while it changes.
+    // In turns only the player whose turn it is sends.
     reportBall(ball){
-      if(!link||!inMatch())return;const t=performance.now();if(t-lastBall<100)return;
-      const key=`${ball.x.toFixed(2)},${ball.y.toFixed(2)},${ball.z.toFixed(2)},${ball.strokes},${ball.hidden}`;
+      if(!link||!inMatch()||(turns()&&turnId!==me().id))return;const t=performance.now();if(t-lastBall<100)return;
+      const key=`${ball.x.toFixed(2)},${ball.y.toFixed(2)},${ball.z.toFixed(2)},${ball.strokes},${ball.hidden},${ball.aim?.toFixed(2)},${ball.phase},${ball.putt}`;
       if(key===lastSent&&t-lastBall<2000)return;
       lastBall=t;lastSent=key;link.send('ball',ball);
     },
+    // Turns: this player's shot and cannon fire, for the watchers to play along.
+    reportShot(shot){if(link&&turns()&&turnId===me().id)link.send('shot',{...shot,i:session.match.index})},
+    reportFire(fire){if(link&&turns()&&turnId===me().id)link.send('fire',{...fire,i:session.match.index})},
     // The local player holed out (or hit the cap): record it for everyone.
     finishHole(strokes){
-      if(!inMatch())return;const list=[...myScores()];list[session.match.index]=Math.min(strokes,STROKE_CAP);
+      if(!inMatch()||(turns()&&turnId!==me().id))return;const list=[...myScores()];list[session.match.index]=Math.min(strokes,STROKE_CAP);
       session.scores=mergeScores(session.scores,me().id,list);save();sendScores();renderBoard();check();
     },
-    holeLabel(){const m=session.match;return `RUM ${session.code} · HÅL ${m.index+1} AV ${m.holes.length}`},
+    holeLabel(){const m=session.match;return `RUM ${session.code} · HÅL ${m.index+1} AV ${m.holes.length}${m.mode==='turns'?' · TURORDNING':''}`},
     refresh:renderBoard,
   };
 }
