@@ -604,13 +604,27 @@ Neonslussens lyftport och Vippvarvets vippbro kan dyka upp som delmoment. Protot
 
 Två till fyra spelare spelar online med varsin enhet. En spelare skapar ett rum och får en kod på fyra bokstäver. Koden saknar I, O och Q, så den är lätt att läsa upp. Kompisarna anger koden eller öppnar länken från **Bjud in** (`?rum=KOD`). Värden är den som har varit längst i rummet. Värden väljer värld och startar matchen. Matchen spelar världens sex hål i ordning.
 
-**Alla spelar samtidigt, inte i tur och ordning.** Varje spelare slår sin egen boll på samma hål. De andras bollar syns som spökbollar i spelarens färg (orange, turkos, rosa, lila), med en namnskylt. Spökbollarna krockar aldrig med den egna bollen. Turordning hade inneburit att tre spelare sitter och tittar. Samtidigt spel är snabbare och känns mer som ett sällskap. Det tål också att en kompis tappar uppkopplingen en stund.
+**Samtidigt (förvalt).** Varje spelare slår sin egen boll på samma hål. De andras bollar syns som spökbollar i spelarens färg (orange, turkos, rosa, lila), med en namnskylt. Spökbollarna krockar aldrig med den egna bollen. I turordning sitter tre spelare och tittar. Samtidigt spel är snabbare och känns mer som ett sällskap. Det tål också att en kompis tappar uppkopplingen en stund.
 
 - **Tavlan** uppe till höger visar varje spelares slag på hålet och totalen mot par, sorterat som en golfledartavla.
 - **Slagtak:** ett hål tar slut efter tio slag och räknas då som tio. Ingen ska behöva vänta på en spelare som har fastnat.
 - **Nästa hål:** när alla som är kvar i rummet har sänkt visar vinstkortet ställningen. Värden går vidare efter fyra sekunder. En spelare som har varit borta i 30 sekunder håller inte upp hålet. Ett hål som en spelare aldrig avslutade räknas som tio slag, så det lönar sig aldrig att lämna.
 - **Resultat:** efter sista hålet visas en prispall med medaljer och knappen **Ny match i samma rum**.
 - I en match går det inte att börja om hålet. Personliga rekord och stjärnor räknas som vanligt.
+
+### Turordning
+
+Värden kan också välja **Turordning**. Då spelar en spelare hela hålet medan de andra tittar, och sedan går turen vidare. Den som spelar sist på ett hål vet vad de andra har gjort, och det är en liten fördel. Därför lottas ordningen när matchen startar. Den flyttas sedan ett steg för varje hål, så alla börjar och slutar ungefär lika ofta. Med tre spelare och sex hål börjar alla två gånger.
+
+- **Att titta på.** De som tittar ser den riktiga bollen, inte en spökboll. De ser siktet, kraftmätaren, slaget, mekanismerna, ljuden och firandet när bollen går i. Kontrollpanelen visar vem som spelar, vilket slag det är och hur många turer det är kvar till din. Tavlan markerar den som spelar med ▶.
+- **Mellan turerna.** När spelaren har sänkt syns resultatet i tre sekunder. Sedan börjar hålet om från utslaget för nästa spelare.
+- **Den som är borta.** Om det blir din tur medan du har varit borta i 30 sekunder räknas hålet som tio slag. Värden bestämmer det och skickar det med matchen, så det gäller även om du kommer tillbaka.
+
+Så här fungerar det tekniskt:
+- Vid varje slag skickar spelaren var bollen låg, mekanismernas klockor (pendlar, urverk, pariserhjul, kometkanon, portar och bro) och bollens nya hastighet.
+- Fysiken räknar i fasta steg om 1/120 sekund och använder inga slumptal. De som tittar kan därför spela upp samma slag i sitt eget spel, och bollen rullar likadant där.
+- Medan bollen ligger still tar de som tittar över dess exakta läge. En liten skillnad mellan webbläsare kan alltså aldrig följa med till nästa slag.
+- Resultatet räknas bara från spelarens egen enhet.
 
 **Tekniken.** Matchens regler finns i `src/room.js` och är testade i `tests/room.test.js`: koder, platser, värd, poängsammanslagning, när ett hål är klart och ställning.
 - Varje spelare äger sina egna slag, och alla slår ihop det de hör. Värden äger själva matchen: vilka hål som spelas, vilket hål som är aktuellt och när matchen går vidare.

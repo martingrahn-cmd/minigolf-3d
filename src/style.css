@@ -454,6 +454,7 @@ body:has(#win:not(.hidden)) .qa-panel{top:auto;bottom:10px}
 .mp-board li b,.mp-wait li b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mp-board li span,.mp-wait li span{font-size:11px;color:#6e8192;white-space:nowrap}.mp-board li.done span,.mp-wait li.done span{color:#2f8f80;font-weight:800}
 .mp-board li em,.mp-wait li em{font-style:normal;font-weight:800;text-align:right}.mp-board li.away,.mp-wait li.away{opacity:.5}
+.mp-board li.playing b{color:#f36b53}[data-theme=halloween] .mp-board li.playing b{color:#ff9a45}
 .mp-wait{margin:4px 0 16px;padding:12px 14px;border-radius:14px;background:#00000008;text-align:left}
 .mp-wait strong{display:block;font:600 15px Fredoka,sans-serif;margin-bottom:9px;text-align:center}
 .mp-leave-match{display:block;margin:10px auto 0;font-size:11px}

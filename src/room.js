@@ -1,8 +1,12 @@
 // Playing together online: the rules of a room, kept free of network and DOM so
 // they can be tested on their own. Up to four players each play their own ball
-// on their own device, all on the same hole at the same time. The others' balls
-// are shown as coloured ghosts. When everyone still in the game has holed out,
-// the room moves on to the next hole together.
+// on their own device. A match is played in one of two ways:
+//   - together: all on the same hole at the same time, the others' balls shown
+//     as coloured ghosts;
+//   - turns: one player plays the whole hole while the others watch, then the
+//     next. The order is drawn at random and moves one step each hole, so
+//     everyone gets to go first (and last) about as often.
+// When everyone still in the game has holed out, the room moves on together.
 //
 // Each player is the only source of their own scores; everyone merges what
 // they hear. The host (the player who has been in the room longest) owns the
@@ -36,10 +40,40 @@ export function seatPlayers(players){
 export const electHost=players=>seatPlayers(players)[0]??null;
 
 // A new match: the built holes of one world, played in order.
-export function createMatch(world,holes,players,random=Math.random){
-  return {id:Math.floor(random()*1e9).toString(36),world,holes:[...holes],index:0,finished:false,
-    players:seatPlayers(players).filter(p=>p.seat!==null).map(({id,name,seat,color})=>({id,name,seat,color}))};
+export function createMatch(world,holes,players,random=Math.random,mode='together'){
+  const seated=seatPlayers(players).filter(p=>p.seat!==null).map(({id,name,seat,color})=>({id,name,seat,color}));
+  const match={id:Math.floor(random()*1e9).toString(36),world,holes:[...holes],index:0,finished:false,mode:mode==='turns'?'turns':'together',players:seated};
+  if(match.mode==='turns'){
+    const order=seated.map(p=>p.id);
+    for(let i=order.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[order[i],order[j]]=[order[j],order[i]]}
+    Object.assign(match,{order,forfeits:{}});
+  }
+  return match;
 }
+
+// Turns: who plays when on the current hole. The drawn order, moved one step per hole.
+export function turnOrder(match){
+  const order=match.order||match.players.map(p=>p.id),k=match.index%Math.max(1,order.length);
+  return [...order.slice(k),...order.slice(0,k)].map(id=>match.players.find(p=>p.id===id)).filter(Boolean);
+}
+// A player whose turn came while they were away loses that hole at the cap. The
+// host records it in the match, so it holds even if they come back.
+export function forfeit(match,playerId){
+  const list=match.forfeits?.[match.index]||[];
+  return list.includes(playerId)?match:{...match,forfeits:{...match.forfeits,[match.index]:[...list,playerId]}};
+}
+// The scores with forfeited holes filled in at the cap.
+export function withForfeits(match,scores){
+  let out=scores;
+  for(const [index,ids] of Object.entries(match.forfeits||{}))for(const id of ids){
+    if(Number.isFinite(out[id]?.[index]))continue;
+    const list=[...(out[id]||[])];list[index]=STROKE_CAP;out={...out,[id]:list};
+  }
+  return out;
+}
+// Whose turn it is: the first in this hole's order who has not finished it, or
+// null when everyone has.
+export const currentTurn=(match,scores)=>turnOrder(match).find(p=>!Number.isFinite(scores[p.id]?.[match.index]))??null;
 
 // Scores are {playerId: [strokes per hole, or null]}. A player's own list wins
 // for every hole it has a number for.

@@ -101,8 +101,12 @@ let ghosts=null;
 const mp=createMultiplayer({
   $,toast:(...a)=>toast(...a),hydrateIcons,worlds:WORLDS,round:ROUND,hole:SELECTION.menu?null:SELECTION.slot?.hole,
   pars:match=>match.holes.map(h=>ROUND.find(s=>s.hole===h).level.par),
-  strokes:()=>state.strokes,onRemoteBall:(player,b)=>ghosts?.set(player,b),onMatchStart:()=>endWorldRun(localStorage),
+  strokes:()=>state.strokes,onMatchStart:()=>endWorldRun(localStorage),
+  onRemoteBall:(player,b)=>mp.mode()==='turns'?followTurn(b):ghosts?.set(player,b),
+  onTurn:(player,mine)=>startTurn(player,mine),onRemoteShot:shot=>replayShot(shot),onRemoteFire:fire=>{pendingFire=fire},onTurnChange:()=>updateUI(),
 });
+// Turns: a cannon shot heard before the replay has loaded the cannon waits for it.
+let pendingFire=null;
 let accumulator=0;
 let bridgeAngle=LEVEL.bridge?.maxAngle||0;
 let launch=null;
@@ -163,7 +167,7 @@ function toast(text,ms=2000){
 function setPhase(phase){
   const previous=state.phase;state.phase=phase;
   // In a match a hole ends at the stroke cap, so nobody keeps the others waiting.
-  if(phase==='idle'&&previous!=='idle'&&mp.inMatch()&&state.strokes>=STROKE_CAP){capHole();return}
+  if(phase==='idle'&&previous!=='idle'&&mp.inMatch()&&!mp.watching()&&state.strokes>=STROKE_CAP){capHole();return}
   if(phase==='idle'&&previous!=='idle'){
     nearPutt=puttingContext(state,activeLayout);puttEnabled=!!nearPutt;
   }
@@ -198,6 +202,13 @@ function updateUI(){
     $('controlTitle').textContent='Närputt';$('actionText').textContent=state.phase==='idle'?'Putta':$('actionText').textContent;
     $('meterStatus').textContent=state.phase==='idle'?`${nearPutt.distance.toFixed(1).replace('.',',')} m till hålet · tryck för rulllängd`:state.phase==='power'?'Tryck när rulllängden stämmer':'Pricka mitten för en rak putt';
   }
+  if(mp.watching()){
+    // Turns: someone else is playing; this panel tells whose turn it is.
+    const turn=mp.turnStatus();
+    $('controlTitle').textContent=turn.title;$('actionText').textContent='Tittar på';$('meterStatus').textContent=turn.detail;
+    $('actionButton').disabled=true;$('controlPanel').classList.add('busy');
+    $('shotMode').hidden=true;$('fineAim').hidden=true;$('cancelShot').hidden=true;fineAim=0;
+  }
   if(preview>0){
     $('controlTitle').textContent='Banöversikt';$('actionText').textContent='Börja';$('actionSteps').dataset.step='';$('meter').hidden=true;
     $('meterStatus').textContent=touch?'Så ser banan ut · tryck för att börja':'Så ser banan ut · klicka eller Mellanslag för att börja';
@@ -210,7 +221,7 @@ function startPreview(){preview=4.5;setOverview(true);toast('Banöversikt · try
 function finishPreview(){preview=0;setOverview(false);toast('Sikta · välj kraft · träffa grönt',2200)}
 function endPreview(){if(preview<=0)return false;finishPreview();return true}
 function action(){
-  if(endPreview())return;
+  if(endPreview()||mp.watching())return;
   if(state.phase==='loaded'){fireComet();return}
   if(state.phase==='idle'){
     setPhase('power');state.power=0;state.meterStart=elapsed;sound(530,.08,'triangle',.04,1.2);
@@ -223,15 +234,22 @@ function action(){
   }
 }
 function shoot(puttingSpeed){
+  // A putt misses like a gentle shot: a little off line when the needle is off centre.
+  const error=shotError(state.accuracy,puttingSpeed!==undefined?.35:state.power);
+  const angle=state.aim+error;
+  const speed=puttingSpeed??shotSpeed(state.power);
+  const putt=puttingSpeed!==undefined,vx=Math.cos(angle)*speed,vz=Math.sin(angle)*speed;
+  // Turns: everything the watchers need to play the same shot.
+  mp.reportShot({x:state.x,z:state.z,aim:state.aim,power:state.power,accuracy:state.accuracy,strokes:state.strokes,saved:state.saved,
+    clocks:{pendulumTime,crownTime,cometTime,wheelTime},gates:[...gateClocks],bridge:bridgeAngle,vx,vz,putt,error});
+  launchShot(vx,vz,putt,error);
+}
+function launchShot(vx,vz,putt,error){
   pinRack.beginShot();
   bellBridgeState.savedOpen=bellBridgeState.open;
   liftState.savedTop=liftState.mode==='top';
-  // A putt misses like a gentle shot: a little off line when the needle is off centre.
-  const error=shotError(state.accuracy,puttingSpeed!==undefined?.35:state.power);
   shotKick=state.power>.8?1:0;
-  const angle=state.aim+error;
-  const speed=puttingSpeed??shotSpeed(state.power);
-  state.vx=Math.cos(angle)*speed;state.vz=Math.sin(angle)*speed;
+  state.vx=vx;state.vz=vz;
   state.strokes++;state.shotAge=0;state.settle=0;
   // The return spot after a fall also remembers where the player aimed from it.
   if(!trapdoorAt(state.x,state.z,LEVEL.trapdoors)&&!inClockWell(state.x,state.z,LEVEL.clockHand))state.saved={x:state.x,z:state.z,aim:state.aim};
@@ -239,13 +257,13 @@ function shoot(puttingSpeed){
   setPhase('moving');
   audio.putt(state.power);
   burst(state.x,.25+surfaceHeight(state.x,state.z),state.z,0xffffff,8,.45);
-  if(Math.abs(state.accuracy)<=perfectZone(state.power))toast(puttingSpeed!==undefined?'RAK PUTT ✦':state.power>.82?'SUPERTRÄFF! ✦':'PERFEKT TRÄFF! ✦',1300);
+  if(Math.abs(state.accuracy)<=perfectZone(state.power))toast(putt?'RAK PUTT ✦':state.power>.82?'SUPERTRÄFF! ✦':'PERFEKT TRÄFF! ✦',1300);
   else if(Math.abs(error)>.06)toast(`SNETT SLAG · ${Math.abs(error*180/Math.PI).toFixed(1)}°`,1300);
 }
 function reset(full=true){
   state.x=START.x;state.z=START.z;state.vx=0;state.vz=0;state.aim=0;state.power=0;state.needle=0;state.flight=0;state.pipe=0;state.fall=0;state.boost=0;state.strokes=full?0:state.strokes;
   pipeCooldown=0;springCooldowns.fill(0);gateClocks.fill(0);bridgeAngle=LEVEL.bridge?.maxAngle||0;launch=null;shotKick=0;ball.visible=true;ballCore.quaternion.identity();
-  sink=null;rescue=null;course?.lipRescuer?.hide();timeScale=1;ball.scale.setScalar(1);course?.cupCritter?.hide();if(course?.flagstick){course.flagstick.position.y=course.cupHeight;course.flagstick.rotation.z=0}
+  clearSink();
   pinRack.reset();course?.carnival?.reset();course?.motherTree?.reset();hoopHit=false;
   pendulumTime=0;pendulumHitCooldown=0;crownTime=0;
   loopRide=null;loopPosition=null;state.saved={...START,aim:0};
@@ -257,6 +275,41 @@ function reset(full=true){
   preview=0;cameraOverview=false;$('cameraText').textContent='Översikt';setIcon($('cameraIcon'),'map');
   setPhase('idle');
   if(full)toast('Ny chans! Sikta mot flaggan.');
+}
+function clearSink(){
+  sink=null;rescue=null;course?.lipRescuer?.hide();timeScale=1;ball.scale.setScalar(1);course?.cupCritter?.hide();
+  if(course?.flagstick){course.flagstick.position.y=course.cupHeight;course.flagstick.rotation.z=0}
+}
+// --- Turns: watching another player's hole. ---
+// Their shot, replayed here from the same spot, clocks and velocity.
+function replayShot(s){
+  if(!mp.watching())return;
+  // A replay that drifted (sunk here but not there, say) is put right by the next shot.
+  if(!['idle','power','accuracy'].includes(state.phase)){clearSink();ball.visible=true}
+  Object.assign(state,{x:s.x,z:s.z,aim:s.aim,power:s.power,accuracy:s.accuracy,strokes:s.strokes,saved:s.saved,fall:0,flight:0,pipe:0,boost:0});
+  ({pendulumTime,crownTime,cometTime,wheelTime}=s.clocks);
+  s.gates.forEach((t,i)=>{gateClocks[i]=t});bridgeAngle=s.bridge;
+  puttEnabled=s.putt;pendingFire=null;
+  launchShot(s.vx,s.vz,s.putt,s.error);
+}
+// Their ball while it rests: aim, the meter and its true spot.
+function followTurn(b){
+  if(!mp.watching())return;
+  const aiming=['idle','power','accuracy'];
+  if(!aiming.includes(state.phase)||!aiming.includes(b.phase))return;
+  state.x=b.sx;state.z=b.sz;state.aim=b.aim;state.strokes=b.strokes;puttEnabled=b.putt&&!!nearPutt;
+  if(b.phase!==state.phase){
+    if(b.phase==='power'){setPhase('power');state.meterStart=elapsed-b.meter}
+    else if(b.phase==='accuracy'){state.power=b.power;setPhase('accuracy');state.accuracyStart=elapsed-b.meter}
+    else setPhase('idle');
+  }
+  updateUI();
+}
+// A new turn: the hole starts over for the next player.
+function startTurn(player,mine){
+  $('win').classList.add('hidden');
+  if(state.phase!=='intro'){reset(false);state.strokes=0;updateUI()}
+  toast(mine?'Din tur! ⛳':`${player.name} spelar nu`,2200);
 }
 function doFall(fromHeight=surfaceHeight(state.x,state.z),reason){
   if(state.phase==='falling')return;
@@ -271,6 +324,7 @@ function loadComet(){
   setPhase('loaded');toast('LADDAD! Tryck FYR ☄',1500);sound(240,.3,'triangle',.08,1.6);
 }
 function fireComet(){
+  mp.reportFire({cometTime});
   if(LEVEL.cometCannon.launchY)setOverview(false);
   state.cometAngle=barrelAngle(LEVEL.cometCannon,cometTime);state.cometRange=cometRange(LEVEL.cometCannon,cometTime);state.flight=0;setPhase('comet');
   course?.cometCannon?.fire();toast('FYR! ☄',900);
@@ -344,11 +398,14 @@ function capHole(){
 }
 function win(){
   setPhase('win');state.vx=0;state.vz=0;
+  const stars=starsFor(state.strokes,LEVEL.par);
+  // Turns: someone else's ball went in. Celebrate it, but it is their score.
+  if(mp.watching()){burst(CUP.x,.6,CUP.z,0xffd264,55,1.7);audio.duck(4);audio.fanfare(stars);return}
   const best=Number(localStorage.getItem(LEVEL.recordKey))||Infinity;
   // The event bench never saves scores.
   if(!QA){if(state.strokes<best)localStorage.setItem(LEVEL.recordKey,String(state.strokes));recordRunHole(localStorage,SELECTION.slot,state.strokes)}
   updateUI();
-  const stars=starsFor(state.strokes,LEVEL.par),bestNow=bestStars(localStorage,LEVEL);
+  const bestNow=bestStars(localStorage,LEVEL);
   $('winStars').textContent=starText(stars);$('winStars').setAttribute('aria-label',`${stars} av 3 stjärnor`);
   $('winStarsNote').textContent=stars===3?'Alla tre stjärnorna!':bestNow>stars?`Ditt bästa: ${starText(bestNow)}`:stars===2?'Birdie ger tre stjärnor':stars===1?'Par ger två stjärnor':'Bogey ger en stjärna';
   $('winStrokes').textContent=state.strokes;
@@ -645,7 +702,8 @@ function draw(dt){
   ball.position.set(state.x,ballHeight+.04+BALL_RADIUS+extraY,state.z);
   ball.visible=phase!=='loaded'&&phase!=='win';ball.scale.setScalar(1);
   ghosts?.update(dt);
-  mp.reportBall({x:ball.position.x,y:ball.position.y,z:ball.position.z,strokes:state.strokes,hidden:!ball.visible||phase==='sinking'});
+  mp.reportBall({x:ball.position.x,y:ball.position.y,z:ball.position.z,strokes:state.strokes,hidden:!ball.visible||phase==='sinking',
+    sx:state.x,sz:state.z,aim:state.aim,phase,power:state.power,putt:puttEnabled,meter:phase==='power'?elapsed-state.meterStart:phase==='accuracy'?elapsed-state.accuracyStart:0});
   if(rescue)course?.lipRescuer?.update(rescue.t,rescue.ball,rescue.dir,camera);
   if(phase==='sinking'&&sink){
     // The flag comes out of the cup, and the critter takes the ball in its mouth.
@@ -792,7 +850,8 @@ function frame(){
   const slow=sink&&sink.t<SINK.settle&&!reducedCameraMotion?SLOW_MOTION:1;timeScale+=(slow-timeScale)*Math.min(1,realDt*8);
   const dt=realDt*timeScale;elapsed+=dt;
   if(preview>0){preview-=dt;if(preview<=0)finishPreview()}
-  if(state.phase==='idle'){
+  if(pendingFire&&state.phase==='loaded'){cometTime=pendingFire.cometTime;pendingFire=null;fireComet()}
+  if(state.phase==='idle'&&!mp.watching()){
     const direction=Number(aimKeys.has('KeyD')||aimKeys.has('ArrowRight'))-Number(aimKeys.has('KeyA')||aimKeys.has('ArrowLeft'));
     state.aim+=direction*dt*(aimKeys.has('ShiftLeft')||aimKeys.has('ShiftRight')?.15:.65);
     if(fineAim){fineAimHeld+=dt;state.aim+=fineAim*dt*(fineAimHeld>.7?.3:.1)}
@@ -801,7 +860,7 @@ function frame(){
   if(state.phase==='power'&&puttEnabled)puttLength=puttLengthAt(state.power);
   if(state.phase==='idle'&&!wasIdle)aimAtIdle=state.aim;wasIdle=state.phase==='idle';
   coach.update({
-    enabled:!QA&&preview<=0&&['idle','power','accuracy'].includes(state.phase)&&$('intro').classList.contains('hidden')&&$('menu').classList.contains('hidden')&&!$('helpPanel').open&&!$('levelPanel').open&&!$('soundPanel').open,
+    enabled:!QA&&!mp.watching()&&preview<=0&&['idle','power','accuracy'].includes(state.phase)&&$('intro').classList.contains('hidden')&&$('menu').classList.contains('hidden')&&!$('helpPanel').open&&!$('levelPanel').open&&!$('soundPanel').open,
     phase:state.phase,putting:puttEnabled&&!!nearPutt,shots:state.strokes,aimMoved:Math.abs(state.aim-aimAtIdle)>.12,overview:cameraOverview,
   },elapsed);
   if(state.phase==='accuracy')state.needle=precisionAt(elapsed-state.accuracyStart);
@@ -831,7 +890,7 @@ function overviewAim(ev,activeCamera=overviewCamera){
   }
 }
 canvas.addEventListener('pointerdown',e=>{
-  if(endPreview())return;
+  if(endPreview()||mp.watching())return;
   if(state.phase==='sinking'){finishSink();return}
   if(state.phase==='loaded'){fireComet();return}
   if(state.phase!=='idle')return;
@@ -853,7 +912,7 @@ window.addEventListener('keydown',e=>{
     if($('helpPanel').open)$('helpPanel').close();
     if($('levelPanel').open)$('levelPanel').close();
     if($('soundPanel').open)$('soundPanel').close();
-    if(['power','accuracy'].includes(state.phase)){state.power=0;setPhase('idle')}
+    if(['power','accuracy'].includes(state.phase)&&!mp.watching()){state.power=0;setPhase('idle')}
     return;
   }
   // Typing a name or a room code: the letters are text, not game keys.
@@ -894,8 +953,8 @@ $('helpButton').addEventListener('click',()=>{
 $('closeHelp').addEventListener('click',()=>$('helpPanel').close());
 $('actionButton').addEventListener('click',action);
 $('cancelShot').addEventListener('click',()=>{if(['power','accuracy'].includes(state.phase)){state.power=0;setPhase('idle')}});
-$('shotMode').addEventListener('click',()=>{puttEnabled=!puttEnabled;updateUI();$('shotMode').blur()});
-$('playButton').addEventListener('click',()=>{lockPortrait();audio.unlock();$('intro').classList.add('hidden');reset();startPreview()});
+$('shotMode').addEventListener('click',()=>{if(!mp.watching())puttEnabled=!puttEnabled;updateUI();$('shotMode').blur()});
+$('playButton').addEventListener('click',()=>{lockPortrait();audio.unlock();$('intro').classList.add('hidden');if(!mp.watching()||state.phase==='intro')reset();startPreview()});
 $('againButton').addEventListener('click',()=>{$('win').classList.add('hidden');reset()});
 $('resetButton').addEventListener('click',()=>{if(state.phase!=='intro'&&!mp.inMatch()){reset();$('win').classList.add('hidden')}});
 $('cameraButton').addEventListener('click',()=>{preview=0;setOverview(!cameraOverview)});
@@ -1122,7 +1181,7 @@ async function init(){
   frame();
   if(QA)startQA();else mp.start();
   // The browser tests drive a match through this handle; only in development.
-  if(import.meta.env?.DEV)window.minigolfMultiplayer=mp;
+  if(import.meta.env?.DEV){window.minigolfMultiplayer=mp;window.minigolfBall=()=>({phase:state.phase,x:state.x,z:state.z,strokes:state.strokes})}
 }
 // The event bench: start straight into play, with a panel of set pieces to fire.
 function startQA(){

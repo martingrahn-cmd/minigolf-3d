@@ -13,7 +13,12 @@
 import { SUPABASE } from './supabase-config.js';
 
 const CONFIG={url:import.meta.env?.VITE_SUPABASE_URL||SUPABASE.url,key:import.meta.env?.VITE_SUPABASE_ANON_KEY||SUPABASE.anonKey};
-const forceLocal=()=>typeof location!=='undefined'&&new URLSearchParams(location.search).get('net')==='local';
+// `?net=local` holds for the whole tab, also after the address changes to the room and its holes.
+const forceLocal=()=>{
+  if(typeof location==='undefined')return false;
+  try{if(new URLSearchParams(location.search).get('net')==='local')sessionStorage.setItem('minimayhem-net','local');return sessionStorage.getItem('minimayhem-net')==='local'}
+  catch{return new URLSearchParams(location.search).get('net')==='local'}
+};
 export const transportName=()=>forceLocal()||!CONFIG.url||!CONFIG.key?'local':'supabase';
 // Online play is offered when the game is built with a Supabase project, or for testing.
 export const multiplayerAvailable=()=>transportName()==='supabase'||forceLocal()||!!import.meta.env?.DEV;

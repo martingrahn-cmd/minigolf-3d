@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { roomCode, normalizeCode, cleanName, seatPlayers, electHost, createMatch, mergeScores, waitingFor, holeDone, advance, standings, STROKE_CAP, MAX_PLAYERS, PLAYER_COLORS, AWAY_AFTER } from '../src/room.js';
+import { roomCode, normalizeCode, cleanName, seatPlayers, electHost, createMatch, mergeScores, waitingFor, holeDone, advance, standings, turnOrder, currentTurn, forfeit, withForfeits, STROKE_CAP, MAX_PLAYERS, PLAYER_COLORS, AWAY_AFTER } from '../src/room.js';
 
 const ann={id:'a',name:'Ann',joinedAt:10},bo={id:'b',name:'Bo',joinedAt:12},cy={id:'c',name:'Cy',joinedAt:11},di={id:'d',name:'Di',joinedAt:20},ed={id:'e',name:'Ed',joinedAt:30};
 
@@ -57,4 +57,29 @@ test('standings add up strokes; unfinished holes count as the cap, ties share a 
   assert.deepEqual(rows.map(r=>r.player.id),['a','b','c']);
   assert.equal(rows.find(r=>r.player.id==='c').total,2+2*STROKE_CAP,'Cy left after one hole');
   assert.equal(rows[0].toPar,0);assert.equal(rows[0].place,1);
+});
+
+test('turns: the order is drawn at random and moves one step each hole',()=>{
+  let seed=7;const random=()=>(seed=seed*16807%2147483647)/2147483647;
+  const m=createMatch('moon',[13,14,15,16],[ann,bo,cy],random,'turns');
+  assert.equal(m.mode,'turns');assert.deepEqual([...m.order].sort(),['a','b','c']);
+  const firsts=[0,1,2,3].map(index=>turnOrder({...m,index})[0].id);
+  assert.deepEqual(turnOrder(m).map(p=>p.id),m.order);
+  assert.deepEqual(turnOrder({...m,index:1}).map(p=>p.id),[...m.order.slice(1),m.order[0]]);
+  assert.equal(new Set(firsts.slice(0,3)).size,3,'Each player goes first once in three holes');
+  const starts=new Set();for(let s=1;s<40;s++){seed=s;starts.add(createMatch('moon',[13],[ann,bo,cy],random,'turns').order[0])}
+  assert.equal(starts.size,3,'Anyone can be drawn to start');
+  assert.equal(createMatch('moon',[13],[ann,bo]).mode,'together');assert.equal(createMatch('moon',[13],[ann,bo]).order,undefined);
+});
+
+test('turns: the turn passes when a player holes out; a forfeit counts as the cap',()=>{
+  const m={...createMatch('moon',[13,14],[ann,bo,cy],Math.random,'turns'),order:['b','a','c']};
+  let scores={};
+  assert.equal(currentTurn(m,scores).id,'b');
+  scores=mergeScores(scores,'b',[3]);assert.equal(currentTurn(m,scores).id,'a');
+  const f=forfeit(m,'a');assert.deepEqual(f.forfeits,{0:['a']});assert.equal(forfeit(f,'a'),f);
+  const filled=withForfeits(f,scores);assert.equal(filled.a[0],STROKE_CAP);assert.equal(currentTurn(f,filled).id,'c');
+  assert.equal(withForfeits(f,mergeScores(scores,'a',[4])).a[0],4,'A real score stands over a forfeit');
+  assert.equal(currentTurn(f,mergeScores(filled,'c',[2])),null);
+  assert.equal(currentTurn({...f,index:1},filled).id,'a','The next hole starts one step further on');
 });
