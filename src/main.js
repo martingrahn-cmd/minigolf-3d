@@ -1104,7 +1104,7 @@ $('menuPlay').addEventListener('click',()=>{
 });
 $('menuLevels').addEventListener('click',openLevels);
 // The language: native names, a reload on change.
-$('menuLanguage').innerHTML=LANGUAGES.map(l=>`<button data-lang="${l.code}"${l.code===lang?' class="active" aria-pressed="true"':' aria-pressed="false"'}><span aria-hidden="true">${l.flag}</span>${l.name}</button>`).join('');
+$('menuLanguage').innerHTML=LANGUAGES.map(l=>`<button data-lang="${l.code}" title="${l.name}" aria-label="${l.name}"${l.code===lang?' class="active" aria-pressed="true"':' aria-pressed="false"'}><span aria-hidden="true">${l.flag}</span><b>${l.code.toUpperCase()}</b></button>`).join('');
 $('menuLanguage').addEventListener('click',e=>{const b=e.target.closest('[data-lang]');if(b&&b.dataset.lang!==lang)setLanguage(b.dataset.lang)});
 $('menuFriends').hidden=!mp.available;
 $('menuFriends').addEventListener('click',()=>mp.openLobby());

@@ -28,7 +28,7 @@ Rundans ordning och platshållarna finns i `src/round.js`. Banornas interna `id`
 
 ## Språk
 
-Spelet finns på **svenska**, **engelska** och **spanska** (latinamerikansk, med "tú"). Språket väljs längst ner i huvudmenyn och sparas på enheten. Första gången följer det enhetens språk, och annars blir det engelska. En länk kan också välja språk: `?lang=sv`, `?lang=en` eller `?lang=es`.
+Spelet finns på **svenska**, **engelska** och **spanska** (latinamerikansk, med "tú"). Språket väljs med flaggorna uppe till höger i huvudmenyn och sparas på enheten. Första gången följer det enhetens språk, och annars blir det engelska. En länk kan också välja språk: `?lang=sv`, `?lang=en` eller `?lang=es`.
 
 - Svenskan är källtexten. Den skrivs direkt i koden och i `index.html`.
 - Översättningarna finns i `src/locales/en.js` och `src/locales/es.js`, med den svenska texten som nyckel.
