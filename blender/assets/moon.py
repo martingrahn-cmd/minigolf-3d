@@ -3,8 +3,9 @@ Dimensions match the procedural stand-ins in src/moon.js so code that places,
 scales or decorates them keeps working."""
 import math
 import bmesh
+import bpy
 from mathutils import Vector
-from lib import (material, mesh_object, empty, cylinder, torus, lathe, sphere, box,
+from lib import (material, mesh_object, empty, cylinder, torus, lathe, sphere, box, join_parts,
                  rock, bevel, export, reset)
 
 IVORY, RED, GOLD, TEAL, DEEP, ROCK = 0xf4e8d2, 0xd5485b, 0xf2c25c, 0x3fbfb2, 0x2c2250, 0x6f6690
@@ -142,8 +143,68 @@ def tent():
     export('moon/tent.glb', join='circus-tent')
 
 
+def ferris_wheel():
+    """The fair's big wheel at radius 1 (the game scales it to the wheel's radius,
+    4.6 m in the fair and 7.5 m behind the course). The A-frame stands on z = 0
+    with the hub at 1.25; `wheel` turns about the game's z (Blender -y) and
+    carries 24 bulbs (material `Bulb`) and eight gondolas `gondola-0`…`gondola-7`,
+    each with its origin at its pivot on the rim, so the game can keep them level."""
+    reset()
+    root = empty('ferris-wheel')
+    steel = material('Steel', IVORY, rough=.4, metal=.3)
+    red = material('WheelRed', RED, rough=.45)
+    teal = material('Teal', TEAL, rough=.45)
+    bulb = material('Bulb', GOLD, rough=.3, emit=GOLD, strength=2.2)
+    hub = 1.25
+
+    def strut(name, a, b, r, mat, parent):
+        a, b = Vector(a), Vector(b)
+        c = cylinder(name, r, (b - a).length, (a + b) / 2, mat, parent, 6, False)
+        c.rotation_euler = (b - a).to_track_quat('Z', 'Y').to_euler()
+        return c
+    # The A-frame, front and back, with cross braces and a small ticket base.
+    for y in (-.12, .12):
+        for side in (-1, 1):
+            strut(f'leg-{y}-{side}', (side * .58, y * 1.5, 0), (0, y, hub), .022, steel, root)
+        strut(f'brace-{y}', (-.29, y * 1.25, hub * .5), (.29, y * 1.25, hub * .5), .012, steel, root)
+    strut('axle', (0, -.16, hub), (0, .16, hub), .035, steel, root)
+    box('base', (.7, .22, .03), (0, 0, .015), red, root)
+    wheel = empty('wheel', root, (0, 0, hub))
+    for y in (-.09, .09):
+        torus(f'rim-{y}', 1, .014, (0, y, 0), red, wheel, 72, 6, (math.pi / 2, 0, 0))
+        torus(f'inner-rim-{y}', .55, .008, (0, y, 0), steel, wheel, 48, 5, (math.pi / 2, 0, 0))
+    for k in range(12):
+        a = k / 12 * math.tau
+        for y in (-.09, .09):
+            strut(f'spoke-{k}-{y}', (0, y, 0), (math.cos(a), y, math.sin(a)), .007, steel, wheel)
+        strut(f'rung-{k}', (math.cos(a), -.09, math.sin(a)), (math.cos(a), .09, math.sin(a)), .008, steel, wheel)
+    cylinder('hub', .08, .22, (0, 0, 0), red, wheel, 12, False, (math.pi / 2, 0, 0))
+    for k in range(24):
+        a = k / 24 * math.tau
+        sphere(f'bulb-{k}', .016, (math.cos(a) * 1.0, -.11, math.sin(a) * 1.0), bulb, wheel, 6, 4)
+    # Gondolas: a little tub with a canopy, hanging under its pivot.
+    for k in range(8):
+        a = k / 8 * math.tau
+        g = empty(f'gondola-{k}', wheel, (math.cos(a), 0, math.sin(a)))
+        colour = red if k % 2 else teal
+        strut(f'hanger-{k}', (0, 0, 0), (0, 0, -.055), .006, steel, g)
+        lathe(f'canopy-{k}', [(0, -.035), (.085, -.06), (.08, -.072), (0, -.07)], 12, steel, g, False)
+        lathe(f'tub-{k}', [(.075, -.075), (.07, -.15), (.055, -.175), (0, -.178)], 12, colour, g, False)
+        for j in range(4):
+            b = j / 4 * math.tau + math.pi / 4
+            strut(f'post-{k}-{j}', (math.cos(b) * .065, math.sin(b) * .065, -.07), (math.cos(b) * .065, math.sin(b) * .065, -.11), .004, steel, g)
+    # One mesh each for the frame, the turning wheel and every gondola.
+    names = [f'gondola-{k}' for k in range(8)]
+    for k, name in enumerate(names):
+        join_parts(bpy.data.objects[name], f'cabin-{k}')
+    join_parts(wheel, 'wheel-body', exclude=names)
+    join_parts(root, 'frame', exclude=('wheel',))
+    export('moon/ferris-wheel.glb')
+
+
 def build():
     rocket()
     asteroids()
     lantern()
     tent()
+    ferris_wheel()
