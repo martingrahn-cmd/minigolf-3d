@@ -233,10 +233,14 @@ export function createHalloweenEnvironment(scene,level){
   const iron=material(C.iron),lanternGlow=glow(C.amber,2.4);
   const posts=[[box.x1-3,box.z2+3],[box.x2+3,box.z1-3],[(box.x1+box.x2)/2,box.z1-5],[box.x2+4,(box.z1+box.z2)/2+4],[box.x1-4,(box.z1+box.z2)/2-5]];
   for(const [i,[x,z]] of posts.entries()){
-    add(statics,new THREE.CylinderGeometry(.6,.8,4.6,8),material(C.plankDark),x,-4.1,z);
-    beam(statics,[x,-1.8,z],[x+.25,2.6,z],.07,iron,6);beam(statics,[x+.25,2.6,z],[x+.9,2.8,z],.05,iron,5);
-    add(statics,new THREE.BoxGeometry(.32,.42,.32),lanternGlow,x+.9,2.45,z).castShadow=false;
-    const halo=glowSprite(scene,texture,0xff9a40,x+.9,2.45,z,2.6,.7);animated.push(t=>{halo.material.opacity=.55+Math.sin(t*9+i*2)*.1+Math.sin(t*17+i)*.06});
+    const model=placed(statics,'halloween/lamp-post',x,0,z);
+    if(model)placed(statics,'halloween/lantern',x+.9,2.78,z);
+    else{
+      add(statics,new THREE.CylinderGeometry(.6,.8,4.6,8),material(C.plankDark),x,-4.1,z);
+      beam(statics,[x,-1.8,z],[x+.25,2.6,z],.07,iron,6);beam(statics,[x+.25,2.6,z],[x+.9,2.8,z],.05,iron,5);
+      add(statics,new THREE.BoxGeometry(.32,.42,.32),lanternGlow,x+.9,2.45,z).castShadow=false;
+    }
+    const halo=glowSprite(scene,texture,0xff9a40,x+.9,model?2.37:2.45,z,2.6,.7);animated.push(t=>{halo.material.opacity=.55+Math.sin(t*9+i*2)*.1+Math.sin(t*17+i)*.06});
   }
   // Ghosts drifting in the fog round the edge, and bats.
   const ghosts=[];
@@ -406,8 +410,10 @@ export function createCryptGates(scene,gates=[]){
     const frame=new THREE.Group();frame.position.set(gate.x,.04,gate.z);scene.add(frame);
     const stone=material(C.stone,{flatShading:true}),dark=material(C.stoneDark,{flatShading:true}),iron=material(C.iron,{metalness:.5,roughness:.5});
     for(const side of [-1,1]){
-      add(frame,new THREE.BoxGeometry(.7,3.3,.7),stone,0,1.65,side*gate.postOffset);
-      add(frame,new THREE.BoxGeometry(.85,.3,.85),dark,0,3.4,side*gate.postOffset);
+      if(!placed(frame,'halloween/crypt-pillar',0,0,side*gate.postOffset)){
+        add(frame,new THREE.BoxGeometry(.7,3.3,.7),stone,0,1.65,side*gate.postOffset);
+        add(frame,new THREE.BoxGeometry(.85,.3,.85),dark,0,3.4,side*gate.postOffset);
+      }
       const skull=placed(frame,'halloween/jack-o-lantern-1',0,3.55,side*gate.postOffset,.55,-Math.PI/2);
       if(skull)skull.rotation.y=-Math.PI/2;
     }
@@ -440,7 +446,9 @@ export function createCryptGates(scene,gates=[]){
 // The arms follow the spinner's collision bars exactly (reach and radius).
 export function createScarecrow(group,spinner){
   const wood=material(0x6a4a30,{flatShading:true}),cloth=material(0x7a3b4e,{flatShading:true}),straw=material(0xd8b452,{flatShading:true});
-  add(group,new THREE.CylinderGeometry(.16,.2,2.2,8),wood,0,1.1,0);
+  // The model is the post, the shirt and the hat; the arms are the spinner's.
+  const body=placed(group,'halloween/scarecrow',0,0,0);
+  if(!body)add(group,new THREE.CylinderGeometry(.16,.2,2.2,8),wood,0,1.1,0);
   for(let axis=0;axis<spinner.axes;axis++){
     const arm=new THREE.Group();arm.rotation.y=axis*Math.PI/2;group.add(arm);
     const length=(spinner.reach-spinner.radius)*2;
@@ -452,7 +460,7 @@ export function createScarecrow(group,spinner){
     }
   }
   placed(group,'halloween/jack-o-lantern-1',0,2.1,0,.7,Math.PI);
-  add(group,new THREE.ConeGeometry(.42,.6,10),material(0x2b1d3a),0,2.85,0);
+  if(!body)add(group,new THREE.ConeGeometry(.42,.6,10),material(0x2b1d3a),0,2.85,0);
 }
 
 // The spring pads as witch circles: a glowing ring of runes with green chevrons.
@@ -490,6 +498,7 @@ export function createGraveGates(scene,arches=[],heightAt=()=>0){
   const stone=material(C.stone,{flatShading:true}),iron=material(C.iron,{metalness:.5,roughness:.5}),lamp=glow(C.amber,2);
   for(const a of arches){
     const g=new THREE.Group();g.position.set(a.x,heightAt(a.x,a.z)+.04,a.z);scene.add(g);
+    if(placed(g,'halloween/grave-gate',0,0,0)){placed(g,'halloween/lantern',0,2.03,0);continue}
     // Low, so the view from the tee goes over it.
     for(const s of [-1,1]){add(g,new THREE.BoxGeometry(.5,1.5,.5),stone,0,.75,s*1.8);add(g,new THREE.SphereGeometry(.26,10,8),stone,0,1.65,s*1.8)}
     const arc=new THREE.Mesh(new THREE.TorusGeometry(1.8,.06,6,24,Math.PI),iron);arc.position.y=1.5;arc.rotation.y=Math.PI/2;arc.scale.y=.45;g.add(arc);
@@ -598,18 +607,29 @@ export function createGhostShipScenery(scene,level,animated){
   const flag=add(live,new THREE.PlaneGeometry(2.4,1.5,8,2),new THREE.MeshStandardMaterial({map:flagTexture(),side:THREE.DoubleSide,roughness:.9}),31.2,14.6,-2.85);
   flag.rotation.y=Math.PI/2;flag.castShadow=false;const flagBase=flag.geometry.attributes.position.array.slice();
   // Figurehead: a skull at the bow, lanterns at the stern, the wheel.
-  add(ship,new THREE.SphereGeometry(.5,14,10),material(C.bone),2.2,.3,-1.65);
-  beam(ship,[3,0,-1.65],[3,1.6,-1.65],.07,iron);add(ship,new THREE.BoxGeometry(.32,.42,.32),glow(C.ghostGreen,2),3,1.8,-1.65).castShadow=false;
-  for(const s of [-1,1])add(ship,new THREE.SphereGeometry(.12,8,6),glow(C.ghostGreen,2),1.78,.36,-1.65+s*.2);
-  for(const z of [-6.2,2.6]){beam(ship,[31.3,0,z],[31.3,1.9,z],.06,iron);add(ship,new THREE.BoxGeometry(.32,.42,.32),glow(C.ghostGreen,2),31.3,2.1,z).castShadow=false}
-  const wheel=new THREE.Group();wheel.position.set(30.6,1.15,2.6);wheel.rotation.y=Math.PI/2;ship.add(wheel);
-  add(wheel,new THREE.TorusGeometry(.55,.06,6,20),trim);
-  for(let i=0;i<8;i++){const a=i/8*Math.PI*2;beam(wheel,[0,0,0],[Math.cos(a)*.72,Math.sin(a)*.72,0],.035,trim,5)}
-  beam(ship,[30.6,0,2.6],[30.6,1.1,2.6],.08,trim);
+  if(!placed(ship,'halloween/skull',2.2,.3,-1.65)){
+    add(ship,new THREE.SphereGeometry(.5,14,10),material(C.bone),2.2,.3,-1.65);
+    for(const s of [-1,1])add(ship,new THREE.SphereGeometry(.12,8,6),glow(C.ghostGreen,2),1.78,.36,-1.65+s*.2);
+  }
+  // Witch-fire lanterns on posts at the bow and the stern: the lantern model
+  // stands on its post (0.64 m from its base to its hook), burning green.
+  const witchFire=glow(C.ghostGreen,2);
+  for(const [x,z,h] of [[3,-1.65,1.6],[31.3,-6.2,1.9],[31.3,2.6,1.9]]){
+    beam(ship,[x,0,z],[x,h,z],h<1.8?.07:.06,iron);
+    const l=placed(ship,'halloween/lantern',x,h+.64,z);
+    if(l)l.traverse(o=>{if(o.isMesh&&o.material.name==='Flame'){o.material=witchFire;o.castShadow=false}});
+    else add(ship,new THREE.BoxGeometry(.32,.42,.32),witchFire,x,h+.2,z).castShadow=false;
+  }
+  if(!placed(ship,'halloween/ship-wheel',30.6,0,2.6,1,Math.PI/2)){
+    const wheel=new THREE.Group();wheel.position.set(30.6,1.15,2.6);wheel.rotation.y=Math.PI/2;ship.add(wheel);
+    add(wheel,new THREE.TorusGeometry(.55,.06,6,20),trim);
+    for(let i=0;i<8;i++){const a=i/8*Math.PI*2;beam(wheel,[0,0,0],[Math.cos(a)*.72,Math.sin(a)*.72,0],.035,trim,5)}
+    beam(ship,[30.6,0,2.6],[30.6,1.1,2.6],.08,trim);
+  }
   // Cannons along the hull. Now and then one fires: flash, smoke and a bang.
   const cannons=[];
   for(const [x,z,dir] of [[8,-8.5,-1],[14,-8.6,-1],[20,-8.6,-1],[26,-8.6,-1],[16,5,1],[22,5,1],[27,5,1]]){
-    const barrel=add(ship,new THREE.CylinderGeometry(.22,.28,1.6,10),iron,x,-.5,z+dir*.5);barrel.rotation.x=Math.PI/2;
+    if(!placed(ship,'halloween/cannon',x,-.5,z+dir*.5,1,dir>0?0:Math.PI)){const barrel=add(ship,new THREE.CylinderGeometry(.22,.28,1.6,10),iron,x,-.5,z+dir*.5);barrel.rotation.x=Math.PI/2}
     cannons.push({x,y:-.5,z:z+dir*1.4,dir});
   }
   const texture=softTexture(),puffs=[];

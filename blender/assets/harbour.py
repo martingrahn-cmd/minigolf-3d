@@ -1,14 +1,18 @@
-"""Spökhamnen's set pieces round the course: crooked dead trees, the lighthouse
-and the ghost ship lying off the harbour (the finale's ship is the course itself
-and stays in code).
+"""Spökhamnen's set pieces: crooked dead trees, the lighthouse and the ghost
+ship lying off the harbour, and the dress on the course: graveyard gates, crypt
+pillars, the scarecrow, shore lamp posts and lanterns, and the finale ship's
+cannons, helm and skull figurehead (the finale's hull is the course itself and
+stays in code).
 
 Sizes follow the code stand-ins in src/halloween.js (deadTree, lighthouse,
-ghostShip), so the code places them the same way. Origins at the foot or the
+ghostShip, createGraveGates, createCryptGates, createScarecrow,
+createGhostShipScenery), so the code places them the same way. Origins at the foot or the
 waterline; the game's +z is Blender -y; the glTF exporter maps Blender
 (x, y, z) to game (x, z, -y)."""
 import math
 import random
 import bmesh
+import bpy
 from mathutils import Vector, Matrix
 from lib import material, empty, lathe, sphere, cylinder, box, torus, rock, export, reset, mesh_object, join_parts
 
@@ -260,8 +264,317 @@ def ghost_ship():
     export('halloween/ghost-ship.glb')
 
 
+# ------------------------------------------------------------ course dress
+def _polyline(bm, points, r, sides=6):
+    points = [Vector(p) for p in points]
+    for a, b in zip(points, points[1:]):
+        _tube(bm, a, b, r, r, sides)
+    for p in points[1:-1]:
+        _knob(bm, p, r * 1.05)
+
+
+def _ellipse(span, z0, rise, count=24):
+    """Points of a half ellipse over the y axis, from -span to +span."""
+    return [(0, -span * math.cos(k / count * math.pi), z0 + rise * math.sin(k / count * math.pi)) for k in range(count + 1)]
+
+
+def lantern():
+    """A small iron lantern, 0.64 m from the hook down: a ring, a pyramid roof,
+    four corner posts round lit glass (material `Flame`) and a base. The origin
+    is the hook, so it hangs from a bracket or stands on a post 0.64 m lower."""
+    reset()
+    root = empty('lantern')
+    iron = material('Iron', IRON, rough=.45, metal=.6)
+    flame = material('Flame', AMBER, rough=.3, emit=AMBER, strength=3)
+    torus('ring', .045, .012, (0, 0, -.05), iron, root, 12, 4, (math.pi / 2, 0, 0))
+    lathe('roof', [(.23, -.23), (.2, -.19), (.03, -.09), (0, -.08)], 4, iron, root, False).rotation_euler = (0, 0, math.pi / 4)
+    box('top', (.3, .3, .03), (0, 0, -.235), iron, root)
+    box('glass', (.24, .24, .32), (0, 0, -.41), flame, root)
+    for x in (-.135, .135):
+        for y in (-.135, .135):
+            cylinder(f'post-{x}-{y}', .016, .36, (x, y, -.41), iron, root, 5, False)
+    for y in (-.135, .135):
+        box(f'bar-x-{y}', (.27, .018, .018), (0, y, -.41), iron, root)
+        box(f'bar-y-{y}', (.018, .27, .018), (y, 0, -.41), iron, root)
+    box('base', (.32, .32, .04), (0, 0, -.59), iron, root)
+    sphere('drop', .04, (0, 0, -.63), iron, root, 8, 5, False)
+    export('halloween/lantern.glb', join='lantern')
+
+
+def grave_gate():
+    """A graveyard gate over the lane: two stone pillars 3.6 m apart (their
+    centres where the arch posts collide, 0.5 m square), ball finials, a double
+    iron arch with bars and spikes, and a short chain at the top for a
+    `halloween/lantern` (its hook at 2.05 m). Origin on the lane between them."""
+    reset()
+    root = empty('grave-gate')
+    stone = material('Stone', STONE, rough=.95)
+    dark = material('StoneDark', STONE_DARK, rough=1)
+    moss = material('Moss', 0x3f5a3a, rough=1)
+    iron = material('Iron', IRON, rough=.45, metal=.6)
+    for side in (-1, 1):
+        y = side * 1.8
+        box(f'plinth-{side}', (.64, .64, .22), (0, y, .11), stone, root)
+        box(f'shaft-{side}', (.5, .5, 1.14), (0, y, .79), stone, root)
+        for face in (-1, 1):
+            # A sunken panel with a cross on each face along the lane.
+            box(f'panel-{side}-{face}', (.02, .3, .62), (face * .255, y, .82), dark, root)
+            box(f'cross-v-{side}-{face}', (.03, .05, .34), (face * .262, y, .85), stone, root)
+            box(f'cross-h-{side}-{face}', (.03, .2, .05), (face * .262, y, .94), stone, root)
+        box(f'cornice-{side}', (.62, .62, .12), (0, y, 1.42), stone, root)
+        box(f'cap-{side}', (.5, .5, .1), (0, y, 1.53), stone, root)
+        sphere(f'ball-{side}', .23, (0, y, 1.8), stone, root, 12, 8, False)
+        m = sphere(f'moss-{side}', .3, (.12, y - side * .1, 1.47), moss, root, 10, 6, False)
+        m.scale = (1, .9, .22)
+    bm = bmesh.new()
+    outer, inner = _ellipse(1.55, 1.42, .9), _ellipse(1.55, 1.42, .62)
+    _polyline(bm, outer, .045)
+    _polyline(bm, inner, .035)
+    # Bars between the arcs and spikes along the top.
+    for k in range(2, 23, 2):
+        _tube(bm, inner[k], outer[k], .022, .022, 5)
+        top = Vector(outer[k])
+        _tube(bm, top, top + Vector((0, 0, .16)), .03, .002, 5)
+    # Curls where the arch meets the pillars, and a spike at the top.
+    for side in (-1, 1):
+        c = Vector((0, side * 1.2, 1.55))
+        _polyline(bm, [c + Vector((0, side * .13 * math.cos(t), .13 * math.sin(t))) for t in [k / 8 * math.tau * .8 for k in range(9)]], .018, 5)
+    _tube(bm, Vector(outer[12]), Vector(outer[12]) + Vector((0, 0, .32)), .04, .002, 6)
+    mesh_object('arch', bm, iron, root)
+    for k in range(3):
+        torus(f'chain-{k}', .025, .007, (0, 0, 2.03 - k * .04 + .08), iron, root, 10, 4, (math.pi / 2, 0, k * math.pi / 2))
+    export('halloween/grave-gate.glb', join='grave-gate')
+
+
+def crypt_pillar():
+    """One pillar of the crypt portcullis: 0.7 m square and 3.55 m to the top of
+    its cap, built of slightly uneven blocks on a plinth, with three iron
+    sconces on each face along the lane for the gate's witch-fire flames (at
+    1.51, 1.93 and 2.35 m, 0.4 m out). A pumpkin sits on the flat cap."""
+    reset()
+    rnd = random.Random(5)
+    root = empty('crypt-pillar')
+    stone = material('Stone', STONE, rough=.95)
+    dark = material('StoneDark', STONE_DARK, rough=1)
+    moss = material('Moss', 0x3f5a3a, rough=1)
+    iron = material('Iron', IRON, rough=.45, metal=.6)
+    box('plinth', (.9, .9, .3), (0, 0, .15), dark, root, .02)
+    z, k = .3, 0
+    while z < 3.2:
+        h = min(.34 + rnd.uniform(-.04, .04), 3.25 - z)
+        w = .7 + rnd.uniform(-.03, .03)
+        box(f'block-{k}', (w, w + rnd.uniform(-.02, .02), h - .02), (rnd.uniform(-.01, .01), rnd.uniform(-.01, .01), z + h / 2), stone if k % 3 else dark, root, .015)
+        z += h
+        k += 1
+    box('mortar', (.66, .66, 2.95), (0, 0, 1.77), dark, root)
+    box('cornice', (.85, .85, .18), (0, 0, 3.34), stone, root, .02)
+    box('cap', (.78, .78, .12), (0, 0, 3.49), dark, root, .015)
+    m = sphere('moss', .42, (.15, .2, 3.38), moss, root, 10, 6, False)
+    m.scale = (1, .8, .2)
+    for face in (-1, 1):
+        for h in (1.51, 1.93, 2.35):
+            # A cup held out on a bracket; the game's flame sits in it.
+            x = face * .4
+            torus(f'cup-{face}-{h}', .1, .018, (x, 0, h - .14), iron, root, 12, 4)
+            cylinder(f'dish-{face}-{h}', .09, .03, (x, 0, h - .16), iron, root, 10, False)
+            box(f'bracket-{face}-{h}', (.1, .03, .03), (face * .33, 0, h - .16), iron, root)
+            brace = box(f'brace-{face}-{h}', (.02, .03, .16), (0, 0, 0), iron, root)
+            brace.location = (face * .38, 0, h - .23)
+            brace.rotation_euler = (0, -face * .75, 0)
+    export('halloween/crypt-pillar.glb', join='crypt-pillar')
+
+
+def scarecrow():
+    """The scarecrow on the spinner's hub: a weathered post 2.2 m tall, a
+    burlap shirt stuffed with straw (1.0–1.9 m) with a rope belt and a patch,
+    and a crooked hat whose brim sits at 2.58 m over the game's pumpkin head.
+    The sweeping arms are the spinner's and stay in code (material `Cloth`
+    matches their sleeves)."""
+    reset()
+    rnd = random.Random(9)
+    root = empty('scarecrow')
+    wood = material('Wood', 0x6a4a30, rough=.95)
+    cloth = material('Cloth', 0x7a3b4e, rough=1)
+    patch = material('Patch', 0x8a6a3a, rough=1)
+    straw = material('Straw', 0xd8b452, rough=.9)
+    rope = material('Rope', 0xb39a6a, rough=1)
+    hat = material('Hat', 0x2b1d3a, rough=.9)
+    band = material('Band', 0xff8a2a, rough=.7)
+    lathe('post', [(.2, 0), (.18, 1.1), (.16, 2.2), (0, 2.2)], 8, wood, root, False)
+    for z in (.62, 2.05):
+        torus(f'binding-{z}', .19, .025, (0, 0, z), rope, root, 12, 4)
+    shirt = lathe('shirt', [(.12, 1.92), (.24, 1.84), (.33, 1.7), (.35, 1.45), (.31, 1.22), (.34, 1.06), (.3, .98), (.26, .96)], 12, cloth, root, False, False)
+    shirt.rotation_euler = (0, 0, .2)
+    torus('belt', .315, .03, (0, 0, 1.2), rope, root, 16, 4)
+    torus('collar', .13, .03, (0, 0, 1.9), rope, root, 12, 4)
+    p = box('patch', (.03, .16, .14), (0, 0, 0), patch, root)
+    p.location = (-.335, .08, 1.5)
+    p.rotation_euler = (0, .1, .2)
+    for k in range(12):
+        a = k / 12 * math.tau + rnd.uniform(-.2, .2)
+        base = Vector((math.cos(a) * .27, math.sin(a) * .27, .99))
+        tuft = cylinder(f'straw-{k}', .045, .26, base + Vector((0, 0, -.1)), straw, root, 4, False)
+        tuft.rotation_euler = (math.sin(a) * .5, -math.cos(a) * .5, a)
+        tuft.scale = (1, .5, 1)
+    for k in range(7):
+        a = k / 7 * math.tau
+        tuft = cylinder(f'neck-straw-{k}', .03, .2, (math.cos(a) * .11, math.sin(a) * .11, 1.98), straw, root, 4, False)
+        tuft.rotation_euler = (-math.sin(a) * .6, math.cos(a) * .6, a)
+    cylinder('brim', .56, .035, (0, 0, 2.58), hat, root, 20, False)
+    # The crown bends over as it rises, with a band round its foot.
+    bm = bmesh.new()
+    rings, steps = [], 7
+    for k in range(steps + 1):
+        t = k / steps
+        r = .3 * (1 - t) ** 1.1 + .01
+        c = Vector((.22 * t ** 2, 0, 2.6 + .72 * t - .1 * t ** 3))
+        rings.append([bm.verts.new(c + Vector((math.cos(j / 12 * math.tau) * r, math.sin(j / 12 * math.tau) * r, 0))) for j in range(12)])
+    for a, b in zip(rings, rings[1:]):
+        for j in range(12):
+            bm.faces.new((a[j], a[(j + 1) % 12], b[(j + 1) % 12], b[j]))
+    mesh_object('crown', bm, hat, root)
+    torus('hat-band', .29, .035, (0, 0, 2.66), band, root, 16, 4)
+    export('halloween/scarecrow.glb', join='scarecrow')
+
+
+def lamp_post():
+    """A crooked shore lamp post: a wooden pile in the water (its top at
+    -1.8 m, the waterline about -1.5 m lower) with rope lashings and barnacles,
+    and a leaning iron post with a scrolled arm. A `halloween/lantern` hangs from
+    the hook at (0.9, 0, 2.78). Origin at the post's foot on the waterline plan."""
+    reset()
+    rnd = random.Random(3)
+    root = empty('lamp-post')
+    wood = material('Pile', 0x2e2019, rough=1)
+    rope = material('Rope', 0x6a5a40, rough=1)
+    shell = material('Barnacle', 0x8a8478, rough=1)
+    iron = material('Iron', IRON, rough=.45, metal=.6)
+    lathe('pile', [(.8, -6.4), (.72, -3.4), (.62, -1.95), (.5, -1.8), (0, -1.78)], 10, wood, root, False)
+    for z in (-2.3, -2.55):
+        torus(f'lashing-{z}', .66, .04, (0, 0, z), rope, root, 16, 4)
+    for k in range(9):
+        a = rnd.uniform(0, math.tau)
+        z = rnd.uniform(-3.4, -2.8)
+        b = sphere(f'barnacle-{k}', rnd.uniform(.05, .09), (math.cos(a) * .7, math.sin(a) * .7, z), shell, root, 6, 4, False)
+        b.scale = (1, 1, .6)
+    bm = bmesh.new()
+    _tube(bm, Vector((0, 0, -1.82)), Vector((.25, 0, 2.62)), .085, .06, 7)
+    _polyline(bm, [(.25, 0, 2.6), (.6, 0, 2.74), (.92, 0, 2.8)], .045)
+    # A scroll under the arm.
+    pts = [(.22 + .3 * t, 0, 2.05 + .55 * t) for t in (0, .5)]
+    curl = [(.52 + .1 * math.cos(a), 0, 2.4 + .1 * math.sin(a)) for a in [math.pi + k / 8 * math.tau * .85 for k in range(9)]]
+    _polyline(bm, pts + curl, .022, 5)
+    _tube(bm, Vector((.25, 0, 2.6)), Vector((.25, 0, 2.92)), .05, .002, 6)
+    mesh_object('post', bm, iron, root)
+    cylinder('collar', .13, .16, (0, 0, -1.74), iron, root, 8, False)
+    torus('hook', .03, .008, (.9, 0, 2.78), iron, root, 8, 4, (math.pi / 2, 0, 0))
+    export('halloween/lamp-post.glb', join='lamp-post')
+
+
+def cannon():
+    """A ship's cannon barrel, 1.6 m long, the muzzle towards the game's +z;
+    a cascabel at the breech, reinforcing rings, trunnions and a dark bore.
+    Origin at its middle."""
+    reset()
+    root = empty('cannon')
+    iron = material('Iron', 0x34303c, rough=.4, metal=.7)
+    bore = material('Bore', 0x08060a, rough=1)
+    barrel = lathe('barrel', [(0, -.92), (.08, -.9), (.07, -.84), (.2, -.8), (.29, -.76), (.29, -.62), (.27, -.58), (.27, .05), (.25, .1), (.24, .66),
+                              (.27, .7), (.27, .8), (.13, .8), (.13, .7)], 16, iron, root, True, False)
+    barrel.rotation_euler = (math.pi / 2, 0, 0)
+    for h in (-.45, .12):
+        torus(f'ring-{h}', .275, .03, (0, -h, 0), iron, root, 16, 5, (math.pi / 2, 0, 0))
+    sphere('cascabel', .1, (0, .97, 0), iron, root, 10, 6)
+    cylinder('trunnions', .07, .7, (0, .1, 0), iron, root, 10, True, (0, math.pi / 2, 0))
+    cylinder('bore', .13, .02, (0, -.72, 0), bore, root, 16, False, (math.pi / 2, 0, 0))
+    export('halloween/cannon.glb', join='cannon')
+
+
+def ship_wheel():
+    """The helm on the finale's stern: a turned post 1.05 m tall and a wheel
+    0.72 m to its handles with its centre at 1.15 m, in the plane across the
+    game's z (the code turns it to face the bow). The wheel is its own object
+    `wheel`, with its origin at the centre, so it can turn."""
+    reset()
+    root = empty('ship-wheel')
+    wood = material('Wood', 0x6a5a3a, rough=.7)
+    dark = material('WoodDark', 0x3a2c26, rough=.85)
+    brass = material('Brass', 0xc9a44a, rough=.35, metal=.8)
+    lathe('stand', [(.2, 0), (.2, .08), (.12, .12), (.09, .3), (.12, .5), (.08, .7), (.1, .95), (.13, 1.0), (.13, 1.05), (0, 1.06)], 12, dark, root, True)
+    box('axle-block', (.16, .22, .16), (0, .1, 1.1), dark, root, .02)
+    wheel = empty('wheel', root, (0, 0, 1.15))
+    for r, m in ((.55, .05), (.42, .03)):
+        torus(f'rim-{r}', r, m, (0, 0, 0), wood, wheel, 32, 6, (math.pi / 2, 0, 0))
+    cylinder('hub', .1, .14, (0, 0, 0), brass, wheel, 14, True, (math.pi / 2, 0, 0))
+    for k in range(8):
+        a = k / 8 * math.tau
+        d = Vector((math.cos(a), 0, math.sin(a)))
+        spoke = cylinder(f'spoke-{k}', .03, .55, tuple(d * .3), wood, wheel, 6, True)
+        spoke.rotation_euler = d.to_track_quat('Z', 'Y').to_euler()
+        handle = lathe(f'handle-{k}', [(.03, .55), (.045, .6), (.03, .66), (.04, .7), (0, .73)], 8, wood, wheel, True)
+        handle.rotation_euler = d.to_track_quat('Z', 'Y').to_euler()
+    join_parts(wheel, 'wheel-body')
+    join_parts(root, 'stand-body', exclude=('wheel',))
+    export('halloween/ship-wheel.glb')
+
+
+def skull():
+    """The finale ship's figurehead: a skull of radius 0.5 facing the game's -x,
+    with deep sockets, a nose cavity, a jaw with teeth and glowing eyes
+    (material `Glow`) where the code had its two lights."""
+    reset()
+    root = empty('skull')
+    bone = material('Bone', BONE, rough=.7)
+    socket = material('Socket', 0x120a14, rough=1)
+    glow = material('Glow', GHOST, rough=.4, emit=GHOST, strength=3)
+    bm = bmesh.new()
+    bmesh.ops.create_uvsphere(bm, u_segments=40, v_segments=26, radius=.5)
+    holes = [(Vector((-1, .4, .14)).normalized(), .3, .13), (Vector((-1, -.4, .14)).normalized(), .3, .13), (Vector((-1, 0, -.2)).normalized(), .15, .08)]
+    inside = {}
+    for v in bm.verts:
+        # Sockets are measured on the round sphere, before it is shaped.
+        d = v.co.normalized()
+        depth, inside[v] = 0, 0
+        for direction, size, deep in holes:
+            t = (d - direction).length / size
+            if t < 1:
+                depth = max(depth, deep * (1 - t * t))
+                inside[v] = max(inside[v], 1 - t)
+        p = v.co
+        p -= d * depth
+        # A longer back, narrower temples and a flatter face.
+        p.x *= 1.12 if p.x > 0 else .92
+        p.y *= .88
+        if p.z < -.1:
+            p.y *= 1 - (-.1 - p.z) * .5
+    for f in bm.faces:
+        f.material_index = 1 if sum(inside[v] > .1 for v in f.verts) >= len(f.verts) - 1 else 0
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    head = mesh_object('cranium', bm, bone, root, True)
+    head.data.materials.append(socket)
+    # The jaw: a rounded block under the face, with a row of teeth above and below.
+    jaw = box('jaw', (.36, .5, .2), (-.24, 0, -.36), bone, root, .06)
+    jaw.scale = (1, .9, 1)
+    for row, z in ((0, -.27), (1, -.3)):
+        for k in range(6):
+            y = (k - 2.5) * .065
+            box(f'tooth-{row}-{k}', (.05, .055, .07), (-.43 + abs(y) * .35, y, z - row * .02), bone, root)
+    box('gap', (.06, .4, .025), (-.4, 0, -.29), socket, root)
+    for side in (-1, 1):
+        sphere(f'eye-{side}', .055, (-.38, side * .19, .07), glow, root, 10, 6)
+    export('halloween/skull.glb', join='skull')
+
+
 def build():
     for v in range(3):
         dead_tree(v)
     lighthouse()
     ghost_ship()
+    lantern()
+    grave_gate()
+    crypt_pillar()
+    scarecrow()
+    lamp_post()
+    cannon()
+    ship_wheel()
+    skull()
