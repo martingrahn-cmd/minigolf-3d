@@ -35,7 +35,7 @@
       </header>
 
       <aside class="score-card" aria-label="Resultat">
-        <div class="score-title">DIN RUNDA <span class="live-dot"></span></div>
+        <div class="score-title"><span id="scoreTitle">DIN RUNDA</span> <span class="live-dot"></span></div>
         <div class="score-main"><div><span class="score-label">SLAG</span><strong id="strokeCount">0</strong></div><div class="score-separator"></div><div><span class="score-label">PAR</span><strong id="parCount">5</strong></div></div>
         <div class="score-bottom">BÄSTA <strong id="bestScore">–</strong><span>⛳</span></div><div id="worldName" class="world-name"></div>
       </aside>
@@ -46,9 +46,11 @@
 
       <div id="toast" class="toast" role="status" aria-live="polite"></div>
       <div id="turnSplash" class="turn-splash" role="status" aria-live="polite" hidden><small id="turnSplashKicker"></small><strong id="turnSplashTitle"></strong><span id="turnSplashDetail"></span></div>
+      <div id="mpReactions" class="mp-reactions" aria-hidden="true"></div>
       <div id="floatingLabel" class="floating-label"></div>
 
       <div class="bottom-area">
+        <div id="mpReact" class="mp-react-bar" hidden aria-label="Reaktioner"><button data-react="👏" aria-label="Applåd">👏</button><button data-react="😂" aria-label="Skratt">😂</button><button data-react="😱" aria-label="Oj">😱</button><button data-react="🔥" aria-label="Eld">🔥</button></div>
         <div id="controlPanel" class="control-panel">
           <div class="shot-controls">
             <div class="control-heading"><strong id="controlTitle">Sikta</strong><span id="meterValue"></span><span id="fineAim" class="fine-aim"><button id="aimLeft" class="fine-aim-button" aria-label="Finsikta åt vänster">◁</button><button id="aimRight" class="fine-aim-button" aria-label="Finsikta åt höger">▷</button></span><button id="shotMode" class="shot-mode" hidden>Fullt slag</button><button id="cancelShot" class="shot-mode cancel-shot" hidden>Avbryt</button></div>

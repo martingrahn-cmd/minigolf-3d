@@ -611,6 +611,8 @@ Två till fyra spelare spelar online med varsin enhet. En spelare skapar ett rum
 - **Nästa hål:** när alla som är kvar i rummet har sänkt visar vinstkortet ställningen. Värden går vidare efter fyra sekunder. En spelare som har varit borta i 30 sekunder håller inte upp hålet. Ett hål som en spelare aldrig avslutade räknas som tio slag, så det lönar sig aldrig att lämna.
 - **Resultat:** efter sista hålet visas en prispall med medaljer och knappen **Ny match i samma rum**.
 - I en match går det inte att börja om hålet. Personliga rekord och stjärnor räknas som vanligt.
+- **Resultat för alla.** När någon annan sänker visas en mindre skylt högt upp med namn och resultat, till exempel BO · BIRDIE! · 2 slag. I turordning är skylten stor.
+- **Reaktioner.** Fyra knappar ovanför kontrollpanelen (👏 😂 😱 🔥) skickar en emoji som flyger upp på allas skärmar i avsändarens färg och med namnet under. Man kan skicka högst en reaktion i sekunden.
 - Tipsen för första rundan ("Dra över banan för att sikta…") visas inte i en match eller medan rummets panel är öppen. De är till för den som spelar ensam. Kanthjälpen (katten, mullvaden …) finns kvar, eftersom inknackningen kostar ett slag precis som annars.
 
 ### Turordning
@@ -619,6 +621,8 @@ Värden kan också välja **Turordning**. Då spelar en spelare hela hålet meda
 
 - **Att titta på.** De som tittar ser den riktiga bollen, inte en spökboll. De ser siktet, kraftmätaren, slaget, mekanismerna, ljuden och firandet när bollen går i. Kontrollpanelen visar vem som spelar, vilket slag det är och hur många turer det är kvar till din. Tavlan markerar den som spelar med ▶.
 - **Mellan turerna.** När spelaren har sänkt får de som tittar en stor skylt i spelarens färg med namn och resultat, till exempel ANN · BIRDIE! · 2 slag. Spelaren själv ser vinstkortet. Tre sekunder senare börjar hålet om från utslaget för nästa spelare, och alla får en skylt om vems tur det är: ANN BÖRJAR! på hålets första tur, sedan BOS TUR! (DU BÖRJAR! och DIN TUR! för den det gäller).
+- **Komma in mitt i en tur.** Spelaren sparar sin turs slag. Den som ansluter sent, eller laddar om sidan, får listan och spelar igenom den på en gång utan ljud. Då hamnar bollen, slagen och alla rörliga delar (klockbron, hissen, käglorna) i samma läge som hos de andra. Laddar spelaren själv om sidan fortsätter turen där den var. Det går alltså inte att börja om ett dåligt hål genom att ladda om.
+- **Rundkortet** uppe till vänster heter ANNS RUNDA i stället för DIN RUNDA när man tittar på någon annan.
 - **Den som är borta.** Om det blir din tur medan du har varit borta i 30 sekunder räknas hålet som tio slag. Värden bestämmer det och skickar det med matchen, så det gäller även om du kommer tillbaka.
 
 Så här fungerar det tekniskt:

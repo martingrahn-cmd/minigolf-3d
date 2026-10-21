@@ -88,6 +88,12 @@ export function createAudio(theme){
       musicBus.gain.setTargetAtTime(BUS_GAIN.music*levels.music*ducked,t,.1);
       if(levels.on)unlock();
     },
+    // Silent for a moment, then back to the set level: a turn being caught up on
+    // plays all its sounds at once, and none of them should be heard.
+    hush(seconds=1.5){
+      if(!ctx)return;const t=ctx.currentTime;
+      master.gain.cancelScheduledValues(t);master.gain.setValueAtTime(0,t);master.gain.setTargetAtTime(levels.on?1:0,t+seconds,.15);
+    },
     // The music steps back for a moment, e.g. under the sink and the fanfare.
     duck(seconds=3){
       if(!ctx)return;const t=ctx.currentTime;ducked=.3;
