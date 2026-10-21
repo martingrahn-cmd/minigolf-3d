@@ -14,6 +14,7 @@ const SESSION_KEY='minimayhem-room',NAME_KEY='minimayhem-player-name';
 const NEXT_DELAY=4;
 // Turns: the finished player's result stays up this long before the next one plays.
 const TURN_DELAY=3;
+const REACTIONS=['👏','😂','😱','🔥'];
 const hex=c=>`#${c.toString(16).padStart(6,'0')}`;
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 const now=()=>Date.now()/1000;
@@ -28,8 +29,9 @@ function savedName(){try{return localStorage.getItem(NAME_KEY)||''}catch{return 
 
 // `game` gives the controller what it needs from the page:
 //   {$, toast, hydrateIcons, worlds, round, hole, pars(match)->[par…], strokes(), onRemoteBall(player,ball),
-//    onMatchStart(), and for turns: onTurn(player,mine,{turn,turns,hole}), onTurnResult(player,strokes),
-//    onRemoteShot(shot), onRemoteFire(fire), onTurnChange()}
+//    onMatchStart(), onTurnResult(player,strokes) (someone holed out), onReaction(player,emoji),
+//    and for turns: onTurn(player,mine,{turn,turns,hole}), onRemoteShot(shot), onRemoteFire(fire),
+//    onRemoteReplay(log) (a turn under way, to catch up on), onTurnChange()}
 export function createMultiplayer(game){
   const {$,toast}=game;
   const code=roomInAddress();
@@ -37,7 +39,7 @@ export function createMultiplayer(game){
   // Turns: whose turn is being played here, and when the next one starts.
   let turnId=null,turnAt=null;
   // The host decides the world and the way to play; the others see the choice as it is made.
-  let setup=null;
+  let setup=null,lastReaction=0;
   // In a match on this page's hole: then the hole is played for the room.
   const inMatch=()=>!!(session?.match&&game.hole&&session.match.holes.includes(game.hole));
   const me=()=>session?.me;
@@ -115,7 +117,16 @@ export function createMultiplayer(game){
       if(!inMatch())sendSetup();
       renderBoard();check();
     });
-    link.on('hello',()=>{if(isHost()&&session.match)link.send('match',session.match);sendSetup();sendScores()});
+    link.on('hello',(_,from)=>{
+      if(isHost()&&session.match)link.send('match',session.match);sendSetup();sendScores();
+      // Turns: someone (re)joined mid-turn. They get this turn's shots to catch up on.
+      if(turns()&&turnId===me().id)link.send('replay',{i:session.match.index,to:from,log:ownTurnLog()});
+    });
+    link.on('replay',(replay,from)=>{
+      if(replay.to!==me().id)return;catchUp(from);
+      if(turns()&&from===turnId&&replay.i===session.match.index)game.onRemoteReplay?.(replay.log);
+    });
+    link.on('react',(data,from)=>{if(inMatch()&&REACTIONS.includes(data?.e))game.onReaction?.(playerFor(from),data.e)});
     link.on('setup',data=>{setup=data;renderLobby()});
     link.on('match',match=>{
       const fresh=match.id!==session.match?.id;
@@ -130,7 +141,7 @@ export function createMultiplayer(game){
       session.scores=mergeScores(session.scores,from,list);lastSeen[from]=now();save();
       // Turns: tell the watchers how the turn that just ended went.
       const after=scoresNow()[from]?.[session.match?.index];
-      if(turns()&&!Number.isFinite(before)&&Number.isFinite(after))game.onTurnResult?.(playerFor(from),after);
+      if(inMatch()&&!Number.isFinite(before)&&Number.isFinite(after))game.onTurnResult?.(playerFor(from),after);
       renderBoard();check();
     });
     link.on('ball',(ball,from)=>{
@@ -147,6 +158,12 @@ export function createMultiplayer(game){
   const endWorldRunHook=()=>game.onMatchStart?.();
   const playerFor=id=>session.match?.players.find(p=>p.id===id)??seatPlayers(players).find(p=>p.id===id);
   const myScores=()=>session.scores[me().id]||[];
+  // Turns: the shots of this player's turn on this hole, kept across a reload.
+  const ownTurnLog=()=>{const t=session?.turnLog;return t&&t.match===session.match?.id&&t.i===session.match.index&&t.id===me().id?t.log:[]};
+  function logTurn(entry){
+    if(!ownTurnLog().length)session.turnLog={match:session.match.id,i:session.match.index,id:me().id,log:[]};
+    session.turnLog.log.push(entry);save();
+  }
   function sendScores(){if(link&&session?.match)link.send('scores',myScores())}
 
   // Everyone keeps an eye on whether the hole is done; the host moves the room on.
@@ -255,6 +272,13 @@ export function createMultiplayer(game){
     match:()=>session?.match,
     mode:()=>inMatch()?session.match.mode||'together':null,
     me:()=>session?.me,
+    activePlayer:()=>turns()?playerFor(turnId)??null:null,
+    ownTurnLog,
+    // A quick reaction for everyone in the match (and here), at most one a second.
+    react(emoji){
+      if(!link||!inMatch()||!REACTIONS.includes(emoji))return;const t=performance.now();if(t-lastReaction<1000)return;
+      lastReaction=t;link.send('react',{e:emoji});game.onReaction?.(playerFor(me().id),emoji);
+    },
     // Turns: someone else is playing this hole and this game shows their shots.
     watching:()=>turns()&&!!link&&turnId!==me().id,
     turnStatus,
@@ -283,8 +307,8 @@ export function createMultiplayer(game){
       lastBall=t;lastSent=key;link.send('ball',ball);
     },
     // Turns: this player's shot and cannon fire, for the watchers to play along.
-    reportShot(shot){if(link&&turns()&&turnId===me().id)link.send('shot',{...shot,i:session.match.index})},
-    reportFire(fire){if(link&&turns()&&turnId===me().id)link.send('fire',{...fire,i:session.match.index})},
+    reportShot(shot){if(link&&turns()&&turnId===me().id){logTurn({kind:'shot',...shot});link.send('shot',{...shot,i:session.match.index})}},
+    reportFire(fire){if(link&&turns()&&turnId===me().id){logTurn({kind:'fire',...fire});link.send('fire',{...fire,i:session.match.index})}},
     // The local player holed out (or hit the cap): record it for everyone.
     finishHole(strokes){
       if(!inMatch()||(turns()&&turnId!==me().id))return;const list=[...myScores()];list[session.match.index]=Math.min(strokes,STROKE_CAP);

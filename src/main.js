@@ -103,7 +103,8 @@ const mp=createMultiplayer({
   pars:match=>match.holes.map(h=>ROUND.find(s=>s.hole===h).level.par),
   strokes:()=>state.strokes,onMatchStart:()=>endWorldRun(localStorage),
   onRemoteBall:(player,b)=>mp.mode()==='turns'?followTurn(b):ghosts?.set(player,b),
-  onTurn:(player,mine,turn)=>startTurn(player,mine,turn),onTurnResult:(player,strokes)=>turnResult(player,strokes),onRemoteShot:shot=>replayShot(shot),onRemoteFire:fire=>{pendingFire=fire},onTurnChange:()=>updateUI(),
+  onTurn:(player,mine,turn)=>startTurn(player,mine,turn),onTurnResult:(player,strokes)=>turnResult(player,strokes),
+  onRemoteReplay:log=>catchUpTurn(log),onReaction:(player,emoji)=>showReaction(player,emoji),onRemoteShot:shot=>replayShot(shot),onRemoteFire:fire=>{pendingFire=fire},onTurnChange:()=>updateUI(),
 });
 // Turns: a cannon shot heard before the replay has loaded the cannon waits for it.
 let pendingFire=null;
@@ -147,7 +148,10 @@ const aimArrow=new THREE.Mesh(arrowGeo,new THREE.MeshBasicMaterial({color:0xffe3
 const trail=Array.from({length:16},()=>{const m=new THREE.Mesh(new THREE.SphereGeometry(.11,8,6),new THREE.MeshBasicMaterial({color:0x9effed,transparent:true,opacity:0,depthWrite:false}));scene.add(m);return m});
 let trailCursor=0,trailTimer=0;
 const particles=[];
+// True while a turn is caught up on at once: no toasts, sparks or sounds then.
+let quiet=false;
 function burst(x,y,z,color=0xffdb77,count=16,force=1){
+  if(quiet)return;
   for(let i=0;i<count;i++){
     const mesh=new THREE.Mesh(new THREE.SphereGeometry(.055+Math.random()*.065,7,6),new THREE.MeshBasicMaterial({color,transparent:true,opacity:1,depthWrite:false}));
     mesh.position.set(x,y,z);scene.add(mesh);
@@ -161,6 +165,7 @@ const audio=createAudio(LEVEL.theme);audio.setLevels(audioSettings);
 for(const type of ['pointerdown','touchend','click','keydown'])window.addEventListener(type,()=>audio.unlock(),{capture:true});
 function sound(freq=440,duration=.13,type='sine',vol=.055,slide=1){if(audioEnabled)audio.tone(freq,duration,type,vol,slide)}
 function toast(text,ms=2000){
+  if(quiet)return;
   const el=$('toast');el.textContent=text;el.classList.add('visible');
   clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('visible'),ms);
 }
@@ -202,6 +207,9 @@ function updateUI(){
     $('controlTitle').textContent='Närputt';$('actionText').textContent=state.phase==='idle'?'Putta':$('actionText').textContent;
     $('meterStatus').textContent=state.phase==='idle'?`${nearPutt.distance.toFixed(1).replace('.',',')} m till hålet · tryck för rulllängd`:state.phase==='power'?'Tryck när rulllängden stämmer':'Pricka mitten för en rak putt';
   }
+  // Turns: the round card shows whose round it is.
+  const active=mp.watching()?mp.activePlayer():null,owner=active?.name.toUpperCase();
+  $('scoreTitle').textContent=owner?`${owner}${/[SXZ]$/.test(owner)?'':'S'} RUNDA`:'DIN RUNDA';
   if(mp.watching()){
     // Turns: someone else is playing; this panel tells whose turn it is.
     const turn=mp.turnStatus();
@@ -281,8 +289,8 @@ function clearSink(){
 }
 // --- Turns: watching another player's hole. ---
 // Their shot, replayed here from the same spot, clocks and velocity.
-function replayShot(s){
-  if(!mp.watching())return;
+function replayShot(s){if(mp.watching())applyShot(s)}
+function applyShot(s){
   // A replay that drifted (sunk here but not there, say) is put right by the next shot.
   if(!['idle','power','accuracy'].includes(state.phase)){clearSink();ball.visible=true}
   Object.assign(state,{x:s.x,z:s.z,aim:s.aim,power:s.power,accuracy:s.accuracy,strokes:s.strokes,saved:s.saved,fall:0,flight:0,pipe:0,boost:0});
@@ -290,6 +298,26 @@ function replayShot(s){
   s.gates.forEach((t,i)=>{gateClocks[i]=t});bridgeAngle=s.bridge;
   puttEnabled=s.putt;pendingFire=null;
   launchShot(s.vx,s.vz,s.putt,s.error);
+}
+// A turn already under way (joining late, or reloading the page): its shots are
+// played through at once and quietly, so the ball, the strokes and every moving
+// part (bridges, lifts, pins) end up where they are for everyone else.
+function fastForward(log){
+  if(!log?.length)return;
+  quiet=true;audio.hush(2.5);
+  try{
+    for(const e of log){
+      if(e.kind==='fire'){if(state.phase==='loaded'){cometTime=e.cometTime;fireComet()}}
+      else applyShot(e);
+      for(let n=0;n<120*90&&!['idle','power','accuracy','win','loaded'].includes(state.phase);n++)physics(1/120);
+    }
+  }finally{quiet=false}
+  updateUI();
+}
+function catchUpTurn(log){
+  if(!mp.watching())return;
+  if(state.phase!=='intro'){reset(false);state.strokes=0}
+  fastForward(log);
 }
 // Their ball while it rests: aim, the meter and its true spot.
 function followTurn(b){
@@ -308,25 +336,37 @@ function followTurn(b){
 function startTurn(player,mine,turn){
   $('win').classList.add('hidden');
   if(state.phase!=='intro'){reset(false);state.strokes=0;updateUI()}
+  // Back on this page in the middle of one's own turn: pick up where it was.
+  if(mine)fastForward(mp.ownTurnLog());
   const first=turn.turn===1,name=player.name.toUpperCase(),genitive=/[SXZ]$/.test(name)?name:`${name}S`;
   showSplash({color:player.color,kicker:`HÅL ${turn.hole} · TUR ${turn.turn} AV ${turn.turns}`,
     title:mine?(first?'DU BÖRJAR!':'DIN TUR!'):first?`${name} BÖRJAR!`:`${genitive} TUR!`,detail:mine?player.name:''});
 }
-// Someone else's turn ended: everyone watching sees how it went (the player has the win card).
+// Someone else holed out: the others see how it went (the player has the win card).
+// Playing together it is a smaller sign, higher up, so it does not get in the way.
 function turnResult(player,strokes){
-  if(player.id===mp.me()?.id)return;
-  showSplash({color:player.color,kicker:player.name.toUpperCase(),title:scoreName(strokes,LEVEL.par),detail:`${strokes} slag`});
+  if(!player||player.id===mp.me()?.id)return;
+  showSplash({color:player.color,kicker:player.name.toUpperCase(),title:scoreName(strokes,LEVEL.par),detail:`${strokes} slag`,compact:mp.mode()!=='turns'});
+}
+// A reaction from someone in the match, floating up in their colour.
+function showReaction(player,emoji){
+  if(!player)return;
+  const el=document.createElement('div');el.className='mp-reaction';el.style.setProperty('--c',`#${player.color.toString(16).padStart(6,'0')}`);
+  el.style.left=`${58+Math.random()*30}%`;el.textContent=emoji;
+  const name=document.createElement('small');name.textContent=player.name;el.append(name);
+  $('mpReactions').append(el);setTimeout(()=>el.remove(),2500);
 }
 const scoreName=(strokes,par)=>strokes>=STROKE_CAP?'TIO SLAG':strokes===1?'HOLE IN ONE!':strokes<=par-2?'EAGLE!':strokes===par-1?'BIRDIE!':strokes===par?'PAR!':
   ['BOGEY','DUBBELBOGEY','TRIPPELBOGEY'][strokes-par-1]??`${strokes} SLAG`;
 // The big sign in the player's colour. Kept until the intro card is closed if it is up.
 let splashTimer=null,pendingSplash=null;
 function showSplash(sign){
-  if(!$('intro').classList.contains('hidden')){pendingSplash=sign;return}
+  if(!$('intro').classList.contains('hidden')){if(!sign.compact)pendingSplash=sign;return}
   pendingSplash=null;
   const el=$('turnSplash');el.style.setProperty('--c',`#${sign.color.toString(16).padStart(6,'0')}`);
   $('turnSplashKicker').textContent=sign.kicker;$('turnSplashTitle').textContent=sign.title;
   $('turnSplashDetail').textContent=sign.detail;$('turnSplashDetail').hidden=!sign.detail;
+  el.classList.toggle('compact',!!sign.compact);
   el.hidden=false;el.classList.remove('show');void el.offsetWidth;el.classList.add('show');
   clearTimeout(splashTimer);splashTimer=setTimeout(()=>{el.hidden=true;el.classList.remove('show')},2500);
 }
@@ -343,7 +383,7 @@ function loadComet(){
   setPhase('loaded');toast('LADDAD! Tryck FYR ☄',1500);sound(240,.3,'triangle',.08,1.6);
 }
 function fireComet(){
-  mp.reportFire({cometTime});
+  if(!quiet)mp.reportFire({cometTime});
   if(LEVEL.cometCannon.launchY)setOverview(false);
   state.cometAngle=barrelAngle(LEVEL.cometCannon,cometTime);state.cometRange=cometRange(LEVEL.cometCannon,cometTime);state.flight=0;setPhase('comet');
   course?.cometCannon?.fire();toast('FYR! ☄',900);
@@ -973,8 +1013,9 @@ $('helpButton').addEventListener('click',()=>{
 $('closeHelp').addEventListener('click',()=>$('helpPanel').close());
 $('actionButton').addEventListener('click',action);
 $('cancelShot').addEventListener('click',()=>{if(['power','accuracy'].includes(state.phase)){state.power=0;setPhase('idle')}});
+$('mpReact').addEventListener('click',e=>{const b=e.target.closest('[data-react]');if(b){mp.react(b.dataset.react);b.blur()}});
 $('shotMode').addEventListener('click',()=>{if(!mp.watching())puttEnabled=!puttEnabled;updateUI();$('shotMode').blur()});
-$('playButton').addEventListener('click',()=>{lockPortrait();audio.unlock();$('intro').classList.add('hidden');if(!mp.watching()||state.phase==='intro')reset();startPreview();if(pendingSplash)showSplash(pendingSplash)});
+$('playButton').addEventListener('click',()=>{lockPortrait();audio.unlock();$('intro').classList.add('hidden');if(state.phase==='intro'||!mp.inMatch())reset();startPreview();if(pendingSplash)showSplash(pendingSplash)});
 $('againButton').addEventListener('click',()=>{$('win').classList.add('hidden');reset()});
 $('resetButton').addEventListener('click',()=>{if(state.phase!=='intro'&&!mp.inMatch()){reset();$('win').classList.add('hidden')}});
 $('cameraButton').addEventListener('click',()=>{preview=0;setOverview(!cameraOverview)});
@@ -1088,7 +1129,7 @@ function configureLevelUI(){
   $('introKicker').textContent=mp.inMatch()?mp.holeLabel():SELECTION.slot.finale?`${SELECTION.slot.world.finale.toUpperCase()} · ${holeText}`:`VÄLKOMMEN TILL ${holeText}`;
   // A match cannot be restarted hole by hole: the reset button is gone and the
   // way onward is the room's, not the round's.
-  $('resetButton').hidden=mp.inMatch();
+  $('resetButton').hidden=mp.inMatch();$('mpReact').hidden=!mp.inMatch();
   $('introTitle').innerHTML=`${LEVEL.title[0]}<br><em>${LEVEL.title[1]}</em><span class="title-star">✦</span>`;
   $('introDescription').textContent=LEVEL.description;
   $('featureBadge').textContent=LEVEL.feature.toUpperCase();$('parBadge').textContent=`⛳ PAR ${LEVEL.par}`;
