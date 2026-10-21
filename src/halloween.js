@@ -77,7 +77,8 @@ function sailTexture(){
 }
 
 // --- Set pieces round the course. ---
-function deadTree(parent,x,y,z,scale,seed,mat){
+function deadTree(parent,x,y,z,scale,seed,mat,variant=seed%3){
+  const model=placed(parent,`halloween/dead-tree-${variant}`,x,y,z,scale*.9,seed*2.4);if(model)return model;
   const random=randomSource(seed),tree=new THREE.Group();tree.position.set(x,y,z);tree.scale.setScalar(scale);parent.add(tree);
   const grow=(from,dir,length,r,depth)=>{
     const to=from.clone().addScaledVector(dir,length);beam(tree,from.toArray(),to.toArray(),r,mat,6,r*.65);
@@ -93,12 +94,16 @@ function deadTree(parent,x,y,z,scale,seed,mat){
 }
 function lighthouse(parent,x,z,animated){
   const tower=new THREE.Group();tower.position.set(x,-6.2,z);parent.add(tower);
-  const white=material(0xe9e1d6),red=material(0x9c3a42),dark=material(C.iron);
-  add(tower,new THREE.CylinderGeometry(4.6,5.4,3,9),material(C.stoneDark,{flatShading:true}),0,1.2,0);
-  for(let i=0;i<5;i++)add(tower,new THREE.CylinderGeometry(1.75-i*.17,1.9-i*.17,2.4,16),i%2?red:white,0,3.9+i*2.4,0);
-  add(tower,new THREE.CylinderGeometry(1.25,1.25,.3,16),dark,0,15.9,0);
-  const lamp=add(tower,new THREE.CylinderGeometry(.85,.85,1.4,12),glow(C.amber,2.2),0,16.8,0);lamp.castShadow=false;
-  add(tower,new THREE.ConeGeometry(1.25,1.3,12),red,0,18.1,0);
+  const model=placed(tower,'halloween/lighthouse',0,0,0);
+  if(model)model.getObjectByName('lamp')?.traverse(o=>{o.castShadow=false});
+  else{
+    const white=material(0xe9e1d6),red=material(0x9c3a42),dark=material(C.iron);
+    add(tower,new THREE.CylinderGeometry(4.6,5.4,3,9),material(C.stoneDark,{flatShading:true}),0,1.2,0);
+    for(let i=0;i<5;i++)add(tower,new THREE.CylinderGeometry(1.75-i*.17,1.9-i*.17,2.4,16),i%2?red:white,0,3.9+i*2.4,0);
+    add(tower,new THREE.CylinderGeometry(1.25,1.25,.3,16),dark,0,15.9,0);
+    const lamp=add(tower,new THREE.CylinderGeometry(.85,.85,1.4,12),glow(C.amber,2.2),0,16.8,0);lamp.castShadow=false;
+    add(tower,new THREE.ConeGeometry(1.25,1.3,12),red,0,18.1,0);
+  }
   // A slowly turning beam through the fog.
   const beamGroup=new THREE.Group();beamGroup.position.set(0,16.8,0);tower.add(beamGroup);
   const cone=new THREE.Mesh(new THREE.ConeGeometry(3.2,34,20,1,true),new THREE.MeshBasicMaterial({color:0xffd9a0,transparent:true,opacity:.07,depthWrite:false,side:THREE.DoubleSide,blending:THREE.AdditiveBlending}));
@@ -107,27 +112,34 @@ function lighthouse(parent,x,z,animated){
 }
 function ghostShip(parent,x,z,heading,animated){
   const ship=new THREE.Group();ship.position.set(x,-6.1,z);ship.rotation.y=heading;parent.add(ship);
-  const hullMat=material(0x2a2230,{flatShading:true}),trim=material(0x4a3a3a,{flatShading:true});
-  // The hull: a lofted shape from a half outline, pointed at the bow.
-  const shape=new THREE.Shape();shape.moveTo(-6,0);shape.lineTo(5,0);shape.quadraticCurveTo(8.5,.4,9,2.6);shape.lineTo(-6.8,2.9);shape.quadraticCurveTo(-7.1,1,-6,0);
-  const hull=add(ship,new THREE.ExtrudeGeometry(shape,{depth:3.4,bevelEnabled:true,bevelThickness:.4,bevelSize:.3,bevelSegments:1}),hullMat,0,-.6,-1.7);
-  hull.scale.set(1,1,1);
-  add(ship,new THREE.BoxGeometry(4,1.8,3.4),trim,-4.6,3.1,0);
-  const sailMat=new THREE.MeshBasicMaterial({map:sailTexture(),transparent:true,depthWrite:false,side:THREE.DoubleSide});
-  for(const [mx,h] of [[-2,11],[3,9.5]]){
-    beam(ship,[mx,2,0],[mx,2+h,0],.18,trim);
-    for(const [y,w] of [[h*.55,4.6],[h*.85,3.6]]){
-      beam(ship,[mx,2+y+1.4,-w/2-.3],[mx,2+y+1.4,w/2+.3],.08,trim);
-      const sail=add(ship,new THREE.PlaneGeometry(w,2.6,6,2),sailMat,mx+.25,2+y,0);sail.rotation.y=Math.PI/2;sail.castShadow=false;
-      const p=sail.geometry.attributes.position;for(let i=0;i<p.count;i++)p.setZ(i,Math.sin(p.getX(i)/w*Math.PI+.5)*.45);
+  const lanterns=[],model=placed(ship,'halloween/ghost-ship',0,0,0);
+  if(model){
+    // The sails let the light through; each lantern flickers on its own.
+    model.traverse(o=>{if(o.isMesh&&o.material.name==='Sail'){o.castShadow=false;o.material.depthWrite=false}});
+    for(let i=0;i<3;i++){const l=model.getObjectByName(`lantern-${i}`);if(!l)continue;l.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.castShadow=false;lanterns.push(o)}})}
+  }else{
+    const hullMat=material(0x2a2230,{flatShading:true}),trim=material(0x4a3a3a,{flatShading:true});
+    // The hull: a lofted shape from a half outline, pointed at the bow.
+    const shape=new THREE.Shape();shape.moveTo(-6,0);shape.lineTo(5,0);shape.quadraticCurveTo(8.5,.4,9,2.6);shape.lineTo(-6.8,2.9);shape.quadraticCurveTo(-7.1,1,-6,0);
+    const hull=add(ship,new THREE.ExtrudeGeometry(shape,{depth:3.4,bevelEnabled:true,bevelThickness:.4,bevelSize:.3,bevelSegments:1}),hullMat,0,-.6,-1.7);
+    hull.scale.set(1,1,1);
+    add(ship,new THREE.BoxGeometry(4,1.8,3.4),trim,-4.6,3.1,0);
+    const sailMat=new THREE.MeshBasicMaterial({map:sailTexture(),transparent:true,depthWrite:false,side:THREE.DoubleSide});
+    for(const [mx,h] of [[-2,11],[3,9.5]]){
+      beam(ship,[mx,2,0],[mx,2+h,0],.18,trim);
+      for(const [y,w] of [[h*.55,4.6],[h*.85,3.6]]){
+        beam(ship,[mx,2+y+1.4,-w/2-.3],[mx,2+y+1.4,w/2+.3],.08,trim);
+        const sail=add(ship,new THREE.PlaneGeometry(w,2.6,6,2),sailMat,mx+.25,2+y,0);sail.rotation.y=Math.PI/2;sail.castShadow=false;
+        const p=sail.geometry.attributes.position;for(let i=0;i<p.count;i++)p.setZ(i,Math.sin(p.getX(i)/w*Math.PI+.5)*.45);
+      }
     }
+    beam(ship,[8.6,2.8,0],[12.5,4.6,0],.1,trim);
+    lanterns.push(...[[-6.4,4.4,1.2],[-6.4,4.4,-1.2],[8.2,3.4,0]].map(p=>add(ship,new THREE.SphereGeometry(.28,10,8),glow(C.ghostGreen,2),...p)));
   }
-  beam(ship,[8.6,2.8,0],[12.5,4.6,0],.1,trim);
-  const lanterns=[[-6.4,4.4,1.2],[-6.4,4.4,-1.2],[8.2,3.4,0]].map(p=>add(ship,new THREE.SphereGeometry(.28,10,8),glow(C.ghostGreen,2),...p));
   animated.push(t=>{ship.position.y=-6.1+Math.sin(t*.6)*.25;ship.rotation.z=Math.sin(t*.45)*.04;ship.rotation.x=Math.sin(t*.37)*.03;lanterns.forEach((l,i)=>l.material.emissiveIntensity=1.5+Math.sin(t*3+i*2)*.6)});
   return ship;
 }
-function graveyardIsland(parent,x,z,radius,seed,animated,pumpkins){
+function graveyardIsland(parent,x,z,radius,seed,animated,pumpkins,tree=0){
   const random=randomSource(seed),island=new THREE.Group();island.position.set(x,-4.4,z);parent.add(island);
   const rock=add(island,new THREE.DodecahedronGeometry(radius,1),material(C.stoneDark,{flatShading:true}),0,-radius*.55,0);rock.scale.y=.55;
   add(island,new THREE.CylinderGeometry(radius*.92,radius,.5,14),material(0x2c3a2b,{flatShading:true}),0,.05,0);
@@ -135,7 +147,7 @@ function graveyardIsland(parent,x,z,radius,seed,animated,pumpkins){
     const a=random()*Math.PI*2,d=radius*(.25+random()*.55);
     placed(island,`halloween/gravestone-${i%3}`,Math.cos(a)*d,.3,Math.sin(a)*d,1+random()*.3,random()*.8-.4+Math.PI*.15);
   }
-  deadTree(island,random()*2-1,.3,random()*2-1,1.2+random()*.4,seed*3,material(C.bark,{flatShading:true}));
+  deadTree(island,random()*2-1,.3,random()*2-1,1.2+random()*.4,seed*3,material(C.bark,{flatShading:true}),tree);
   for(let i=0;i<2;i++){const a=random()*Math.PI*2;const p=placed(island,`halloween/jack-o-lantern-${i}`,Math.cos(a)*radius*.7,.3,Math.sin(a)*radius*.7,1.1,a+Math.PI/2);if(p)pumpkins.push(p)}
   // A crooked iron fence along the shore.
   const iron=material(C.iron);
@@ -211,8 +223,8 @@ export function createHalloweenEnvironment(scene,level){
   const box={x1:Math.min(...xs),x2:Math.max(...xs),z1:Math.min(...zs),z2:Math.max(...zs)};
   const statics=new THREE.Group();scene.add(statics);
   graveyardIsland(statics,box.x1-11,box.z1-8,5.5,3,animated,pumpkins);
-  graveyardIsland(statics,box.x2+12,box.z2+9,4.6,11,animated,pumpkins);
-  graveyardIsland(statics,(box.x1+box.x2)/2-4,box.z2+15,4,23,animated,pumpkins);
+  graveyardIsland(statics,box.x2+12,box.z2+9,4.6,11,animated,pumpkins,1);
+  graveyardIsland(statics,(box.x1+box.x2)/2-4,box.z2+15,4,23,animated,pumpkins,2);
   lighthouse(scene,box.x2+20,box.z1-22,animated);
   // On the finale the course is the ghost ship itself; otherwise it lies off the harbour.
   if(level.scenery==='ghostship')createGhostShipScenery(scene,level,animated);

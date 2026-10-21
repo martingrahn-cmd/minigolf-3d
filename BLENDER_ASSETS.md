@@ -113,7 +113,7 @@ Följande räknas fram ur spelmatematiken och ska fortsätta genereras i kod:
 | 🟡 Polkagrisrandig sarg med glödlampsstolpar | Sarger i `createMoonCourse` | Listen ligger längs kollisionslinjen på höjden 0,2 m med radien 0,1. Stolparna är 0,55 m med en lysande lampa. Modulära bitar. Lamporna är eget lysande material. |
 | 🟢 ✅ Asteroider i 3 varianter (`moon/asteroid-0…2.glb`) | `asteroid()` | Används under banorna (skalas efter platta) och som svävande kulisser som roterar. |
 | 🟢 ✅ Månraket (`moon/rocket.glb`) | `rocket()` | Ungefär 5 m hög i skala 1. Fenor och nosspets röda, kropp elfenben, ett lysande fönster. Liten version vid greenen och stor lutande version som förebådar finalen. |
-| 🟢 Pariserhjul | `ferrisWheel()` | Hjulet (radie cirka 7,5 m) roterar kring z, och korgarna är egna objekt som hålls lodräta. Förebådar hål 17, där det blir spelkritiskt. |
+| 🟢 ✅ Pariserhjul (`moon/ferris-wheel.glb`, normaliserat till radie 1 med navet på 1,25) | `ferrisWheel()` | Hjulet `wheel` roterar kring z, och korgarna `gondola-0…7` är egna objekt som hålls lodräta. 24 glödlampor (materialet `Bulb`). Står i karnevalen på hål 13–16 och 18 och förebådar hål 17, där det blir spelkritiskt. |
 | 🟢 ✅ Cirkustält (`moon/tent.glb`, normaliserat till radie 1 och höjd 1) | `tent()` | Röda och elfenbensvita våder, flagga på toppen. |
 | 🟢 Lyktor (✅ `moon/lantern.glb`), ljusslingor, ringplanet, måne | `lantern()`, `stringLights()` | Lamporna är egna lysande material. |
 
@@ -162,8 +162,11 @@ De fem prototyperna har fått tema och plats som Spökhamnen. Modellerna byggs i
 | `halloween/bat` | Fladdermöss. Vingarna `wing-l` och `wing-r` flaxar. |
 | `halloween/skeleton-hand` | Koppens invånare. Fingrarna `finger-0` till `finger-4` kröker sig runt bollen. |
 | `halloween/witch-hat` | Häxhatten på den svarta katten (Urverkets katt, omfärgad). |
+| `halloween/dead-tree-0`, `-1`, `-2` | Döda träd på kyrkogårdsöarna, ungefär 4 m höga, med knotig bark. Byggs i `blender/assets/harbour.py`. |
+| `halloween/lighthouse` | Fyren på klippön, 19,4 m till vindflöjeln. Lampan `lamp` (materialet `Lamp`) sitter på 16,8 m; ljuskäglan som sveper genom dimman ritas av spelet. |
+| `halloween/ghost-ship` | Spökskeppet i bakgrunden, cirka 19 m från akterlyktorna till bogsprötet, vattenlinjen på 0. Trasiga lysande segel (materialet `Sail`) och tre lyktor `lantern-0…2` som fladdrar var för sig. Spelet gungar det på dyningen. |
 
-KayKit-delarna finns kvar för rör och kanon men färgas om. Spökskeppet (både i bakgrunden och som bana på hål 24), fyr, döda träd, kryptgaller, ruttna plankor, fågelskrämmor och häxringar är kodgrafik och kan bli Blender-modeller senare.
+KayKit-delarna finns kvar för rör och kanon men färgas om. Spökskeppet som bana på hål 24, kryptgaller, ruttna plankor, fågelskrämmor och häxringar är kodgrafik och kan bli Blender-modeller senare.
 
 ## Föreslagen arbetsordning
 

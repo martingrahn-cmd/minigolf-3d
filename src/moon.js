@@ -93,6 +93,11 @@ function tent(parent,x,y,z,r,h){
 
 // The fair's big wheel turns slowly behind the course; gondolas stay level.
 function ferrisWheel(parent,x,y,z,r){
+  const model=modelInstance('moon/ferris-wheel');
+  if(model){
+    model.position.set(x,y,z);model.scale.setScalar(r);parent.add(model);
+    return {wheel:model.getObjectByName('wheel'),gondolas:[...Array(8)].map((_,k)=>model.getObjectByName(`gondola-${k}`))};
+  }
   const root=new THREE.Group();root.name='ferris-wheel';root.position.set(x,y,z);parent.add(root);
   const steel=material(C.ivory,{metalness:.3}),red=material(C.red);
   for(const side of [-1,1]){beam(root,[side*r*.55,0,-.9],[0,r+.4,-.9],.16,steel);beam(root,[side*r*.55,0,.9],[0,r+.4,.9],.16,steel)}

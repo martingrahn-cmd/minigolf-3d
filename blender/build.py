@@ -23,7 +23,8 @@ import village  # noqa: E402
 import carnival  # noqa: E402
 import critters  # noqa: E402
 import halloween  # noqa: E402
+import harbour  # noqa: E402
 
-for module in (common, clockwork, town, forest, village, moon, carnival, critters, finale, halloween):
+for module in (common, clockwork, town, forest, village, moon, carnival, critters, finale, halloween, harbour):
     print(f'{module.__name__}:')
     module.build()

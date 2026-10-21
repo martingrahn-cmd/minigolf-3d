@@ -228,6 +228,45 @@ def join_meshes(name):
     return joined
 
 
+def join_parts(owner, name, exclude=()):
+    """Join the meshes under `owner` into one child mesh called `name`, leaving
+    the subtrees of the objects named in `exclude` (the moving parts) alone."""
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+
+    def under(o):
+        while o is not None:
+            if o.name in exclude:
+                return False
+            if o.parent is owner or o is owner:
+                return o is not owner
+            o = o.parent
+        return False
+    meshes = [o for o in bpy.context.scene.objects if o.type == 'MESH' and under(o)]
+    if not meshes:
+        return None
+    for o in meshes:
+        world = o.matrix_world.copy()
+        data = bpy.data.meshes.new_from_object(o.evaluated_get(depsgraph))
+        o.modifiers.clear()
+        o.data = data
+        o.matrix_world = world
+    # Keep anything the joined meshes carried (other than meshes being joined) on the owner.
+    for o in bpy.context.scene.objects:
+        if o.parent in meshes and o not in meshes:
+            world = o.matrix_world.copy()
+            o.parent = owner
+            o.matrix_world = world
+    if len(meshes) > 1:
+        with bpy.context.temp_override(active_object=meshes[0], selected_editable_objects=meshes, object=meshes[0]):
+            bpy.ops.object.join()
+    joined = meshes[0]
+    world = joined.matrix_world.copy()
+    joined.parent = owner
+    joined.matrix_world = world
+    joined.name = name
+    return joined
+
+
 def export(path, selection=None, join=None):
     if join:
         join_meshes(join)
