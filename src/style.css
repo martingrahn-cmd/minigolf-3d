@@ -477,7 +477,7 @@ body:has(#win:not(.hidden)) .qa-panel{top:auto;bottom:10px}
 @keyframes turn-splash{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}12%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}20%{transform:translate(-50%,-50%) scale(1)}84%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-62%) scale(.97)}}
 @keyframes turn-splash-fade{0%,100%{opacity:0}12%,84%{opacity:1}}
 @media(prefers-reduced-motion:reduce){.turn-splash.show{animation-name:turn-splash-fade}}
-.turn-splash.compact{top:25%}.turn-splash.compact strong{font-size:clamp(30px,8vw,50px)}.turn-splash.compact span{font-size:15px}
+.turn-splash.compact{top:38%}.turn-splash.compact strong{font-size:clamp(30px,8vw,50px)}.turn-splash.compact span{font-size:15px}
 /* Reactions in a match: four quick buttons and the emoji that float up on every screen. */
 .mp-react-bar{display:flex;justify-content:flex-end;gap:6px;margin-bottom:8px}.mp-react-bar[hidden]{display:none}
 .mp-react-bar button{pointer-events:auto;width:38px;height:38px;padding:0;border-radius:50%;border:1px solid #ffffff88;background:#fffaf0cc;font-size:19px;line-height:1;cursor:pointer;box-shadow:0 4px 14px #0002;backdrop-filter:blur(8px)}
