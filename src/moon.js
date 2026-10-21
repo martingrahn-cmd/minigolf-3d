@@ -3,10 +3,11 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { profileHeight } from './terrain.js';
 import { modelInstance, tintMaterials } from './models.js';
 import { createMoonFair } from './moon-fair.js';
+import { t } from './i18n.js';
 
 // Månkarnevalen: an abandoned fun fair drifting between asteroids. Mid-level
 // procedural stand-ins, listed in BLENDER_ASSETS.md for later Blender models.
-export const MOON_THEME={key:'moon',name:'Månkarnevalen',range:'HÅL 13–18',sky:0x1b1340,horizon:0x6e4c9e,rail:0xf4e8d2,base:0x3a2d5c,accent:0x63e3d3};
+export const MOON_THEME={key:'moon',name:t('Månkarnevalen'),range:t('HÅL {from}–{to}',{from:'13',to:'18'}),sky:0x1b1340,horizon:0x6e4c9e,rail:0xf4e8d2,base:0x3a2d5c,accent:0x63e3d3};
 const C={ivory:0xf4e8d2,red:0xd5485b,violet:0x6c4bb0,deep:0x2c2250,teal:0x3fbfb2,gold:0xf2c25c,rock:0x6f6690,rockDark:0x4b4369,felt:0x2f9e98,feltLight:0x3aaea6};
 const material=(color,extra={})=>new THREE.MeshStandardMaterial({color,roughness:.78,flatShading:true,...extra});
 const glowMaterial=(color,intensity=1.2)=>material(color,{emissive:color,emissiveIntensity:intensity,roughness:.4});
@@ -380,7 +381,7 @@ function zeroGStage(scene,heightAt,level){
   // Entrance arch with its sign: the rule is named before the ball goes in.
   for(const z of [-3.15,3.15])beam(scene,[-9.05,0,z],[-9.05,3.5,z],.09,material(C.ivory,{metalness:.3}));
   beam(scene,[-9.05,3.5,-3.15],[-9.05,3.5,3.15],.09,material(C.gold,{metalness:.4}));
-  const sign=add(scene,new THREE.PlaneGeometry(4.2,1.05),new THREE.MeshBasicMaterial({map:signTexture('TYNGDLÖST'),transparent:true,side:THREE.DoubleSide}),-9.1,4.15,0);sign.rotation.y=-Math.PI/2;sign.castShadow=false;
+  const sign=add(scene,new THREE.PlaneGeometry(4.2,1.05),new THREE.MeshBasicMaterial({map:signTexture(t('TYNGDLÖST')),transparent:true,side:THREE.DoubleSide}),-9.1,4.15,0);sign.rotation.y=-Math.PI/2;sign.castShadow=false;
   // The artists' stage: velvet wings, spotlights and footlights along the ramp.
   const stageY=heightAt(14,0),velvet=material(0x8e1f3a,{flatShading:false,roughness:.9}),gold=material(C.gold,{metalness:.4});
   for(const side of [-1,1]){
@@ -517,7 +518,7 @@ function blackHoleScenery(scene,level){
   const base=asteroid(scene,cup.x+6.5,-4,0,3.2,301,material(C.rockDark));base.rotation.set(0,0,0);base.scale.set(1,.7,1.6);
   const dome=add(scene,new THREE.SphereGeometry(2.2,24,12,0,Math.PI*2,0,Math.PI/2),material(C.ivory,{flatShading:false}),cup.x+6.5,-.6,0);dome.name='observatory';
   const scope=beam(scene,[cup.x+6.5,.6,0],[cup.x+5,2.6,0],.28,material(C.deep,{metalness:.4}),12);scope.name='telescope';
-  const sign=add(scene,new THREE.PlaneGeometry(4.2,1.05),new THREE.MeshBasicMaterial({map:signTexture('SVARTA HÅLET'),transparent:true,side:THREE.DoubleSide}),cup.x+6.4,2.6,0);
+  const sign=add(scene,new THREE.PlaneGeometry(4.2,1.05),new THREE.MeshBasicMaterial({map:signTexture(t('SVARTA HÅLET')),transparent:true,side:THREE.DoubleSide}),cup.x+6.4,2.6,0);
   sign.rotation.y=-Math.PI/2;sign.castShadow=false;
   lantern(scene,-12.6,0,-2.9);lantern(scene,-12.6,0,2.9);lantern(scene,-8.6,0,-8.6);lantern(scene,-8.6,0,8.6);
 }
@@ -698,7 +699,7 @@ function moonRocketScenery(scene,level){
   for(let i=0;i<10;i++){const a=i/10*Math.PI*2;asteroid(scene,14+Math.cos(a)*2.6,-1.6,Math.sin(a)*3.4,.7,700+i,material(C.rockDark)).castShadow=false}
   const cup=level.cup;
   beam(scene,[21.6,0,-6.4],[21.6,5.5,-6.4],.07,material(C.ivory,{metalness:.4}));
-  const banner=add(scene,new THREE.PlaneGeometry(3.2,.9),new THREE.MeshBasicMaterial({map:signTexture('MÅNRAKETEN'),transparent:true,side:THREE.DoubleSide}),21.7,4.9,-4.8);
+  const banner=add(scene,new THREE.PlaneGeometry(3.2,.9),new THREE.MeshBasicMaterial({map:signTexture(t('MÅNRAKETEN')),transparent:true,side:THREE.DoubleSide}),21.7,4.9,-4.8);
   banner.rotation.y=-Math.PI/2;banner.castShadow=false;
   for(const z of [-7.2,7.2])for(const x of [17,20]){add(scene,new THREE.CylinderGeometry(.22,.28,.7,10),material(C.red),x,.35,z);add(scene,new THREE.TorusGeometry(.22,.04,6,14),material(C.gold),x,.72,z).rotation.x=Math.PI/2}
   for(const [x,z] of [[-21.5,-2.6],[-21.5,2.6],[-12,-2.6],[-12,2.6],[2,-6.6],[2,6.6]])lantern(scene,x,0,z);

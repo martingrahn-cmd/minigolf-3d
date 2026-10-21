@@ -8,6 +8,7 @@
 // games run the same shot themselves, so they see the real ball, the course
 // and the sounds; while the ball is at rest they take its true spot.
 import { connect, multiplayerAvailable, transportName } from './net.js';
+import { t, plural } from './i18n.js';
 import { roomCode, normalizeCode, cleanName, seatPlayers, electHost, createMatch, mergeScores, waitingFor, holeDone, advance, standings, turnOrder, currentTurn, forfeit, withForfeits, MAX_PLAYERS, STROKE_CAP, AWAY_AFTER } from './room.js';
 
 const SESSION_KEY='minimayhem-room',NAME_KEY='minimayhem-player-name';
@@ -18,7 +19,8 @@ const REACTIONS=['👏','😂','😱','🔥'];
 const hex=c=>`#${c.toString(16).padStart(6,'0')}`;
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 const now=()=>Date.now()/1000;
-const turnOf=name=>/[sxz]$/i.test(name)?`${name} tur`:`${name}s tur`;
+// "Bos tur", "Lars tur" in Swedish; the other languages say it their own way.
+const turnOf=name=>t('{name}s tur',{name}).replace(/([sxzSXZ])s tur/,'$1 tur');
 export const roomInAddress=()=>typeof location!=='undefined'?normalizeCode(new URLSearchParams(location.search).get('rum')||''):'';
 
 function loadSession(code){
@@ -61,29 +63,29 @@ export function createMultiplayer(game){
     panel.dataset.view='room';
     const seated=seatPlayers(players),mine=seated.find(p=>p.id===me().id),host=seated[0];
     $('mpRoomCode').textContent=session.code;
-    $('mpPlayers').innerHTML=seated.map(p=>`<li class="${p.seat===null?'mp-extra':''}"><i style="background:${p.color!==null?hex(p.color):'#888'}"></i><b>${escape(p.name)}</b>${p.id===host.id?'<span class="mp-host">värd</span>':''}${p.id===me().id?'<span class="mp-you">du</span>':''}${p.seat===null?'<small>fullt – tittar på</small>':''}</li>`).join('');
+    $('mpPlayers').innerHTML=seated.map(p=>`<li class="${p.seat===null?'mp-extra':''}"><i style="background:${p.color!==null?hex(p.color):'#888'}"></i><b>${escape(p.name)}</b>${p.id===host.id?`<span class="mp-host">${t('värd')}</span>`:''}${p.id===me().id?`<span class="mp-you">${t('du')}</span>`:''}${p.seat===null?`<small>${t('fullt – tittar på')}</small>`:''}</li>`).join('');
     const full=mine?.seat===null;
     $('mpFull').hidden=!full;
     $('mpHostControls').hidden=!isHost();$('mpGuestWait').hidden=isHost()||full;
     const world=game.worlds.find(w=>w.key===setup?.world);
-    $('mpGuestWait').innerHTML=world?`Värden har valt <b>${escape(world.name)}</b> · <b>${setup.mode==='turns'?'Turordning':'Samtidigt'}</b>. Väntar på att värden startar…`:'Väntar på att värden väljer värld och startar…';
+    $('mpGuestWait').innerHTML=world?t('Värden har valt {world} · {mode}. Väntar på att värden startar…',{world:`<b>${escape(world.name)}</b>`,mode:`<b>${t(setup.mode==='turns'?'Turordning':'Samtidigt')}</b>`}):t('Väntar på att värden väljer värld och startar…');
     $('mpStart').disabled=!isHost()||seated.filter(p=>p.seat!==null).length<1;
-    $('mpTransport').textContent=transportName()==='local'?'Lokalt läge: bara flikar i den här webbläsaren':'';
+    $('mpTransport').textContent=transportName()==='local'?t('Lokalt läge: bara flikar i den här webbläsaren'):'';
   }
   function worldChoices(){
     $('mpWorlds').innerHTML=game.worlds.map((w,i)=>{
       const holes=game.round.filter(s=>s.world===w&&s.level).length;
-      return `<label class="mp-world" data-world="${w.key}"><input type="radio" name="mpWorld" value="${w.key}"${i===0?' checked':''}><span><b>${w.name}</b><small>${holes} hål</small></span></label>`;
+      return `<label class="mp-world" data-world="${w.key}"><input type="radio" name="mpWorld" value="${w.key}"${i===0?' checked':''}><span><b>${w.name}</b><small>${t('{n} hål',{n:holes})}</small></span></label>`;
     }).join('');
   }
   async function join(roomCodeValue,name){
-    const c=normalizeCode(roomCodeValue);if(c.length!==4){toast('Rumskoden har fyra bokstäver',1800);return}
-    const clean=cleanName(name);try{localStorage.setItem(NAME_KEY,clean)}catch{}
+    const c=normalizeCode(roomCodeValue);if(c.length!==4){toast(t('Rumskoden har fyra bokstäver'),1800);return}
+    const clean=cleanName(name,t('Spelare'));try{localStorage.setItem(NAME_KEY,clean)}catch{}
     const old=loadSession(c);
     session=old?{...old,me:{...old.me,name:clean}}:{code:c,me:{id:Math.random().toString(36).slice(2,10),name:clean,joinedAt:Date.now()},match:null,scores:{}};
     save();history.replaceState(null,'',`?rum=${c}`);
     $('mpPanel').dataset.view='connecting';
-    try{await open()}catch(error){$('mpPanel').dataset.view='start';toast(error.message||'Kunde inte ansluta',2400);return}
+    try{await open()}catch(error){$('mpPanel').dataset.view='start';toast(t(error.message||'Kunde inte ansluta'),2400);return}
     renderLobby();
   }
   function sendSetup(){
@@ -100,8 +102,8 @@ export function createMultiplayer(game){
   }
   async function share(){
     const url=`${location.origin}${location.pathname}?rum=${session.code}`;
-    try{if(navigator.share){await navigator.share({title:'Mini Mayhem',text:`Spela minigolf med mig! Rumskod ${session.code}`,url});return}}catch{return}
-    try{await navigator.clipboard.writeText(url);toast('Länken är kopierad',1500)}catch{toast(url,4000)}
+    try{if(navigator.share){await navigator.share({title:'Mini Mayhem',text:t('Spela minigolf med mig! Rumskod {code}',{code:session.code}),url});return}}catch{return}
+    try{await navigator.clipboard.writeText(url);toast(t('Länken är kopierad'),1500)}catch{toast(url,4000)}
   }
   function leave(){
     link?.close();link=null;try{sessionStorage.removeItem(SESSION_KEY)}catch{}
@@ -177,7 +179,7 @@ export function createMultiplayer(game){
       const next=currentTurn(match,scoresNow());
       if(next&&isHost()&&next.id!==me().id&&t-(lastSeen[next.id]??-Infinity)>=AWAY_AFTER){
         session.match=match=forfeit(match,next.id);save();link.send('match',match);
-        toast(`${next.name} är borta · hålet räknas som ${STROKE_CAP} slag`,2600);renderBoard();
+        toast(t('{name} är borta · hålet räknas som {n} slag',{name:next.name,n:STROKE_CAP}),2600);renderBoard();
       }
       updateTurn();
     }
@@ -210,12 +212,12 @@ export function createMultiplayer(game){
     const match=session.match,scores=scoresNow(),next=currentTurn(match,scores),secs=at=>Math.max(1,Math.ceil(at-now()));
     if(!next){
       const last=match.index+1>=match.holes.length;
-      return {title:'Alla i hål!',detail:last?'Resultatet kommer…':`Nästa hål om ${secs(advanceAt??now()+NEXT_DELAY)} s`};
+      return {title:t('Alla i hål!'),detail:last?t('Resultatet kommer…'):t('Nästa hål om {s} s',{s:secs(advanceAt??now()+NEXT_DELAY)})};
     }
-    if(turnAt!==null)return {title:next.id===me().id?'Din tur snart':turnOf(next.name),detail:`Börjar om ${secs(turnAt)} s`};
+    if(turnAt!==null)return {title:next.id===me().id?t('Din tur snart'):turnOf(next.name),detail:t('Börjar om {s} s',{s:secs(turnAt)})};
     const order=turnOrder(match),mine=order.findIndex(p=>p.id===me().id),at=order.findIndex(p=>p.id===next.id);
     const left=mine>at?mine-at:0;
-    return {title:`${next.name} spelar`,detail:`Slag ${liveStrokes[next.id]??0} · ${left===1?'du är näst på tur':left>1?`du spelar om ${left} turer`:'du har spelat hålet'}`};
+    return {title:t('{name} spelar',{name:next.name}),detail:`${t('Slag {n}',{n:liveStrokes[next.id]??0})} · ${left===1?t('du är näst på tur'):left>1?t('du spelar om {n} turer',{n:left}):t('du har spelat hålet')}`};
   }
 
   // --- On the course: scoreboard, waiting card and results. ---
@@ -223,11 +225,11 @@ export function createMultiplayer(game){
     if(!inMatch())return;
     const match=session.match,scores=scoresNow(),rows=standings(match,scores,game.pars(match));
     $('mpBoard').hidden=false;
-    $('mpBoardTitle').textContent=`RUM ${session.code} · HÅL ${match.index+1}/${match.holes.length}`;
+    $('mpBoardTitle').textContent=t('RUM {code} · HÅL {n}/{all}',{code:session.code,n:match.index+1,all:match.holes.length});
     $('mpBoardRows').innerHTML=rows.map(r=>{
       const done=Number.isFinite(scores[r.player.id]?.[match.index]),here=r.player.id===me().id||now()-(lastSeen[r.player.id]??-1e9)<15;
       const playing=turns()&&r.player.id===turnId&&!done,strokes=(r.player.id===me().id?game.strokes?.():liveStrokes[r.player.id])??0;
-      const now_=done?`✓ ${scores[r.player.id][match.index]}`:!here?'borta':turns()?(playing?`▶ ${strokes} slag`:'väntar'):`${strokes} slag`;
+      const now_=done?`✓ ${scores[r.player.id][match.index]}`:!here?t('borta'):turns()?(playing?`▶ ${plural(strokes,'1 slag','{n} slag')}`:t('väntar')):plural(strokes,'1 slag','{n} slag');
       const par=r.toPar===0?'±0':r.toPar>0?`+${r.toPar}`:r.toPar;
       return `<li class="${done?'done':''}${here?'':' away'}${playing?' playing':''}"><i style="background:${hex(r.player.color)}"></i><b>${escape(r.player.name)}</b><span>${now_}</span><em>${par}</em></li>`;
     }).join('');
@@ -238,17 +240,17 @@ export function createMultiplayer(game){
     const match=session.match,mineDone=Number.isFinite(scoresNow()[me().id]?.[match.index]);
     $('mpWait').hidden=!mineDone;if(!mineDone)return;
     const waiting=waitingFor(match,scoresNow(),lastSeen,now());
-    $('mpWaitText').textContent=turns()&&waiting.length?`${turnOf(currentTurn(match,scoresNow()).name)} härnäst`:waiting.length?`Väntar på ${waiting.map(p=>p.name).join(', ')}…`:
-      match.index+1>=match.holes.length?'Alla i hål! Resultatet kommer…':`Alla i hål! Nästa hål om ${Math.max(0,Math.ceil((advanceAt??now()+NEXT_DELAY)-now()))} s`;
+    $('mpWaitText').textContent=turns()&&waiting.length?t('{turn} härnäst',{turn:turnOf(currentTurn(match,scoresNow()).name)}):waiting.length?t('Väntar på {names}…',{names:waiting.map(p=>p.name).join(', ')}):
+      match.index+1>=match.holes.length?t('Alla i hål! Resultatet kommer…'):t('Alla i hål! Nästa hål om {s} s',{s:Math.max(0,Math.ceil((advanceAt??now()+NEXT_DELAY)-now()))});
     $('mpWaitBoard').innerHTML=$('mpBoardRows').innerHTML;
   }
   function showResults(){
     const match=session.match,rows=standings(match,withForfeits(match,session.scores),game.pars(match)),medal=['🥇','🥈','🥉',''];
     $('mpResultRows').innerHTML=rows.map(r=>{const par=r.toPar===0?'±0':r.toPar>0?`+${r.toPar}`:r.toPar;
-      return `<li><span class="mp-place">${medal[r.place-1]??''}${r.place}</span><i style="background:${hex(r.player.color)}"></i><b>${escape(r.player.name)}</b><span>${r.total} slag</span><em>${par}</em></li>`}).join('');
+      return `<li><span class="mp-place">${medal[r.place-1]??''}${r.place}</span><i style="background:${hex(r.player.color)}"></i><b>${escape(r.player.name)}</b><span>${plural(r.total,'1 slag','{n} slag')}</span><em>${par}</em></li>`}).join('');
     const winners=rows.filter(r=>r.place===1).map(r=>r.player.name);
-    $('mpResultTitle').innerHTML=winners.length>1?'DELAD<br><em>SEGER!</em>':`${escape(winners[0])}<br><em>VANN!</em>`;
-    const world=game.worlds.find(w=>w.key===match.world);$('mpResultWorld').textContent=`${world?.name??''} · ${match.holes.length} hål`;
+    $('mpResultTitle').innerHTML=winners.length>1?t('DELAD<br><em>SEGER!</em>'):`${escape(winners[0])}<br><em>${t('VANN!')}</em>`;
+    const world=game.worlds.find(w=>w.key===match.world);$('mpResultWorld').textContent=`${world?.name??''} · ${t('{n} hål',{n:match.holes.length})}`;
     $('win').classList.add('hidden');$('mpResults').classList.remove('hidden');
   }
 
@@ -314,7 +316,7 @@ export function createMultiplayer(game){
       if(!inMatch()||(turns()&&turnId!==me().id))return;const list=[...myScores()];list[session.match.index]=Math.min(strokes,STROKE_CAP);
       session.scores=mergeScores(session.scores,me().id,list);save();sendScores();renderBoard();check();
     },
-    holeLabel(){const m=session.match;return `RUM ${session.code} · HÅL ${m.index+1} AV ${m.holes.length}${m.mode==='turns'?' · TURORDNING':''}`},
+    holeLabel(){const m=session.match;return `${t('RUM {code} · HÅL {n} AV {all}',{code:session.code,n:m.index+1,all:m.holes.length})}${m.mode==='turns'?' · '+t('TURORDNING'):''}`},
     refresh:renderBoard,
   };
 }

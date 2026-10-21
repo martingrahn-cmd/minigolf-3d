@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { clockKit as K,createGear } from './clockwork.js';
 import { funnelSurface,createFunnelTrack } from './funnel.js';
+import { t } from './i18n.js';
 
 function plaque(parent,text,sub,x,y,z,width=3.8){
   const canvas=document.createElement('canvas');canvas.width=768;canvas.height=256;
@@ -100,7 +101,7 @@ export function createFunnelVisuals(scene,level){
   const needle=gauge(statics,px,1.9,pz+.9);
   const feed=new THREE.CatmullRomCurve3([new THREE.Vector3(px,2.7,pz),new THREE.Vector3(px,3.25,pz),new THREE.Vector3(-4,3.25,-6.1),new THREE.Vector3(-4,2.9,-5.5)]);
   K.add(statics,new THREE.TubeGeometry(feed,40,.12,10,false),K.copper);
-  plaque(statics,'RÖRPOST','URVERKETS STAD · TRYCKLUFT',-10,2.1,-3.85,4.2);
+  plaque(statics,t('RÖRPOST'),t('URVERKETS STAD · TRYCKLUFT'),-10,2.1,-3.85,4.2);
   for(const x of [-12,-8])K.rod(statics,[x,.15,-3.9],[x,2.9,-3.9],.06,K.iron);
   // Receiving tray and the mail sorting cabinet stand beside, never in, the lane.
   const cabinet=K.group(statics,1.6,3.2,-4.25);

@@ -4,13 +4,14 @@ import { modelInstance } from './models.js';
 import { bakeStatic, softTexture, canvasTexture } from './life-kit.js';
 import { gatePose } from './gates.js';
 import { trapdoorPose } from './trapdoors.js';
+import { t } from './i18n.js';
 
 // Spökhamnen, the Halloween harbour: a night under a huge orange moon. The
 // course stands on wooden piles in black water. Round it are a graveyard
 // island with crooked trees, a ghost ship with glowing sails, a lighthouse,
 // jack-o'-lanterns that flicker, ghosts drifting in the fog, bats, and now and
 // then a witch crossing the moon. Nothing out there touches the ball.
-export const HALLOWEEN_THEME={key:'halloween',name:'Spökhamnen',range:'HALLOWEEN',sky:0x140a29,horizon:0x4b2a5c,rail:0xf1e3c4,base:0x22192e,accent:0xff8a2a};
+export const HALLOWEEN_THEME={key:'halloween',name:t('Spökhamnen'),range:'HALLOWEEN',sky:0x140a29,horizon:0x4b2a5c,rail:0xf1e3c4,base:0x22192e,accent:0xff8a2a};
 const C={bone:0xf1e3c4,orange:0xff8a2a,amber:0xffc24a,purple:0x6b3fa0,violet:0x3b2550,iron:0x2b2734,plank:0x4a3428,plankDark:0x2e2019,
   stone:0x5f5b70,stoneDark:0x3d3a4c,slime:0x86e34c,ghostGreen:0x9dffc2,moon:0xffcf86,water:0x0a1420,bark:0x231a26};
 const material=(color,extra={})=>new THREE.MeshStandardMaterial({color,roughness:.8,...extra});
