@@ -3,8 +3,9 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { gatePose } from './gates.js';
 import { modelInstance } from './models.js';
 import { createClockTown, wallpaper } from './clock-town.js';
+import { t } from './i18n.js';
 
-export const CLOCK_THEME={key:'clockwork',name:'Urverkets stad',range:'HÅL 01–06',sky:0x1e333c,horizon:0xc6a279,rail:0xc49a58,base:0x392a29,accent:0xe8bd70};
+export const CLOCK_THEME={key:'clockwork',name:t('Urverkets stad'),range:t('HÅL {from}–{to}',{from:'01',to:'06'}),sky:0x1e333c,horizon:0xc6a279,rail:0xc49a58,base:0x392a29,accent:0xe8bd70};
 const mat=(color,extra={})=>new THREE.MeshStandardMaterial({color,roughness:.65,...extra});
 const brass=mat(0xc99a4c,{metalness:.67,roughness:.32}),gold=mat(0xf0ca7e,{metalness:.55,roughness:.3}),copper=mat(0x986342,{metalness:.5});
 const iron=mat(0x263d40,{metalness:.55,roughness:.5}),ivory=mat(0xffe8bc),teal=mat(0x356966),dark=mat(0x242c2d),wood=mat(0x51352e),woodLight=mat(0x86533c);
@@ -61,7 +62,7 @@ function dialTexture(textOnly=false){
   const roman=['XII','I','II','III','IV','V','VI','VII','VIII','IX','X','XI'];
   ctx.font='bold 65px Georgia';ctx.fillStyle=textOnly?'#efd299':'#3d4943';ctx.textAlign='center';ctx.textBaseline='middle';
   roman.forEach((n,i)=>{const a=i*Math.PI/6;ctx.fillText(n,Math.sin(a)*397,-Math.cos(a)*397)});
-  if(!textOnly){ctx.font='24px Georgia';ctx.fillStyle='#937344';ctx.fillText('URVERKETS STAD',0,-155);ctx.font='italic 30px Georgia';ctx.fillText('Sedan tick blev tack',0,172)}
+  if(!textOnly){ctx.font='24px Georgia';ctx.fillStyle='#937344';ctx.fillText(t('URVERKETS STAD'),0,-155);ctx.font='italic 30px Georgia';ctx.fillText(t('Sedan tick blev tack'),0,172)}
   const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=8;return t;
 }
 function clockFace(g,r,x,y,z){

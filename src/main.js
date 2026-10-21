@@ -1,3 +1,4 @@
+import './localize-data.js';
 import * as THREE from 'three';
 import { createCourse, LEVEL, LEVELS, SELECTION, START, CUP, CANNON, LANDING, PIPE_IN, PIPE_OUT, SPRINGS, SPINNER, onCourse, heightAt, heightSlope, heightSlopeZ, frictionAt } from './course.js';
 import { padTriggers, BALL_RADIUS, PERFECT_ZONE, perfectZone, powerAt, precisionAt, shotError, shotSpeed, shouldSink, collideWalls, collideSpinner, collidePipe, entersPipe, springImpulse, collideBumper } from './mechanics.js';
@@ -35,9 +36,12 @@ import { createGhostBalls } from './ghost-balls.js';
 import { STROKE_CAP } from './room.js';
 import { createCoach } from './coach.js';
 import { SINK, SLOW_MOTION, sinkPose, RESCUE, onTheLip } from './cup-celebration.js';
+import { t, num, plural, translateData, translatePage, LANGUAGES, lang, setLanguage } from './i18n.js';
 import './style.css';
 
 const $=id=>document.getElementById(id);
+// The page's own texts in the chosen language (the holes' are done in localize-data.js).
+translatePage();
 const canvas=$('game');
 // The stencil buffer cuts the cup's hole through the felt (cup-celebration.js).
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true,stencil:true,powerPreference:'high-performance'});
@@ -166,7 +170,7 @@ for(const type of ['pointerdown','touchend','click','keydown'])window.addEventLi
 function sound(freq=440,duration=.13,type='sine',vol=.055,slide=1){if(audioEnabled)audio.tone(freq,duration,type,vol,slide)}
 function toast(text,ms=2000){
   if(quiet)return;
-  const el=$('toast');el.textContent=text;el.classList.add('visible');
+  const el=$('toast');el.textContent=t(text);el.classList.add('visible');
   clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('visible'),ms);
 }
 function setPhase(phase){
@@ -181,10 +185,10 @@ function setPhase(phase){
 function updateUI(){
   $('strokeCount').textContent=state.strokes;
   $('bestScore').textContent=localStorage.getItem(LEVEL.recordKey)||'–';
-  const names={idle:'Sikta',power:'Välj kraft',accuracy:'Träffa grönt',moving:'Bollen rullar',looping:'Runt i roten!',cannon:'Flygtur!',pipe:'Rörpost!',funnel:'Specialleverans!',elevator:'Nästa våning!',bridgeflight:'Luft under bollen!',floating:'Svävar!',riding:'Åker pariserhjul!',loading:'In i kanonen!',loaded:LEVEL.cometCannon?.launchY?'Raketen laddad':'Kanonen laddad',comet:'Kometen flyger!',drumflight:LEVEL.trampoline?.title||'Skybowling!',falling:'Oj då!',win:'I hålet!'};
-  $('controlTitle').textContent=names[state.phase]||'Sikta';
-  const actions={idle:'Starta',power:'Lås kraft',accuracy:'Slå!',moving:'Rullar…',looping:'Loopar…',cannon:'Flyger…',pipe:'Rörpost…',funnel:'På väg…',elevator:'Åker upp…',bridgeflight:'Flyger…',floating:'Svävar…',riding:'Åker…',loading:'Laddar…',loaded:'FYR!',comet:'Flyger…',drumflight:'Flyger…',falling:'Vänta…',win:'Klart!'};
-  $('actionText').textContent=actions[state.phase]||'Starta';
+  const names={idle:t('Sikta'),power:t('Välj kraft'),accuracy:t('Träffa grönt'),moving:t('Bollen rullar'),looping:t('Runt i roten!'),cannon:t('Flygtur!'),pipe:t('Rörpost!'),funnel:t('Specialleverans!'),elevator:t('Nästa våning!'),bridgeflight:t('Luft under bollen!'),floating:t('Svävar!'),riding:t('Åker pariserhjul!'),loading:t('In i kanonen!'),loaded:LEVEL.cometCannon?.launchY?t('Raketen laddad'):t('Kanonen laddad'),comet:t('Kometen flyger!'),drumflight:LEVEL.trampoline?.title||t('Skybowling!'),falling:t('Oj då!'),win:t('I hålet!')};
+  $('controlTitle').textContent=names[state.phase]||t('Sikta');
+  const actions={idle:t('Starta'),power:t('Lås kraft'),accuracy:t('Slå!'),moving:t('Rullar…'),looping:t('Loopar…'),cannon:t('Flyger…'),pipe:t('Rörpost…'),funnel:t('På väg…'),elevator:t('Åker upp…'),bridgeflight:t('Flyger…'),floating:t('Svävar…'),riding:t('Åker…'),loading:t('Laddar…'),loaded:t('FYR!'),comet:t('Flyger…'),drumflight:t('Flyger…'),falling:t('Vänta…'),win:t('Klart!')};
+  $('actionText').textContent=actions[state.phase]||t('Starta');
   const busy=!['idle','power','accuracy','loaded'].includes(state.phase);
   $('actionButton').disabled=busy;
   $('actionSteps').dataset.step={idle:0,power:1,accuracy:2}[state.phase]??'';
@@ -192,37 +196,37 @@ function updateUI(){
   $('app').classList.toggle('overview',cameraOverview);
   $('meter').classList.toggle('accuracy',state.phase==='accuracy');
   const touch=touchInput();
-  $('meterStatus').textContent={idle:cameraOverview?(touch?'Tryck på banan för att sikta':'Klicka på banan för att sikta'):(touch?'Dra för att sikta · ◁ ▷ finsiktar':'Dra för att sikta · A / D finjusterar'),power:touch?'Mjukt ← kraft → hårt':'Mjukt ← kraft → hårt · Esc avbryter',accuracy:'Pricka mitten · hårda slag kräver mest precision',moving:'Nästa slag när bollen stannar',looping:'Farten avgör om du når runt',cannon:'Över gapet mot flaggan',pipe:'På väg till kanonen',bridgeflight:'Nästa stopp: flippergreen',floating:'Låg gravitation · bollen sjunker långsamt',riding:'Gondolen tippar ut bollen på greenen',loading:'Tryckluften blåser upp bollen i kanonen',loaded:`Tryck FYR${touch?' eller på banan':' eller Mellanslag'} när siktet ${LEVEL.cometCannon?.launchY?'står där du vill landa':'pekar rätt'}`,comet:'Mot landningshyllorna',drumflight:LEVEL.trampoline?.status||'Genom ringen – mot käglorna!',falling:'+1 pliktslag',win:'Flaggan är din!'}[state.phase]||'';
-  if(state.phase==='funnel')$('meterStatus').textContent='Tryckluften lyfter dig till postterrassen';
-  if(state.phase==='elevator')$('meterStatus').textContent='Motvikterna tar dig till balkongen';
+  $('meterStatus').textContent={idle:cameraOverview?(touch?t('Tryck på banan för att sikta'):t('Klicka på banan för att sikta')):(touch?t('Dra för att sikta · ◁ ▷ finsiktar'):t('Dra för att sikta · A / D finjusterar')),power:touch?t('Mjukt ← kraft → hårt'):t('Mjukt ← kraft → hårt · Esc avbryter'),accuracy:t('Pricka mitten · hårda slag kräver mest precision'),moving:t('Nästa slag när bollen stannar'),looping:t('Farten avgör om du når runt'),cannon:t('Över gapet mot flaggan'),pipe:t('På väg till kanonen'),bridgeflight:t('Nästa stopp: flippergreen'),floating:t('Låg gravitation · bollen sjunker långsamt'),riding:t('Gondolen tippar ut bollen på greenen'),loading:t('Tryckluften blåser upp bollen i kanonen'),loaded:t(LEVEL.cometCannon?.launchY?(touch?'Tryck FYR eller på banan när siktet står där du vill landa':'Tryck FYR eller Mellanslag när siktet står där du vill landa'):(touch?'Tryck FYR eller på banan när siktet pekar rätt':'Tryck FYR eller Mellanslag när siktet pekar rätt')),comet:t('Mot landningshyllorna'),drumflight:LEVEL.trampoline?.status||t('Genom ringen – mot käglorna!'),falling:'+1 pliktslag',win:t('Flaggan är din!')}[state.phase]||'';
+  if(state.phase==='funnel')$('meterStatus').textContent=t('Tryckluften lyfter dig till postterrassen');
+  if(state.phase==='elevator')$('meterStatus').textContent=t('Motvikterna tar dig till balkongen');
   const putting=puttEnabled&&['idle','power','accuracy'].includes(state.phase);
   $('meter').hidden=state.phase==='loaded';
   $('shotMode').hidden=!nearPutt||state.phase!=='idle';
   $('fineAim').hidden=state.phase!=='idle'||cameraOverview;
   $('cancelShot').hidden=!touch||!['power','accuracy'].includes(state.phase);
   if($('fineAim').hidden)fineAim=0;
-  $('shotMode').textContent=puttEnabled?'Fullt slag':'Närputt';
+  $('shotMode').textContent=puttEnabled?t('Fullt slag'):t('Närputt');
   if(putting){
     // The near putt uses the same meter: the power sets the roll in metres, then hit the centre.
-    $('controlTitle').textContent='Närputt';$('actionText').textContent=state.phase==='idle'?'Putta':$('actionText').textContent;
-    $('meterStatus').textContent=state.phase==='idle'?`${nearPutt.distance.toFixed(1).replace('.',',')} m till hålet · tryck för rulllängd`:state.phase==='power'?'Tryck när rulllängden stämmer':'Pricka mitten för en rak putt';
+    $('controlTitle').textContent=t('Närputt');$('actionText').textContent=state.phase==='idle'?t('Putta'):$('actionText').textContent;
+    $('meterStatus').textContent=state.phase==='idle'?t('{m} m till hålet · tryck för rulllängd',{m:num(nearPutt.distance)}):state.phase==='power'?t('Tryck när rulllängden stämmer'):t('Pricka mitten för en rak putt');
   }
   // Turns: the round card shows whose round it is.
   const active=mp.watching()?mp.activePlayer():null,owner=active?.name.toUpperCase();
-  $('scoreTitle').textContent=owner?`${owner}${/[SXZ]$/.test(owner)?'':'S'} RUNDA`:'DIN RUNDA';
+  $('scoreTitle').textContent=owner?t('{name}S RUNDA',{name:owner}).replace(/([SXZ])S /,'$1 '):t('DIN RUNDA');
   if(mp.watching()){
     // Turns: someone else is playing; this panel tells whose turn it is.
     const turn=mp.turnStatus();
-    $('controlTitle').textContent=turn.title;$('actionText').textContent='Tittar på';$('meterStatus').textContent=turn.detail;
+    $('controlTitle').textContent=turn.title;$('actionText').textContent=t('Tittar på');$('meterStatus').textContent=turn.detail;
     $('actionButton').disabled=true;$('controlPanel').classList.add('busy');
     $('shotMode').hidden=true;$('fineAim').hidden=true;$('cancelShot').hidden=true;fineAim=0;
   }else if(preview>0){
-    $('controlTitle').textContent='Banöversikt';$('actionText').textContent='Börja';$('actionSteps').dataset.step='';$('meter').hidden=true;
-    $('meterStatus').textContent=touch?'Så ser banan ut · tryck för att börja':'Så ser banan ut · klicka eller Mellanslag för att börja';
+    $('controlTitle').textContent=t('Banöversikt');$('actionText').textContent=t('Börja');$('actionSteps').dataset.step='';$('meter').hidden=true;
+    $('meterStatus').textContent=touch?t('Så ser banan ut · tryck för att börja'):t('Så ser banan ut · klicka eller Mellanslag för att börja');
   }
 }
 function setOverview(on){
-  cameraOverview=on;$('cameraText').textContent=on?'Spelvy':'Översikt';setIcon($('cameraIcon'),on?'follow':'map');resize();updateUI();
+  cameraOverview=on;$('cameraText').textContent=on?t('Spelvy'):t('Översikt');setIcon($('cameraIcon'),on?'follow':'map');resize();updateUI();
 }
 function startPreview(){preview=4.5;setOverview(true);if(!mp.watching())toast('Banöversikt · tryck för att börja',2400)}
 function finishPreview(){preview=0;setOverview(false);toast('Sikta · välj kraft · träffa grönt',2200)}
@@ -264,8 +268,8 @@ function launchShot(vx,vz,putt,error){
   setPhase('moving');
   audio.putt(state.power);
   burst(state.x,.25+surfaceHeight(state.x,state.z),state.z,0xffffff,8,.45);
-  if(Math.abs(state.accuracy)<=perfectZone(state.power))toast(putt?'RAK PUTT ✦':state.power>.82?'SUPERTRÄFF! ✦':'PERFEKT TRÄFF! ✦',1300);
-  else if(Math.abs(error)>.06)toast(`SNETT SLAG · ${Math.abs(error*180/Math.PI).toFixed(1)}°`,1300);
+  if(Math.abs(state.accuracy)<=perfectZone(state.power))toast(putt?t('RAK PUTT ✦'):state.power>.82?t('SUPERTRÄFF! ✦'):t('PERFEKT TRÄFF! ✦'),1300);
+  else if(Math.abs(error)>.06)toast(t('SNETT SLAG · {deg}°',{deg:num(Math.abs(error*180/Math.PI))}),1300);
 }
 function reset(full=true){
   state.x=START.x;state.z=START.z;state.vx=0;state.vz=0;state.aim=0;state.power=0;state.needle=0;state.flight=0;state.pipe=0;state.fall=0;state.boost=0;state.strokes=full?0:state.strokes;
@@ -279,7 +283,7 @@ function reset(full=true){
   Object.assign(bellBridgeState,createBellBridgeState());
   Object.assign(liftState,createLiftState());
   nearPutt=null;puttEnabled=false;puttLength=1;
-  preview=0;cameraOverview=false;$('cameraText').textContent='Översikt';setIcon($('cameraIcon'),'map');
+  preview=0;cameraOverview=false;$('cameraText').textContent=t('Översikt');setIcon($('cameraIcon'),'map');
   setPhase('idle');
   if(full)toast('Ny chans! Sikta mot flaggan.');
 }
@@ -338,15 +342,15 @@ function startTurn(player,mine,turn){
   if(state.phase!=='intro'){reset(false);state.strokes=0;updateUI()}
   // Back on this page in the middle of one's own turn: pick up where it was.
   if(mine)fastForward(mp.ownTurnLog());
-  const first=turn.turn===1,name=player.name.toUpperCase(),genitive=/[SXZ]$/.test(name)?name:`${name}S`;
-  showSplash({color:player.color,kicker:`HÅL ${turn.hole} · TUR ${turn.turn} AV ${turn.turns}`,
-    title:mine?(first?'DU BÖRJAR!':'DIN TUR!'):first?`${name} BÖRJAR!`:`${genitive} TUR!`,detail:mine?player.name:''});
+  const first=turn.turn===1,name=player.name.toUpperCase();
+  showSplash({color:player.color,kicker:t('HÅL {hole} · TUR {turn} AV {turns}',turn),
+    title:mine?(first?t('DU BÖRJAR!'):t('DIN TUR!')):first?t('{name} BÖRJAR!',{name}):t('{name}S TUR!',{name}).replace(/([SXZ])S /,'$1 '),detail:mine?player.name:''});
 }
 // Someone else holed out: the others see how it went (the player has the win card).
 // Playing together it is a smaller sign, higher up, so it does not get in the way.
 function turnResult(player,strokes){
   if(!player||player.id===mp.me()?.id)return;
-  showSplash({color:player.color,kicker:player.name.toUpperCase(),title:scoreName(strokes,LEVEL.par),detail:`${strokes} slag`,compact:mp.mode()!=='turns'});
+  showSplash({color:player.color,kicker:player.name.toUpperCase(),title:scoreName(strokes,LEVEL.par),detail:plural(strokes,'1 slag','{n} slag'),compact:mp.mode()!=='turns'});
 }
 // A reaction from someone in the match, floating up in their colour.
 function showReaction(player,emoji){
@@ -356,8 +360,8 @@ function showReaction(player,emoji){
   const name=document.createElement('small');name.textContent=player.name;el.append(name);
   $('mpReactions').append(el);setTimeout(()=>el.remove(),2500);
 }
-const scoreName=(strokes,par)=>strokes>=STROKE_CAP?'TIO SLAG':strokes===1?'HOLE IN ONE!':strokes<=par-2?'EAGLE!':strokes===par-1?'BIRDIE!':strokes===par?'PAR!':
-  ['BOGEY','DUBBELBOGEY','TRIPPELBOGEY'][strokes-par-1]??`${strokes} SLAG`;
+const scoreName=(strokes,par)=>strokes>=STROKE_CAP?t('TIO SLAG'):strokes===1?t('HOLE IN ONE!'):strokes<=par-2?t('EAGLE!'):strokes===par-1?t('BIRDIE!'):strokes===par?t('PAR!'):
+  [t('BOGEY'),t('DUBBELBOGEY'),t('TRIPPELBOGEY')][strokes-par-1]??t('{n} SLAG',{n:strokes});
 // The big sign in the player's colour. Kept until the intro card is closed if it is up.
 let splashTimer=null,pendingSplash=null;
 function showSplash(sign){
@@ -373,7 +377,7 @@ function showSplash(sign){
 function doFall(fromHeight=surfaceHeight(state.x,state.z),reason){
   if(state.phase==='falling')return;
   state.fall=0;state.fallY=fromHeight;state.fallX=state.x;state.fallZ=state.z;state.vx=0;state.vz=0;setPhase('falling');
-  audio.fall();toast(reason||(LEVEL.theme==='forest'?'Ner i molnen! +1 pliktslag':LEVEL.theme==='moon'?'Ut i rymden! +1 pliktslag':LEVEL.theme==='halloween'?'Plask i det svarta vattnet! +1 pliktslag':'Plums! +1 pliktslag'),1800);
+  audio.fall();toast(reason||(LEVEL.theme==='forest'?t('Ner i molnen! +1 pliktslag'):LEVEL.theme==='moon'?t('Ut i rymden! +1 pliktslag'):LEVEL.theme==='halloween'?t('Plask i det svarta vattnet! +1 pliktslag'):t('Plums! +1 pliktslag')),1800);
   burst(state.x,0,state.z,0x9ce8ef,20,1.1);
 }
 function loadComet(){
@@ -393,7 +397,7 @@ function fireComet(){
 function swallow(){
   const hole=LEVEL.blackHole;state.x=hole.x;state.z=hole.z;
   course?.blackHole?.swallow();burst(hole.x,.3,hole.z,0xb69cff,26,1.2);
-  doFall(surfaceHeight(hole.x,hole.z),'Uppslukad av svarta hålet! +1 pliktslag');
+  doFall(surfaceHeight(hole.x,hole.z),t('Uppslukad av svarta hålet! +1 pliktslag'));
 }
 function startCannon(){
   state.flight=0;state.vx=0;state.vz=0;setPhase('cannon');
@@ -410,8 +414,8 @@ function startPipe(){
 function startRescue(){
   const dx=CUP.x-state.x,dz=CUP.z-state.z,d=Math.hypot(dx,dz)||1;
   rescue={t:0,ball:{x:state.x,z:state.z},dir:{x:dx/d,z:dz/d},events:new Set()};setPhase('rescue');
-  toast(LEVEL.theme==='forest'?'På kanten! Mullvaden kommer…':LEVEL.theme==='clockwork'?'På kanten! Katten har sett den…':LEVEL.theme==='halloween'?'På kanten! Häxans katt smyger fram…':'På kanten! Något hoppar hitåt…',1800);
-  if(cameraOverview){cameraOverview=false;$('cameraText').textContent='Översikt';setIcon($('cameraIcon'),'map')}
+  toast(LEVEL.theme==='forest'?t('På kanten! Mullvaden kommer…'):LEVEL.theme==='clockwork'?t('På kanten! Katten har sett den…'):LEVEL.theme==='halloween'?t('På kanten! Häxans katt smyger fram…'):t('På kanten! Något hoppar hitåt…'),1800);
+  if(cameraOverview){cameraOverview=false;$('cameraText').textContent=t('Översikt');setIcon($('cameraIcon'),'map')}
 }
 function updateRescue(dt){
   const t=(rescue.t+=dt),once=(name,at)=>t>=at&&!rescue.events.has(name)&&rescue.events.add(name);
@@ -428,7 +432,7 @@ function updateRescue(dt){
 function startSink(){
   sink={t:0,entry:{x:state.x-CUP.x,z:state.z-CUP.z,vx:state.vx,vz:state.vz},y:0,events:new Set()};
   state.vx=0;state.vz=0;setPhase('sinking');audio.swoosh();audio.duck(7);
-  if(cameraOverview){cameraOverview=false;$('cameraText').textContent='Översikt';setIcon($('cameraIcon'),'map')}
+  if(cameraOverview){cameraOverview=false;$('cameraText').textContent=t('Översikt');setIcon($('cameraIcon'),'map')}
 }
 function updateSink(dt){
   const t=(sink.t+=dt),once=(name,at)=>t>=at&&!sink.events.has(name)&&sink.events.add(name);
@@ -439,7 +443,7 @@ function updateSink(dt){
   if(critter){
     if(once('pop',SINK.settle+.05)){audio.critter('pop');burst(CUP.x,course.cupHeight+.3,CUP.z,0xffffff,10,.5)}
     if(once('gulp',SINK.gulp)){audio.critter('gulp')}
-    if(once('munch',SINK.swallowed)){audio.critter('munch');toast(LEVEL.theme==='forest'?'MUMS! sa mullvaden ✦':LEVEL.theme==='clockwork'?'KUKU! Gött! ✦':LEVEL.theme==='halloween'?'HEHEHE! Skeletthanden tog bollen ✦':'BLIPP! Smaskens ✦',1600);burst(CUP.x,course.cupHeight+1.1,CUP.z,0xffd264,28,1.2)}
+    if(once('munch',SINK.swallowed)){audio.critter('munch');toast(LEVEL.theme==='forest'?t('MUMS! sa mullvaden ✦'):LEVEL.theme==='clockwork'?t('KUKU! Gött! ✦'):LEVEL.theme==='halloween'?t('HEHEHE! Skeletthanden tog bollen ✦'):t('BLIPP! Smaskens ✦'),1600);burst(CUP.x,course.cupHeight+1.1,CUP.z,0xffd264,28,1.2)}
     if(once('duck',SINK.duck))audio.critter('duck');
   }
   if(t>=(critter?SINK.done:SINK.settle+.25))finishSink();
@@ -450,9 +454,9 @@ function finishSink(){
 // The stroke cap in a match: the hole counts as the cap and the player waits for the others.
 function capHole(){
   state.phase='win';state.vx=0;state.vz=0;updateUI();
-  $('winStars').textContent=starText(0);$('winStarsNote').textContent=`${STROKE_CAP} slag är max i en match`;
-  $('winStrokes').textContent=STROKE_CAP;$('winTitle').innerHTML='TIO<br><em>SLAG</em>';
-  $('winText').textContent='Hålet räknas som tio slag. Nästa hål blir bättre!';
+  $('winStars').textContent=starText(0);$('winStarsNote').textContent=t('{n} slag är max i en match',{n:STROKE_CAP});
+  $('winStrokes').textContent=STROKE_CAP;$('winTitle').innerHTML=t('TIO<br><em>SLAG</em>');
+  $('winText').textContent=t('Hålet räknas som tio slag. Nästa hål blir bättre!');
   $('win').classList.remove('hidden');mp.finishHole(STROKE_CAP);
 }
 function win(){
@@ -465,12 +469,12 @@ function win(){
   if(!QA){if(state.strokes<best)localStorage.setItem(LEVEL.recordKey,String(state.strokes));recordRunHole(localStorage,SELECTION.slot,state.strokes)}
   updateUI();
   const bestNow=bestStars(localStorage,LEVEL);
-  $('winStars').textContent=starText(stars);$('winStars').setAttribute('aria-label',`${stars} av 3 stjärnor`);
-  $('winStarsNote').textContent=stars===3?'Alla tre stjärnorna!':bestNow>stars?`Ditt bästa: ${starText(bestNow)}`:stars===2?'Birdie ger tre stjärnor':stars===1?'Par ger två stjärnor':'Bogey ger en stjärna';
+  $('winStars').textContent=starText(stars);$('winStars').setAttribute('aria-label',t('{n} av 3 stjärnor',{n:stars}));
+  $('winStarsNote').textContent=stars===3?t('Alla tre stjärnorna!'):bestNow>stars?t('Ditt bästa: {stars}',{stars:starText(bestNow)}):stars===2?t('Birdie ger tre stjärnor'):stars===1?t('Par ger två stjärnor'):t('Bogey ger en stjärna');
   $('winStrokes').textContent=state.strokes;
-  $('winTitle').innerHTML=state.strokes===1?'HOLE IN<br><em>ONE!</em>':state.strokes<=LEVEL.par-2?'EAGLE!<br><em>✦ ✦ ✦</em>':state.strokes===LEVEL.par-1?'BIRDIE!<br><em>✦ ✦</em>':state.strokes===LEVEL.par?'PÅ PAR!<br><em>✦</em>':'I MÅL<br><em>SNYGGT!</em>';
-  $('winText').textContent=state.strokes<LEVEL.par?`Du slog par med ${LEVEL.par-state.strokes} slag. Snyggt jobbat!`:state.strokes===LEVEL.par?'Precis på par. En stark runda!':'Flaggan är din – dags för ett nytt försök?';
-  if(SELECTION.slot?.finale)$('winText').textContent+=` Du klarade ${SELECTION.slot.world.finale}!`;
+  $('winTitle').innerHTML=state.strokes===1?t('HOLE IN<br><em>ONE!</em>'):state.strokes<=LEVEL.par-2?t('EAGLE!<br><em>✦ ✦ ✦</em>'):state.strokes===LEVEL.par-1?t('BIRDIE!<br><em>✦ ✦</em>'):state.strokes===LEVEL.par?t('PÅ PAR!<br><em>✦</em>'):t('I MÅL<br><em>SNYGGT!</em>');
+  $('winText').textContent=state.strokes<LEVEL.par?plural(LEVEL.par-state.strokes,'Du slog par med 1 slag. Snyggt jobbat!','Du slog par med {n} slag. Snyggt jobbat!'):state.strokes===LEVEL.par?t('Precis på par. En stark runda!'):t('Flaggan är din – dags för ett nytt försök?');
+  if(SELECTION.slot?.finale)$('winText').textContent+=' '+t('Du klarade {finale}!',{finale:SELECTION.slot.world.finale});
   $('win').classList.remove('hidden');
   burst(CUP.x,.6,CUP.z,0xffd264,55,1.7);burst(CUP.x,.6,CUP.z,0xf47761,30,1.2);
   // The world finale on the moon ends with fireworks over the summit.
@@ -489,7 +493,7 @@ function celebratePins(indices){
     const pin=LEVEL.pins[i];burst(pin.x,.7,pin.z,0xffa5d3,10,.7);
   }
   sound(320+count*70,.14,'triangle',.08,1.5);
-  if(state.phase!=='win')toast(count===pinStates.length?'ALLA KÄGLOR! ✦':`${count} / ${pinStates.length} KÄGLOR!`,1100);
+  if(state.phase!=='win')toast(count===pinStates.length?t('ALLA KÄGLOR! ✦'):t('{count} / {all} KÄGLOR!',{count,all:pinStates.length}),1100);
   if(count===pinStates.length)course?.carnival?.celebrate();
 }
 function physics(dt){
@@ -505,8 +509,8 @@ function physics(dt){
   bridgeAngle=stepBridge(bridgeAngle,state,LEVEL.bridge,dt);
   if(['idle','power','accuracy','moving'].includes(state.phase))carryOnClockHand(state,crownTime,crownTime+dt,LEVEL.clockHand);
   if(!['intro','win'].includes(state.phase))crownTime+=dt;
-  if(['idle','power','accuracy','moving'].includes(state.phase)&&!supportedByClockHand(state.x,state.z,crownTime,LEVEL.clockHand)){doFall(undefined,'Ner i urverket! +1 pliktslag');return}
-  if(['idle','power','accuracy','moving'].includes(state.phase)&&!supportedByTrapdoors(state.x,state.z,crownTime,LEVEL.trapdoors)){doFall(undefined,'Rotluckan öppnades! +1 pliktslag');return}
+  if(['idle','power','accuracy','moving'].includes(state.phase)&&!supportedByClockHand(state.x,state.z,crownTime,LEVEL.clockHand)){doFall(undefined,t('Ner i urverket! +1 pliktslag'));return}
+  if(['idle','power','accuracy','moving'].includes(state.phase)&&!supportedByTrapdoors(state.x,state.z,crownTime,LEVEL.trapdoors)){doFall(undefined,t('Rotluckan öppnades! +1 pliktslag'));return}
   pendulumTime+=dt;cometTime+=dt;wheelTime+=dt;pendulumHitCooldown=Math.max(0,pendulumHitCooldown-dt);
   // A ball parked in the swing's path remains physical, including while aiming.
   if(['idle','power','accuracy'].includes(state.phase)&&collidePendulum(state,LEVEL.pendulum,pendulumTime)){
@@ -583,15 +587,15 @@ function physics(dt){
       }
       doFall(surfaceHeight(previous.x,previous.z));return;
     }
-    if(!supportedByClockHand(state.x,state.z,crownTime,LEVEL.clockHand)){doFall(undefined,'Missad visarbrygga! +1 pliktslag');return}
-    if(!supportedByTrapdoors(state.x,state.z,crownTime,LEVEL.trapdoors)){doFall(undefined,'Rotluckan öppnades! +1 pliktslag');return}
+    if(!supportedByClockHand(state.x,state.z,crownTime,LEVEL.clockHand)){doFall(undefined,t('Missad visarbrygga! +1 pliktslag'));return}
+    if(!supportedByTrapdoors(state.x,state.z,crownTime,LEVEL.trapdoors)){doFall(undefined,t('Rotluckan öppnades! +1 pliktslag'));return}
     gates.forEach((gate,i)=>{if(collideGate(state,gate,gateClocks[i]))sound(190,.08,'triangle',.04,.8)});
     if(SPINNER)collideSpinner(state,(SPINNER.custom==='thorn'?crownTime:elapsed)*SPINNER.speed);
     (LEVEL.bumpers||[]).forEach((bumper,i)=>{
       if(collideBumper(state,bumper)){
         if(course?.bumpers[i])course.bumpers[i].pulse=1;
         sound(680,.16,'sine',.09,1.7);burst(bumper.x,.65,bumper.z,0xffa7dc,12,.8);
-        toast(LEVEL.bumperToast??(LEVEL.clockWheel?'KLANG!':'FLIPPER!'),850);state.settle=0;
+        toast(LEVEL.bumperToast??(LEVEL.clockWheel?t('KLANG!'):t('FLIPPER!')),850);state.settle=0;
       }
     });
     (LEVEL.pins||[]).forEach((pin,i)=>{
@@ -607,7 +611,7 @@ function physics(dt){
       if(springCooldowns[i]>0||!padTriggers(state,spring))return;
       springCooldowns[i]=2;state.boost=.42;springImpulse(state,spring);course?.rocketPads?.fire(i);
       state.aim=Math.atan2(state.vz,state.vx);state.shotAge=0;state.settle=0;
-      toast(LEVEL.springToasts?.[i]??(SPRINGS.length>1?`STUDS ${i+1}!`:'STUDSPLATTA!'),1300);
+      toast(LEVEL.springToasts?.[i]??(SPRINGS.length>1?t('STUDS {n}!',{n:i+1}):t('STUDSPLATTA!')),1300);
       sound(380,.26,'sine',.1,2.8);burst(spring.x,.25,spring.z,0xffd36c,17,1.1);
     });
     if(shouldSink(state,CUP)){startSink();return}
@@ -621,7 +625,7 @@ function physics(dt){
     if(result==='land'){
       state.settle=0;state.shotAge=0;setPhase('moving');
       sound(180,.14,'triangle',.08,.8);burst(state.x,surfaceHeight(state.x,state.z)+.2,state.z,0xc8b6ff,16,.7);
-    }else if(result==='lost')doFall(state.floatY-floatDrop(state.float),'Ut i rymden! +1 pliktslag');
+    }else if(result==='lost')doFall(state.floatY-floatDrop(state.float),t('Ut i rymden! +1 pliktslag'));
   }else if(state.phase==='elevator'){
     if(stepLift(state,liftState,LEVEL.lift,dt)){
       state.aim=0;state.shotAge=0;state.settle=0;setPhase('moving');
@@ -646,7 +650,7 @@ function physics(dt){
       const returned=loopPosition.returned,rolledBack=returned===(loopRide.entryDirection>0);
       state.x+=returned?-.03:.03;state.vx=loopRide.speed;state.vz=loopRide.sideSpeed;
       state.settle=0;state.shotAge=0;setPhase('moving');
-      toast(rolledBack?'För lite fart – tillbaka till ansatsen':LEVEL.loop.exitToast||'ROTVOLT! ↻ Bromsa före kanten',1800);
+      toast(rolledBack?t('För lite fart – tillbaka till ansatsen'):LEVEL.loop.exitToast||t('ROTVOLT! ↻ Bromsa före kanten'),1800);
       sound(rolledBack?140:640,.25,'triangle',.09,rolledBack?.6:1.4);
       if(!rolledBack)burst(state.x,.7,state.z,0xffd884,22,.9);
       loopRide=null;loopPosition=null;
@@ -662,7 +666,7 @@ function physics(dt){
     if(fromDrum&&LEVEL.treeEye){
       // Only the tunnel lets a flight through the Mother Tree.
       const pass=crossTreeEye(previous,p,LEVEL.treeEye);
-      if(pass==='bark'){state.x=previous.x;state.z=previous.z;doFall(previous.y,'Rakt i barken! +1 pliktslag');return}
+      if(pass==='bark'){state.x=previous.x;state.z=previous.z;doFall(previous.y,t('Rakt i barken! +1 pliktslag'));return}
       if(pass==='eye'&&!hoopHit){
         hoopHit=true;course?.motherTree?.celebrate();toast('GENOM ÖGAT! ✦',1300);
         sound(660,.3,'sine',.09,1.6);burst(p.x,p.y+.4,p.z,0xffd884,26,1.1);
@@ -691,7 +695,7 @@ function physics(dt){
     const c=LEVEL.cometCannon;state.flight+=dt;
     const pose=cometPose(c,state.cometAngle,state.flight,state.cometRange);state.x=pose.x;state.z=pose.z;
     if(pose.done){
-      if(!onCourse(state.x,state.z)){state.reload=true;doFall(0,'Kometen for ut i rymden! +1 pliktslag');return}
+      if(!onCourse(state.x,state.z)){state.reload=true;doFall(0,t('Kometen for ut i rymden! +1 pliktslag'));return}
       const v=landingVelocity(c,state.cometAngle);state.vx=v.vx;state.vz=v.vz;state.settle=0;state.shotAge=0;setPhase('moving');
       toast('LANDNING! ✦',900);burst(state.x,.3,state.z,0xffd264,26,1.2);sound(200,.14,'triangle',.1,.7);
     }
@@ -808,12 +812,12 @@ function draw(dt){
     course.clockHand?.update(crownTime,phase==='win',elapsed);
     if(LEVEL.clockHand){
       const signal=clockHandPose(crownTime,LEVEL.clockHand).signal;
-      $('routeDetail0').textContent={green:'Rak bro · läge för kraftslag',amber:'Snart vridning · vänta',red:'Passagen stängd · invänta grönt'}[signal];
+      $('routeDetail0').textContent={green:t('Rak bro · läge för kraftslag'),amber:t('Snart vridning · vänta'),red:t('Passagen stängd · invänta grönt')}[signal];
       $('routeDetail0').style.color={green:'#a1ecc4',amber:'#f4ca7f',red:'#edbba5'}[signal];
     }
     if(LEVEL.clockWheel){
       const signal=wheelSignal(crownTime,LEVEL.clockWheel);
-      $('routeDetail0').textContent={green:'Öppning vid golvet',amber:'Öppningen passerar',red:'Vänta på nästa öppning'}[signal];
+      $('routeDetail0').textContent={green:t('Öppning vid golvet'),amber:t('Öppningen passerar'),red:t('Vänta på nästa öppning')}[signal];
       $('routeDetail0').style.color={green:'#a1ecc4',amber:'#f4ca7f',red:'#edbba5'}[signal];
     }
     course.carnival?.update(dt,elapsed,pinStates);course.motherTree?.update(dt,elapsed);course.rocketPads?.update(dt);course.blackHole?.update(dt,elapsed);
@@ -900,7 +904,7 @@ function draw(dt){
   if(phase==='moving'&&state.shotAge<1.15){
     const v=new THREE.Vector3(state.x,ballHeight+1.1,state.z).project(activeCamera);
     label.style.left=`${(v.x*.5+.5)*innerWidth}px`;label.style.top=`${(-v.y*.5+.5)*innerHeight}px`;
-    label.textContent=`SLAG ${state.strokes}`;label.style.opacity=String(Math.min(1,(1.15-state.shotAge)*2));
+    label.textContent=t('SLAG {n}',{n:state.strokes});label.style.opacity=String(Math.min(1,(1.15-state.shotAge)*2));
   }else label.style.opacity='0';
 }
 function frame(){
@@ -924,7 +928,7 @@ function frame(){
     phase:state.phase,putting:puttEnabled&&!!nearPutt,shots:state.strokes,aimMoved:Math.abs(state.aim-aimAtIdle)>.12,overview:cameraOverview,
   },elapsed);
   if(state.phase==='accuracy')state.needle=precisionAt(elapsed-state.accuracyStart);
-  $('meterValue').textContent=state.phase==='accuracy'?'Pricka grönt':state.phase==='power'?(puttEnabled?`${puttLength.toFixed(1).replace('.',',')} m`:`${state.power>.82?'MAXKRAFT · ':''}${Math.round(state.power*100)} %`):'';
+  $('meterValue').textContent=state.phase==='accuracy'?t('Pricka grönt'):state.phase==='power'?(puttEnabled?`${num(puttLength)} m`:`${state.power>.82?t('MAXKRAFT')+' · ':''}${Math.round(state.power*100)} %`):'';
   const zone=perfectZone(state.power);
   $('meter').style.setProperty('--sweet-start',`${50-zone*50}%`);
   $('meter').style.setProperty('--sweet-end',`${50+zone*50}%`);
@@ -978,7 +982,7 @@ window.addEventListener('keydown',e=>{
   // Typing a name or a room code: the letters are text, not game keys.
   const field=e.target instanceof HTMLElement?e.target:null;
   if(field&&(field.isContentEditable||field instanceof HTMLTextAreaElement||(field instanceof HTMLInputElement&&!['range','checkbox','radio','button'].includes(field.type))))return;
-  if(e.code==='KeyM'&&!e.repeat){applySound({on:!audioSettings.on});toast(audioSettings.on?'Ljudet på':'Ljudet av',1000);return}
+  if(e.code==='KeyM'&&!e.repeat){applySound({on:!audioSettings.on});toast(audioSettings.on?t('Ljudet på'):t('Ljudet av'),1000);return}
   if($('helpPanel').open||$('levelPanel').open||$('soundPanel').open||$('mpPanel').open)return;
   if(e.target instanceof HTMLInputElement&&['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(e.code))return;
   if(e.code==='Space'||e.code==='Enter'){
@@ -1037,7 +1041,7 @@ applySound();
 window.addEventListener('resize',resize);
 document.addEventListener('visibilitychange',()=>audio.setHidden(document.hidden));
 
-const recordText=level=>{const best=localStorage.getItem(level.recordKey);return best?`${starText(bestStars(localStorage,level))} · Bästa ${best}`:'Inget rekord'};
+const recordText=level=>{const best=localStorage.getItem(level.recordKey);return best?`${starText(bestStars(localStorage,level))} · ${t('Bästa {n}',{n:best})}`:t('Inget rekord')};
 function openLevels(){
   if(['power','accuracy'].includes(state.phase)){state.power=0;setPhase('idle')}
   aimKeys.clear();
@@ -1056,18 +1060,18 @@ function holeCard(slot){
   const number=holeLabel(slot.hole);
   if(slot.placeholder)return `<div class="hole-card placeholder" title="${slot.placeholder.idea}">
       <span class="hole-number">${number}</span><strong>${slot.placeholder.name}</strong>
-      <small>${slot.placeholder.idea}</small><span class="hole-status">Byggs</span></div>`;
+      <small>${slot.placeholder.idea}</small><span class="hole-status">${t('Byggs')}</span></div>`;
   const {level}=slot;
   return `<a id="level-${level.id}" href="?hole=${slot.hole}" class="hole-card" data-world="${slot.world.key}">
       <span class="hole-number">${number}</span><strong>${level.name}</strong>
-      <small>${level.feature}</small><span class="hole-meta">PAR ${level.par}${slot.finale?' · FINAL':''} · <span id="record-${level.id}">Inget rekord</span></span></a>`;
+      <small>${level.feature}</small><span class="hole-meta">PAR ${level.par}${slot.finale?' · '+t('FINAL'):''} · <span id="record-${level.id}">${t('Inget rekord')}</span></span></a>`;
 }
-const worldRange=(world,w)=>`${world.label?`${world.label} · `:''}HÅL ${holeLabel(w*6+1)}–${holeLabel(w*6+6)}`;
+const worldRange=(world,w)=>`${world.label?`${world.label} · `:''}${t('HÅL {from}–{to}',{from:holeLabel(w*6+1),to:holeLabel(w*6+6)})}`;
 // Special worlds (Spökhamnen) are shown first while they are in season.
 const menuOrder=()=>WORLDS.map((world,w)=>[world,w]).sort(([a],[b])=>!!b.special-!!a.special);
 function worldSection([world,w]){
   const slots=ROUND.filter(slot=>slot.world===world),mine=worldProgress(localStorage,world);
-  const status=mine.played===mine.total?'Klarad ✓':mine.played?`${mine.played} av ${mine.total} klarade`:'Inte spelad',built=mine.played===mine.total?6:0;
+  const status=mine.played===mine.total?t('Klarad ✓'):mine.played?t('{played} av {total} klarade',mine):t('Inte spelad'),built=mine.played===mine.total?6:0;
   return `<section class="world-section" data-world="${world.key}">
     <header><div><span class="world-range">${worldRange(world,w)}</span><h3>${world.name}</h3></div>
     <span class="world-badges"><span id="stars-${world.key}" class="world-stars"></span><span class="world-status${built===6?' done':''}">${status}</span></span></header>
@@ -1078,27 +1082,30 @@ function configureMenu(){
   const campaign=campaignProgress(localStorage);
   $('menuWorlds').innerHTML=menuOrder().map(([world,w])=>{const built=builtCount(world),mine=worldProgress(localStorage,world);
     return `<div class="menu-world${world.special?' special':''}" data-world="${world.key}"><div class="menu-world-head"><strong>${world.name}</strong><span>${worldRange(world,w)}</span></div>
-      <div class="menu-progress" role="img" aria-label="${mine.played} av ${mine.total} hål klarade">${ROUND.filter(s=>s.world===world).map(s=>`<i class="${s.level&&localStorage.getItem(s.level.recordKey)?'built':''}"></i>`).join('')}</div>
-      <small>${mine.played===mine.total?'Klarad ✓':mine.played?`${mine.played} av ${mine.total} klarade`:'Inte spelad'} · ${world.tagline}</small>
-      ${built?`<div class="menu-world-foot"><span class="world-stars">${worldStars(localStorage,world).stars}/${worldStars(localStorage,world).max} ★</span><button class="world-play" data-world="${world.key}">Spela ${built} hål <span>→</span></button></div>`:''}</div>`}).join('');
+      <div class="menu-progress" role="img" aria-label="${t('{played} av {total} hål klarade',mine)}">${ROUND.filter(s=>s.world===world).map(s=>`<i class="${s.level&&localStorage.getItem(s.level.recordKey)?'built':''}"></i>`).join('')}</div>
+      <small>${mine.played===mine.total?t('Klarad ✓'):mine.played?t('{played} av {total} klarade',mine):t('Inte spelad')} · ${world.tagline}</small>
+      ${built?`<div class="menu-world-foot"><span class="world-stars">${worldStars(localStorage,world).stars}/${worldStars(localStorage,world).max} ★</span><button class="world-play" data-world="${world.key}">${t('Spela {n} hål',{n:built})} <span>→</span></button></div>`:''}</div>`}).join('');
   $('menuWorlds').querySelectorAll('.world-play').forEach(button=>button.addEventListener('click',()=>{
     const first=startWorldRun(localStorage,WORLDS.find(world=>world.key===button.dataset.world));
     location.href=`?hole=${first.hole}`;
   }));
-  $('menuProgress').innerHTML=`<strong>★ ${campaign.stars}</strong><span>av ${campaign.max} stjärnor · ${campaign.played} av ${campaign.total} hål klarade</span>`;
-  $('menuSummary').textContent=campaign.complete?'Kampanjen klar! Jaga de stjärnor som fattas.':`${campaign.total-campaign.played} hål kvar till kampanjens slut`;
+  $('menuProgress').innerHTML=`<strong>★ ${campaign.stars}</strong><span>${t('av {max} stjärnor · {played} av {total} hål klarade',campaign)}</span>`;
+  $('menuSummary').textContent=campaign.complete?t('Kampanjen klar! Jaga de stjärnor som fattas.'):plural(campaign.total-campaign.played,'1 hål kvar till kampanjens slut','{n} hål kvar till kampanjens slut');
   $('menuEnding').hidden=!campaign.complete;
   const unplayed=CAMPAIGN.find(slot=>slot.level&&!localStorage.getItem(slot.level.recordKey));
-  if(unplayed&&unplayed.hole>1){$('menuContinue').hidden=false;$('menuContinue').href=`?hole=${unplayed.hole}`;$('menuContinue').innerHTML=`<i data-icon="arrow"></i>Fortsätt · Hål ${holeLabel(unplayed.hole)} ${unplayed.level.name}`;hydrateIcons($('menuContinue'))}
-  if(SELECTION.missing){$('menuNotice').hidden=false;$('menuNotice').textContent=`Hål ${holeLabel(SELECTION.missing.hole)} · ${SELECTION.missing.placeholder.name} byggs fortfarande.`}
+  if(unplayed&&unplayed.hole>1){$('menuContinue').hidden=false;$('menuContinue').href=`?hole=${unplayed.hole}`;$('menuContinue').innerHTML=`<i data-icon="arrow"></i>${t('Fortsätt · Hål {hole} {name}',{hole:holeLabel(unplayed.hole),name:unplayed.level.name})}`;hydrateIcons($('menuContinue'))}
+  if(SELECTION.missing){$('menuNotice').hidden=false;$('menuNotice').textContent=t('Hål {hole} · {name} byggs fortfarande.',{hole:holeLabel(SELECTION.missing.hole),name:SELECTION.missing.placeholder.name})}
 }
 $('menuPlay').addEventListener('click',()=>{
   endWorldRun(localStorage);
   history.replaceState(null,'','?hole=1');
-  document.title=`${LEVEL.name} · Hål 01`;
+  document.title=`${LEVEL.name} · ${t('Hål {n}',{n:'01'})}`;
   $('menu').classList.add('hidden');$('intro').classList.remove('hidden');$('playButton').focus();
 });
 $('menuLevels').addEventListener('click',openLevels);
+// The language: native names, a reload on change.
+$('menuLanguage').innerHTML=LANGUAGES.map(l=>`<button data-lang="${l.code}" title="${l.name}" aria-label="${l.name}"${l.code===lang?' class="active" aria-pressed="true"':' aria-pressed="false"'}><span aria-hidden="true">${l.flag}</span><b>${l.code.toUpperCase()}</b></button>`).join('');
+$('menuLanguage').addEventListener('click',e=>{const b=e.target.closest('[data-lang]');if(b&&b.dataset.lang!==lang)setLanguage(b.dataset.lang)});
 $('menuFriends').hidden=!mp.available;
 $('menuFriends').addEventListener('click',()=>mp.openLobby());
 $('menuHelp').addEventListener('click',()=>$('helpPanel').showModal());
@@ -1107,15 +1114,15 @@ $('menuEnding').addEventListener('click',()=>{$('menu').classList.add('hidden');
 
 function configureLevelUI(){
   const campaign=campaignProgress(localStorage);
-  $('levelSummary').textContent=`${campaign.played} av ${campaign.total} hål klarade · ★ ${campaign.stars} av ${campaign.max} stjärnor`;
+  $('levelSummary').textContent=t('{played} av {total} hål klarade · ★ {stars} av {max} stjärnor',campaign);
   $('levelOptions').innerHTML=menuOrder().map(worldSection).join('');
   const number=holeLabel(SELECTION.slot.hole);
-  const holeText=`HÅL ${number}`;
+  const holeText=t('HÅL {n}',{n:number});
   const theme=themeFor(LEVEL.id);
   document.documentElement.dataset.theme=theme.key;
   document.documentElement.dataset.hole=LEVEL.id;
   const run=activeRun(localStorage,SELECTION.slot);
-  if(run){const holes=ROUND.filter(slot=>slot.world===SELECTION.slot.world&&slot.level);$('worldName').textContent=`${theme.name} · hål ${holes.indexOf(SELECTION.slot)+1} av ${holes.length}`}
+  if(run){const holes=ROUND.filter(slot=>slot.world===SELECTION.slot.world&&slot.level);$('worldName').textContent=`${theme.name} · ${t('hål {n} av {all}',{n:holes.indexOf(SELECTION.slot)+1,all:holes.length})}`}
   else $('worldName').textContent=theme.name;
   $('introWorld').textContent=`${SELECTION.slot.world.name} · ${theme.range}`;
   $('meter').style.setProperty('--sweet-start',`${50-PERFECT_ZONE*50}%`);
@@ -1123,18 +1130,18 @@ function configureLevelUI(){
   $('meter').style.setProperty('--sweet-width',`${PERFECT_ZONE*100}%`);
   configureNext();
 
-  document.title=SELECTION.menu?'Mini Mayhem':`${LEVEL.name} · Hål ${number}`;
+  document.title=SELECTION.menu?'Mini Mayhem':`${LEVEL.name} · ${t('Hål {n}',{n:number})}`;
   $('holeNumber').textContent=number;$('holeName').textContent=LEVEL.name.toUpperCase();
   $('parCount').textContent=LEVEL.par;
-  $('introKicker').textContent=mp.inMatch()?mp.holeLabel():SELECTION.slot.finale?`${SELECTION.slot.world.finale.toUpperCase()} · ${holeText}`:`VÄLKOMMEN TILL ${holeText}`;
+  $('introKicker').textContent=mp.inMatch()?mp.holeLabel():SELECTION.slot.finale?`${SELECTION.slot.world.finale.toUpperCase()} · ${holeText}`:t('VÄLKOMMEN TILL {hole}',{hole:holeText});
   // A match cannot be restarted hole by hole: the reset button is gone and the
   // way onward is the room's, not the round's.
   $('resetButton').hidden=mp.inMatch();$('mpReact').hidden=!mp.inMatch();
   $('introTitle').innerHTML=`${LEVEL.title[0]}<br><em>${LEVEL.title[1]}</em><span class="title-star">✦</span>`;
   $('introDescription').textContent=LEVEL.description;
   $('featureBadge').textContent=LEVEL.feature.toUpperCase();$('parBadge').textContent=`⛳ PAR ${LEVEL.par}`;
-  $('playButton').innerHTML=`SPELA ${holeText} <span>→</span>`;
-  $('routeHeading').textContent=LEVEL.routeHeading||'TVÅ VÄGAR TILL FLAGGAN';
+  $('playButton').innerHTML=`${t('SPELA {hole}',{hole:holeText})} <span>→</span>`;
+  $('routeHeading').textContent=LEVEL.routeHeading||t('TVÅ VÄGAR TILL FLAGGAN');
   LEVEL.routes.forEach(([title,detail],i)=>{$(`routeTitle${i}`).textContent=title;$(`routeDetail${i}`).textContent=detail});
   $(`level-${LEVEL.id}`).setAttribute('aria-current','true');
   configureMenu();
@@ -1152,31 +1159,31 @@ function configureNext(){
   const run=activeRun(localStorage,SELECTION.slot);
   if(run){
     const next=nextRunHole(SELECTION.slot);
-    if(next)show(`?hole=${next.hole}`,`Nästa hål · ${holeLabel(next.hole)} ${next.level.name}`);
-    else show('#resultat',`Resultat för ${SELECTION.slot.world.name}`);
+    if(next)show(`?hole=${next.hole}`,t('Nästa hål · {hole} {name}',{hole:holeLabel(next.hole),name:next.level.name}));
+    else show('#resultat',t('Resultat för {world}',{world:SELECTION.slot.world.name}));
     return;
   }
-  if(isCampaignFinale(SELECTION.slot)){show('#slutet','Kampanjens slut ✦');return}
+  if(isCampaignFinale(SELECTION.slot)){show('#slutet',t('Kampanjens slut ✦'));return}
   const {slot,skipped}=nextInRound(SELECTION.slot.hole);
-  if(slot)show(`?hole=${slot.hole}`,`${slot.world===SELECTION.slot.world?'Nästa hål':`Vidare till ${slot.world.name}`} · ${holeLabel(slot.hole)} ${slot.level.name}`);
-  else show('./','Till menyn');
+  if(slot)show(`?hole=${slot.hole}`,`${slot.world===SELECTION.slot.world?t('Nästa hål'):t('Vidare till {world}',{world:slot.world.name})} · ${holeLabel(slot.hole)} ${slot.level.name}`);
+  else show('./',t('Till menyn'));
   if(skipped.length){
     note.hidden=false;
-    note.textContent=skipped.length===1?`Hål ${holeLabel(skipped[0].hole)} byggs fortfarande och hoppas över.`:`Hål ${holeLabel(skipped[0].hole)}–${holeLabel(skipped.at(-1).hole)} byggs fortfarande.`;
+    note.textContent=skipped.length===1?t('Hål {hole} byggs fortfarande och hoppas över.',{hole:holeLabel(skipped[0].hole)}):t('Hål {from}–{to} byggs fortfarande.',{from:holeLabel(skipped[0].hole),to:holeLabel(skipped.at(-1).hole)});
   }
 }
 
 // The world scorecard: every built hole of the world, its score and its stars.
 function openScorecard(){
   const world=SELECTION.slot.world,card=runScorecard(activeRun(localStorage,SELECTION.slot)??{scores:{}},world);
-  $('scoreKicker').textContent=card.complete?`${world.name.toUpperCase()} KLAR!`:world.name.toUpperCase();
-  $('scoreTitle').innerHTML=card.stars===card.max?'PERFEKT<br><em>★★★</em>':'RESULTAT';
-  $('scoreRows').innerHTML=card.rows.map(row=>`<div class="score-row${row.strokes?'':' missing'}"><span>${holeLabel(row.slot.hole)}</span><strong>${row.slot.level.name}</strong><small>Par ${row.par}</small><b>${row.strokes??'–'}</b><em>${starText(row.stars)}</em></div>`).join('');
+  $('scoreKicker').textContent=card.complete?t('{world} KLAR!',{world:world.name.toUpperCase()}):world.name.toUpperCase();
+  $('scoreTitle').innerHTML=card.stars===card.max?t('PERFEKT<br><em>★★★</em>'):t('RESULTAT');
+  $('scoreRows').innerHTML=card.rows.map(row=>`<div class="score-row${row.strokes?'':' missing'}"><span>${holeLabel(row.slot.hole)}</span><strong>${row.slot.level.name}</strong><small>${t('Par {n}',{n:row.par})}</small><b>${row.strokes??'–'}</b><em>${starText(row.stars)}</em></div>`).join('');
   const diff=card.strokes-card.par;
-  $('scoreStrokes').textContent=card.strokes;$('scoreVsPar').textContent=diff===0?'på par':diff<0?`${-diff} under par`:`${diff} över par`;
-  $('scoreStars').textContent=card.stars;$('scoreStarsMax').textContent=`av ${card.max}`;
+  $('scoreStrokes').textContent=card.strokes;$('scoreVsPar').textContent=diff===0?t('på par'):diff<0?t('{n} under par',{n:-diff}):t('{n} över par',{n:diff});
+  $('scoreStars').textContent=card.stars;$('scoreStarsMax').textContent=t('av {n}',{n:card.max});
   const missing=card.max-card.stars;
-  $('scoreText').textContent=missing===0?'Alla stjärnor i världen. Mästarklass!':`${missing} ${missing===1?'stjärna':'stjärnor'} kvar att hämta. Hål med tomma stjärnor är värda ett nytt försök.`;
+  $('scoreText').textContent=missing===0?t('Alla stjärnor i världen. Mästarklass!'):plural(missing,'{n} stjärna kvar att hämta. Hål med tomma stjärnor är värda ett nytt försök.','{n} stjärnor kvar att hämta. Hål med tomma stjärnor är värda ett nytt försök.');
   $('scoreEnding').hidden=!isCampaignFinale(SELECTION.slot);
   $('win').classList.add('hidden');$('scorecard').classList.remove('hidden');($('scoreEnding').hidden?$('scoreAgain'):$('scoreEnding')).focus();
 }
@@ -1186,18 +1193,18 @@ function openScorecard(){
 let endingFireworks=null;
 function openEnding(){
   const p=campaignProgress(localStorage),diff=p.strokes-p.par;
-  $('endingKicker').textContent=p.complete?'MINI MAYHEM · ALLA 18 HÅL':'MINI MAYHEM';
-  $('endingTitle').innerHTML=p.complete?(p.stars===p.max?'MÄSTARE<br><em>★★★</em>':'KAMPANJEN<br><em>KLAR!</em>'):'NÄSTAN<br><em>I MÅL</em>';
-  $('endingStars').textContent=p.stars;$('endingStarsMax').textContent=`av ${p.max} ★`;
+  $('endingKicker').textContent=p.complete?t('MINI MAYHEM · ALLA 18 HÅL'):'MINI MAYHEM';
+  $('endingTitle').innerHTML=p.complete?(p.stars===p.max?t('MÄSTARE<br><em>★★★</em>'):t('KAMPANJEN<br><em>KLAR!</em>')):t('NÄSTAN<br><em>I MÅL</em>');
+  $('endingStars').textContent=p.stars;$('endingStarsMax').textContent=t('av {n}',{n:p.max})+' ★';
   $('endingText').textContent=p.complete
-    ?`Du har klarat alla tre världarna på ${p.strokes} slag, ${diff===0?'precis på par':diff<0?`${-diff} under par`:`${diff} över par`}. ${p.stars===p.max?'Varenda stjärna. Ren mästarklass!':`${p.max-p.stars} stjärnor finns kvar att jaga.`}`
-    :`${p.total-p.played} ${p.total-p.played===1?'hål':'hål'} kvar innan hela kampanjen är klar.`;
-  $('endingWorlds').innerHTML=p.worlds.map(w=>{const d=w.strokes-w.par;return `<div class="ending-world"><strong>${w.world.name}</strong><small>${w.played===w.total?(d===0?'par':d<0?`${d}`:`+${d}`):`${w.played}/${w.total} hål`}</small><b>${w.stars}/${w.max} ★</b></div>`}).join('');
+    ?`${t('Du har klarat alla tre världarna på {n} slag, {vs}.',{n:p.strokes,vs:diff===0?t('precis på par'):diff<0?t('{n} under par',{n:-diff}):t('{n} över par',{n:diff})})} ${p.stars===p.max?t('Varenda stjärna. Ren mästarklass!'):plural(p.max-p.stars,'{n} stjärna finns kvar att jaga.','{n} stjärnor finns kvar att jaga.')}`
+    :plural(p.total-p.played,'1 hål kvar innan hela kampanjen är klar.','{n} hål kvar innan hela kampanjen är klar.');
+  $('endingWorlds').innerHTML=p.worlds.map(w=>{const d=w.strokes-w.par;return `<div class="ending-world"><strong>${w.world.name}</strong><small>${w.played===w.total?(d===0?t('par'):d<0?`${d}`:`+${d}`):t('{played}/{total} hål',w)}</small><b>${w.stars}/${w.max} ★</b></div>`}).join('');
   // Onward: an unplayed hole, then the first hole still missing stars.
   const hunt=p.holes.find(h=>h.stars<3)?.slot,next=p.next??hunt;
   const link=$('endingNext');
-  if(next){link.href=`?hole=${next.hole}`;link.innerHTML=`<span>${p.next?'Spela':'Jaga stjärnor ·'} hål ${holeLabel(next.hole)} ${next.level.name}</span><i data-icon="arrow"></i>`}
-  else{link.href='./';link.innerHTML='<span>Till menyn</span><i data-icon="arrow"></i>'}
+  if(next){link.href=`?hole=${next.hole}`;link.innerHTML=`<span>${t(p.next?'Spela hål {hole} {name}':'Jaga stjärnor · hål {hole} {name}',{hole:holeLabel(next.hole),name:next.level.name})}</span><i data-icon="arrow"></i>`}
+  else{link.href='./';link.innerHTML=`<span>${t('Till menyn')}</span><i data-icon="arrow"></i>`}
   hydrateIcons(link);
   $('win').classList.add('hidden');$('scorecard').classList.add('hidden');$('ending').classList.remove('hidden');link.focus();
   if(p.complete&&!endingFireworks&&!reducedCameraMotion){
@@ -1227,7 +1234,7 @@ function lockPortrait(){screen.orientation?.lock?.('portrait').catch(()=>{})}
 
 async function init(){
   hydrateIcons();
-  $('menuVersion').textContent=`Version ${APP_VERSION.label}`;
+  $('menuVersion').textContent=t('Version {v}',{v:APP_VERSION.label});
   watchForUpdates(showUpdate);
   configureLevelUI();resize();
   try{course=await createCourse(scene)}catch(error){console.error(error);toast('Vissa modeller kunde inte läsas.');}

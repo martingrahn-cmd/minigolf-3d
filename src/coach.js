@@ -2,14 +2,16 @@
 // shot happens, beside the control they talk about, and go away as soon as the
 // player has done the thing. Each tip is shown once; the help panel can bring
 // them back.
+import { t } from './i18n.js';
+
 const KEY='minimayhem-coach';
 
 export const TIPS={
-  aim:{text:'Dra över banan för att sikta. Prickarna visar vart bollen går.',anchor:'scene'},
-  power:{text:'Kraftmätaren går fram och tillbaka. Tryck igen när kraften känns rätt.',anchor:'meter'},
-  accuracy:{text:'Nu sveper nålen. Tryck när den är i det gröna fältet, så går slaget rakt.',anchor:'meter'},
-  overview:{text:'Översikt visar hela banan. Där kan du trycka precis dit du vill sikta.',anchor:'cameraButton',timeout:7},
-  putt:{text:'Nära hålet räknar mätaren i meter. Tryck när rulllängden stämmer, och pricka sedan grönt.',anchor:'meter'},
+  aim:{text:t('Dra över banan för att sikta. Prickarna visar vart bollen går.'),anchor:'scene'},
+  power:{text:t('Kraftmätaren går fram och tillbaka. Tryck igen när kraften känns rätt.'),anchor:'meter'},
+  accuracy:{text:t('Nu sveper nålen. Tryck när den är i det gröna fältet, så går slaget rakt.'),anchor:'meter'},
+  overview:{text:t('Översikt visar hela banan. Där kan du trycka precis dit du vill sikta.'),anchor:'cameraButton',timeout:7},
+  putt:{text:t('Nära hålet räknar mätaren i meter. Tryck när rulllängden stämmer, och pricka sedan grönt.'),anchor:'meter'},
 };
 
 // Which tip (if any) should show now, given what has been seen and the moment.
@@ -29,7 +31,7 @@ export function createCoach(storage,$){
   try{seen=new Set(JSON.parse(storage.getItem(KEY)||'[]'))}catch{seen=new Set()}
   const save=()=>{try{storage.setItem(KEY,JSON.stringify([...seen]))}catch{}};
   const bubble=document.createElement('div');bubble.className='coach';bubble.hidden=true;bubble.setAttribute('role','status');
-  bubble.innerHTML='<span class="coach-text"></span><button class="coach-ok" aria-label="Okej">Okej</button>';
+  bubble.innerHTML=`<span class="coach-text"></span><button class="coach-ok" aria-label="${t('Okej')}">${t('Okej')}</button>`;
   document.body.append(bubble);
   let current=null,shownAt=0;
   const done=key=>{if(!key)return;seen.add(key);save();if(current===key)hide()};

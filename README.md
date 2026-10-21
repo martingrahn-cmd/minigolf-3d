@@ -26,6 +26,16 @@ Rundans ordning och platshållarna finns i `src/round.js`. Banornas interna `id`
 - **Manifest och ikoner:** `public/manifest.webmanifest` och `public/icons/` gör att spelet kan läggas till på hemskärmen och då öppnas i helskärm utan webbläsarlist.
 - **Stående läge:** manifestet låser stående läge när spelet är installerat på Android. iOS tillåter inte låsning, så en liggande telefon får ett tips att vrida den, med knappen *Spela liggande ändå*.
 
+## Språk
+
+Spelet finns på **svenska**, **engelska** och **spanska** (latinamerikansk, med "tú"). Språket väljs med flaggorna uppe till höger i huvudmenyn och sparas på enheten. Första gången följer det enhetens språk, och annars blir det engelska. En länk kan också välja språk: `?lang=sv`, `?lang=en` eller `?lang=es`.
+
+- Svenskan är källtexten. Den skrivs direkt i koden och i `index.html`.
+- Översättningarna finns i `src/locales/en.js` och `src/locales/es.js`, med den svenska texten som nyckel.
+- I koden går texterna genom `t('Sikta')` och `t('Hål {n}',{n})` från `src/i18n.js`.
+- Sidans egna texter, hålen och världarna översätts när sidan laddas.
+- `node scripts/i18n-keys.mjs en` listar texter som saknar översättning. `tests/i18n.test.js` underkänner bygget om något fattas eller om en platshållare som `{n}` har tappats bort.
+
 ## Spela med vänner
 
 **Spela med vänner** i huvudmenyn öppnar ett rum för två till fyra spelare med varsin enhet. Värden väljer spelsätt. Med **Samtidigt** spelar alla samma hål på en gång och ser de andras bollar som färgade spökbollar. Med **Turordning** spelar en i taget medan de andra tittar, i en lottad ordning som flyttas ett steg per hål. Logiken beskrivs i [DESIGN.md](DESIGN.md#spela-med-vänner-upp-till-fyra).

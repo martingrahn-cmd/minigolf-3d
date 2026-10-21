@@ -28,8 +28,8 @@ export function roomCode(random=Math.random){
 export function normalizeCode(text=''){
   return String(text).toUpperCase().replace(/[^A-Z]/g,'').replace(/[IOQ]/g,'').slice(0,4);
 }
-export function cleanName(text=''){
-  return String(text).replace(/\s+/g,' ').trim().slice(0,14)||'Spelare';
+export function cleanName(text='',fallback='Spelare'){
+  return String(text).replace(/\s+/g,' ').trim().slice(0,14)||fallback;
 }
 
 // The players in the order they joined; the first four get a seat and a colour.
