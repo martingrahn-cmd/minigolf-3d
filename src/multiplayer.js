@@ -31,7 +31,7 @@ function savedName(){try{return localStorage.getItem(NAME_KEY)||''}catch{return 
 
 // `game` gives the controller what it needs from the page:
 //   {$, toast, hydrateIcons, worlds, round, hole, pars(match)->[par…], strokes(), onRemoteBall(player,ball),
-//    onMatchStart(), onTurnResult(player,strokes) (someone holed out), onReaction(player,emoji),
+//    onMatchStart(), onMatchEnd(won), onTurnResult(player,strokes) (someone holed out), onReaction(player,emoji),
 //    and for turns: onTurn(player,mine,{turn,turns,hole}), onRemoteShot(shot), onRemoteFire(fire),
 //    onRemoteReplay(log) (a turn under way, to catch up on), onTurnChange()}
 export function createMultiplayer(game){
@@ -252,6 +252,12 @@ export function createMultiplayer(game){
     $('mpResultTitle').innerHTML=winners.length>1?t('DELAD<br><em>SEGER!</em>'):`${escape(winners[0])}<br><em>${t('VANN!')}</em>`;
     const world=game.worlds.find(w=>w.key===match.world);$('mpResultWorld').textContent=`${world?.name??''} · ${t('{n} hål',{n:match.holes.length})}`;
     $('win').classList.add('hidden');$('mpResults').classList.remove('hidden');
+    // Once per match: the player's own result, for the trophies.
+    if(session.resultsSeen!==match.id){
+      session.resultsSeen=match.id;save();
+      const mine=rows.find(r=>r.player.id===me().id);
+      if(mine&&rows.length>1)game.onMatchEnd?.(mine.place===1);
+    }
   }
 
   // --- Wiring. ---

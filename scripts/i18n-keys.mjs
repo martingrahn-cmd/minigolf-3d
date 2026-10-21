@@ -60,6 +60,9 @@ export async function dataKeys(){
     else for(const [k,v] of Object.entries(value))walk(v,k);
   };
   walk(LEVELS);walk(WORLDS);
+  // The trophies' names and descriptions.
+  const {TROPHIES}=await import('../src/trophies.js');
+  for(const t of TROPHIES){keys.add(t.name);keys.add(t.desc)}
   return keys;
 }
 
