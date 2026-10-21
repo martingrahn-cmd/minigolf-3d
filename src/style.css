@@ -531,3 +531,5 @@ body:has(#win:not(.hidden)) .qa-panel{top:auto;bottom:10px}
 .trophy-toast b{font:700 16px Fredoka,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .trophy-toast span{font:800 10px 'DM Sans',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--t)}
 @media(prefers-reduced-motion:reduce){.trophy-toast{transition:opacity .3s;transform:translate(-50%,0);opacity:0}.trophy-toast.show{opacity:1}}
+.score-best{margin:-6px 0 14px;font:800 12px 'DM Sans',sans-serif;letter-spacing:.04em;color:#e26d59}
+#scoreBoard{margin-top:8px}

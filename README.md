@@ -38,6 +38,16 @@ Mini Mayhem har **31 troféer** enligt GameVolts standard, som i de andra GameVo
 - **`node scripts/gamevolt-export.mjs`** skriver två filer med engelska namn: `gamevolt/achievement_defs.sql` (spelet och de 31 troféerna, körs en gång i Supabase) och `gamevolt/trophy_catalog.js` (posten i GameVolts profilsida). Ett test underkänner bygget om de inte stämmer med listan.
 - **Bilderna** i `public/trophies/` (12 former × 4 metaller) renderas i Blender med `python blender/trophies.py public/trophies 256`. Studion, sockeln och sex av formerna kommer från Chrome Circuit, så samlingarna ser likadana ut. Minigolfformerna är boll på tee, hålflagga, putter, kugghjul, löv och pumpa.
 
+## Topplista
+
+GameVolt har en topplista per värld: `clockwork-run`, `forest-run`, `moon-run` och `halloween-run`. Poängen är världens totala antal slag när den spelas i rad, alltså summan på resultatkortet. GameVolt rankar högst först, så slagen sparas som `1000 − slag`, precis som Sudoku och Minesweeper gör med sin tid. Spelet visar poängen som slag igen.
+
+- **Inskick:** varje avslutad världsrunda skickas in. Är spelaren gäst ber GameVolt om inloggning, och de bästa rundorna flyttas med när kontot skapas.
+- **Bästa runda** per värld sparas också på enheten och visas på resultatkortet, även utan GameVolt.
+- **Topplista** i menyn och på resultatkortet öppnar GameVolts gemensamma lista (`GameVolt.ui.leaderboard`) med en flik per värld. Knappen syns bara där GameVolt finns.
+- **GameVolt-portalen:** `node scripts/gamevolt-export.mjs` skriver även `gamevolt/leaderboard_config.js`, med lägena och poängformatet för portalens `js/gv-leaderboard-config.js`.
+- **Koden** finns i `src/leaderboard.js` och testerna i `tests/leaderboard.test.js`.
+
 ## Språk
 
 Spelet finns på **svenska**, **engelska** och **spanska** (latinamerikansk, med "tú"). Språket väljs med flaggorna uppe till höger i huvudmenyn och sparas på enheten. Första gången följer det enhetens språk, och annars blir det engelska. En länk kan också välja språk: `?lang=sv`, `?lang=en` eller `?lang=es`.

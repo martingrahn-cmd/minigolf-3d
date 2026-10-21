@@ -219,14 +219,15 @@ export function loadSDK(){
 }
 
 /** Hook into GameVolt when it is there: guest trophies follow the player into
- *  the cloud on sign-in, and the cloud's come back down. */
-export function initSDK(){
+ *  the cloud on sign-in, and the cloud's come back down. The leaderboard adds
+ *  its own keys and best scores (src/leaderboard.js). */
+export function initSDK({keys=[],getScores=()=>[]}={}){
   const GV=sdk();
   if(!GV)return;
   try{
     GV.init(GAME_ID);
     GV.save.registerMigration({
-      keys:[LS_STATS,LS_UNLOCKED],
+      keys:[LS_STATS,LS_UNLOCKED,...keys],
       merge:(local,cloud)=>{
         // Counts only ever grow: keep the larger of each.
         let ls={};try{ls=JSON.parse(local[LS_STATS]||'{}')}catch{/* keep {} */}
@@ -237,7 +238,7 @@ export function initSDK(){
       getAchievements:local=>{
         try{const ids=JSON.parse(local[LS_UNLOCKED]||'[]');return Array.isArray(ids)?ids.map(id=>({id,unlocked_at:Date.now()})):[]}catch{return []}
       },
-      getScores:()=>[],
+      getScores,
     });
     GV.auth.onStateChange(user=>{if(user)backfill()});
   }catch{/* the game does not depend on it */}

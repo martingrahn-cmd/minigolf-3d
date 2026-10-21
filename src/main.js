@@ -33,6 +33,7 @@ import { QA, BOT, setupQA } from './qa.js';
 import { loadAudioSettings, saveAudioSettings } from './music.js';
 import { createMultiplayer } from './multiplayer.js';
 import * as trophies from './trophies.js';
+import * as leaderboard from './leaderboard.js';
 import { createGhostBalls } from './ghost-balls.js';
 import { STROKE_CAP } from './room.js';
 import { createCoach } from './coach.js';
@@ -158,6 +159,8 @@ let quiet=false;
 // Trophies count the player's own play: not a shot replayed for someone watching, a turn caught up on or the QA bench.
 const trophy=(name,data)=>{if(!QA&&!quiet&&!mp.watching())trophies.event(name,data)};
 let lastShotPutt=false;
+// The world round just finished, for the scorecard: {best, newBest}.
+let runResult=null;
 function burst(x,y,z,color=0xffdb77,count=16,force=1){
   if(quiet)return;
   for(let i=0;i<count;i++){
@@ -477,7 +480,11 @@ function win(){
     trophy('hole',{strokes:state.strokes,par:LEVEL.par,putt:lastShotPutt});
     // A world played in a row and finished: under par, perhaps three stars all the way.
     const card=run&&runScorecard(run,SELECTION.slot.world);
-    if(card?.complete&&!mp.inMatch())trophy('run',{strokes:card.strokes,par:card.par,perfect:card.rows.every(row=>row.stars===3)});
+    if(card?.complete&&!mp.inMatch()){
+      trophy('run',{strokes:card.strokes,par:card.par,perfect:card.rows.every(row=>row.stars===3)});
+      // The round for the world's leaderboard, and the best on this device.
+      runResult=leaderboard.recordRun(localStorage,SELECTION.slot.world.key,card.strokes);
+    }
   }
   updateUI();
   const bestNow=bestStars(localStorage,LEVEL);
@@ -1227,6 +1234,10 @@ function openScorecard(){
   const missing=card.max-card.stars;
   $('scoreText').textContent=missing===0?t('Alla stjärnor i världen. Mästarklass!'):plural(missing,'{n} stjärna kvar att hämta. Hål med tomma stjärnor är värda ett nytt försök.','{n} stjärnor kvar att hämta. Hål med tomma stjärnor är värda ett nytt försök.');
   $('scoreEnding').hidden=!isCampaignFinale(SELECTION.slot);
+  const best=leaderboard.bestRun(localStorage,world.key);
+  $('scoreBest').hidden=!best;
+  if(best)$('scoreBest').textContent=t('Bästa runda: {strokes}',{strokes:plural(best,'1 slag','{n} slag')})+(card.complete&&runResult?.newBest?` · ${t('Nytt rekord!')}`:'');
+  $('scoreBoard').hidden=!leaderboard.available();
   $('win').classList.add('hidden');$('scorecard').classList.remove('hidden');($('scoreEnding').hidden?$('scoreAgain'):$('scoreEnding')).focus();
 }
 
@@ -1262,6 +1273,10 @@ $('nextHole').addEventListener('click',event=>{
   if(href==='#slutet'){event.preventDefault();openEnding()}
 });
 $('scoreEnding').addEventListener('click',openEnding);
+// GameVolt's leaderboard, a tab per world (only where GameVolt is around).
+const openBoard=worldKey=>leaderboard.openBoard({worldKey,title:'Mini Mayhem',format:score=>plural(leaderboard.decodeRun(score),'1 slag','{n} slag')});
+$('menuBoard').addEventListener('click',()=>openBoard());
+$('scoreBoard').addEventListener('click',()=>openBoard(SELECTION.slot.world.key));
 $('scoreAgain').addEventListener('click',()=>{const first=startWorldRun(localStorage,SELECTION.slot.world);location.href=`?hole=${first.hole}`});
 $('scoreClose').addEventListener('click',()=>{$('scorecard').classList.add('hidden');$('win').classList.remove('hidden')});
 
@@ -1290,10 +1305,14 @@ async function init(){
   ghosts=createGhostBalls(scene,BALL_RADIUS);
   frame();
   // Trophies: what the records already earn, quietly; GameVolt when the game runs there.
-  if(!QA){trophies.setToast(showTrophyToast);trophies.check(true);trophies.loadSDK().then(ok=>{if(ok)trophies.initSDK()})}
+  if(!QA){trophies.setToast(showTrophyToast);trophies.check(true);trophies.loadSDK().then(ok=>{
+    if(!ok)return;
+    trophies.initSDK({keys:leaderboard.migrationKeys(),getScores:leaderboard.localScores});
+    $('menuBoard').hidden=!leaderboard.available();
+  })}
   if(QA)startQA();else mp.start();
   // The browser tests drive a match through this handle; only in development.
-  if(import.meta.env?.DEV){window.minigolfMultiplayer=mp;window.minigolfTrophies={...trophies,toast:showTrophyToast,open:openTrophies};window.minigolfBall=()=>({phase:state.phase,x:state.x,z:state.z,strokes:state.strokes})}
+  if(import.meta.env?.DEV){window.minigolfMultiplayer=mp;window.minigolfTrophies={...trophies,toast:showTrophyToast,open:openTrophies};window.minigolfDev={finish:n=>{state.strokes=n;win()}};window.minigolfBall=()=>({phase:state.phase,x:state.x,z:state.z,strokes:state.strokes})}
 }
 // The event bench: start straight into play, with a panel of set pieces to fire.
 function startQA(){
