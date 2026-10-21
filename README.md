@@ -26,6 +26,18 @@ Rundans ordning och platshållarna finns i `src/round.js`. Banornas interna `id`
 - **Manifest och ikoner:** `public/manifest.webmanifest` och `public/icons/` gör att spelet kan läggas till på hemskärmen och då öppnas i helskärm utan webbläsarlist.
 - **Stående läge:** manifestet låser stående läge när spelet är installerat på Android. iOS tillåter inte låsning, så en liggande telefon får ett tips att vrida den, med knappen *Spela liggande ändå*.
 
+## Troféer
+
+Mini Mayhem har **31 troféer** enligt GameVolts standard, som i de andra GameVolt-spelen: 15 brons, 10 silver, 5 guld och 1 platina. De finns under **Troféer** i huvudmenyn.
+
+- **Listan** finns i `src/trophies.js`, samma uppbyggnad som Chrome Circuits `achievements.js`.
+  - Spelet skickar händelser: sänkt hål, slag, perfekt träff, kanon, rör, Rotvolten, pariserhjulet, kanthjälp, pliktslag, käglor, matcher och en världsrunda i rad.
+  - Världar och stjärnor läses ur rekorden.
+  - Repriser för den som tittar, ikappspolning och QA-bänken räknas inte.
+- **GameVolt:** SDK:n laddas bara på gamevolt.io (`/sdk/gamevolt.js`, `init('mini-mayhem')`). En gästs troféer och statistik flyttas till kontot vid inloggning, och troféer från andra enheter hämtas ner. Utan GameVolt sparas allt i webbläsaren.
+- **`node scripts/gamevolt-export.mjs`** skriver två filer med engelska namn: `gamevolt/achievement_defs.sql` (spelet och de 31 troféerna, körs en gång i Supabase) och `gamevolt/trophy_catalog.js` (posten i GameVolts profilsida). Ett test underkänner bygget om de inte stämmer med listan.
+- **Bilderna** i `public/trophies/` (12 former × 4 metaller) renderas i Blender med `python blender/trophies.py public/trophies 256`. Studion, sockeln och sex av formerna kommer från Chrome Circuit, så samlingarna ser likadana ut. Minigolfformerna är boll på tee, hålflagga, putter, kugghjul, löv och pumpa.
+
 ## Språk
 
 Spelet finns på **svenska**, **engelska** och **spanska** (latinamerikansk, med "tú"). Språket väljs med flaggorna uppe till höger i huvudmenyn och sparas på enheten. Första gången följer det enhetens språk, och annars blir det engelska. En länk kan också välja språk: `?lang=sv`, `?lang=en` eller `?lang=es`.

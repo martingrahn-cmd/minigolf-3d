@@ -32,6 +32,7 @@ import { createAudio } from './audio.js';
 import { QA, BOT, setupQA } from './qa.js';
 import { loadAudioSettings, saveAudioSettings } from './music.js';
 import { createMultiplayer } from './multiplayer.js';
+import * as trophies from './trophies.js';
 import { createGhostBalls } from './ghost-balls.js';
 import { STROKE_CAP } from './room.js';
 import { createCoach } from './coach.js';
@@ -108,7 +109,7 @@ const mp=createMultiplayer({
   strokes:()=>state.strokes,onMatchStart:()=>endWorldRun(localStorage),
   onRemoteBall:(player,b)=>mp.mode()==='turns'?followTurn(b):ghosts?.set(player,b),
   onTurn:(player,mine,turn)=>startTurn(player,mine,turn),onTurnResult:(player,strokes)=>turnResult(player,strokes),
-  onRemoteReplay:log=>catchUpTurn(log),onReaction:(player,emoji)=>showReaction(player,emoji),onRemoteShot:shot=>replayShot(shot),onRemoteFire:fire=>{pendingFire=fire},onTurnChange:()=>updateUI(),
+  onRemoteReplay:log=>catchUpTurn(log),onMatchEnd:won=>{if(won&&!QA)trophies.event('matchWin')},onReaction:(player,emoji)=>showReaction(player,emoji),onRemoteShot:shot=>replayShot(shot),onRemoteFire:fire=>{pendingFire=fire},onTurnChange:()=>updateUI(),
 });
 // Turns: a cannon shot heard before the replay has loaded the cannon waits for it.
 let pendingFire=null;
@@ -154,6 +155,9 @@ let trailCursor=0,trailTimer=0;
 const particles=[];
 // True while a turn is caught up on at once: no toasts, sparks or sounds then.
 let quiet=false;
+// Trophies count the player's own play: not a shot replayed for someone watching, a turn caught up on or the QA bench.
+const trophy=(name,data)=>{if(!QA&&!quiet&&!mp.watching())trophies.event(name,data)};
+let lastShotPutt=false;
 function burst(x,y,z,color=0xffdb77,count=16,force=1){
   if(quiet)return;
   for(let i=0;i<count;i++){
@@ -250,6 +254,7 @@ function shoot(puttingSpeed){
   const angle=state.aim+error;
   const speed=puttingSpeed??shotSpeed(state.power);
   const putt=puttingSpeed!==undefined,vx=Math.cos(angle)*speed,vz=Math.sin(angle)*speed;
+  lastShotPutt=putt;trophy('stroke');if(Math.abs(state.accuracy)<=perfectZone(state.power))trophy('perfect');
   // Turns: everything the watchers need to play the same shot.
   mp.reportShot({x:state.x,z:state.z,aim:state.aim,power:state.power,accuracy:state.accuracy,strokes:state.strokes,saved:state.saved,
     clocks:{pendulumTime,crownTime,cometTime,wheelTime},gates:[...gateClocks],bridge:bridgeAngle,vx,vz,putt,error});
@@ -376,7 +381,7 @@ function showSplash(sign){
 }
 function doFall(fromHeight=surfaceHeight(state.x,state.z),reason){
   if(state.phase==='falling')return;
-  state.fall=0;state.fallY=fromHeight;state.fallX=state.x;state.fallZ=state.z;state.vx=0;state.vz=0;setPhase('falling');
+  state.fall=0;state.fallY=fromHeight;state.fallX=state.x;state.fallZ=state.z;state.vx=0;state.vz=0;setPhase('falling');trophy('penalty');
   audio.fall();toast(reason||(LEVEL.theme==='forest'?t('Ner i molnen! +1 pliktslag'):LEVEL.theme==='moon'?t('Ut i rymden! +1 pliktslag'):LEVEL.theme==='halloween'?t('Plask i det svarta vattnet! +1 pliktslag'):t('Plums! +1 pliktslag')),1800);
   burst(state.x,0,state.z,0x9ce8ef,20,1.1);
 }
@@ -389,7 +394,7 @@ function loadComet(){
 function fireComet(){
   if(!quiet)mp.reportFire({cometTime});
   if(LEVEL.cometCannon.launchY)setOverview(false);
-  state.cometAngle=barrelAngle(LEVEL.cometCannon,cometTime);state.cometRange=cometRange(LEVEL.cometCannon,cometTime);state.flight=0;setPhase('comet');
+  state.cometAngle=barrelAngle(LEVEL.cometCannon,cometTime);state.cometRange=cometRange(LEVEL.cometCannon,cometTime);state.flight=0;setPhase('comet');trophy('cannon');
   course?.cometCannon?.fire();toast('FYR! ☄',900);
   sound(110,.42,'sawtooth',.12,2.8);sound(70,.55,'triangle',.14,.3);
   const c=LEVEL.cometCannon;burst(c.x+Math.cos(state.cometAngle)*1.4,1.2,c.z+Math.sin(state.cometAngle)*1.4,0xffbf5d,30,1.4);
@@ -400,20 +405,20 @@ function swallow(){
   doFall(surfaceHeight(hole.x,hole.z),t('Uppslukad av svarta hålet! +1 pliktslag'));
 }
 function startCannon(){
-  state.flight=0;state.vx=0;state.vz=0;setPhase('cannon');
+  state.flight=0;state.vx=0;state.vz=0;setPhase('cannon');trophy('cannon');
   toast('KANONSKOTT! 🚀',1700);
   sound(110,.42,'sawtooth',.13,2.8);sound(70,.55,'triangle',.15,.3);
   burst(CANNON.x,1.1,CANNON.z,0xffbf5d,30,1.4);
 }
 function startPipe(){
   state.pipe=0;
-  state.vx=0;state.vz=0;pipeCooldown=3;setPhase('pipe');
+  state.vx=0;state.vz=0;pipeCooldown=3;setPhase('pipe');trophy('tube');
   toast('RÖRPOST! ✦',1500);sound(380,.36,'sine',.07,1.8);
   burst(PIPE_IN.x,.5,PIPE_IN.z,0x66dbed,19,1);
 }
 function startRescue(){
   const dx=CUP.x-state.x,dz=CUP.z-state.z,d=Math.hypot(dx,dz)||1;
-  rescue={t:0,ball:{x:state.x,z:state.z},dir:{x:dx/d,z:dz/d},events:new Set()};setPhase('rescue');
+  rescue={t:0,ball:{x:state.x,z:state.z},dir:{x:dx/d,z:dz/d},events:new Set()};setPhase('rescue');trophy('rescue');
   toast(LEVEL.theme==='forest'?t('På kanten! Mullvaden kommer…'):LEVEL.theme==='clockwork'?t('På kanten! Katten har sett den…'):LEVEL.theme==='halloween'?t('På kanten! Häxans katt smyger fram…'):t('På kanten! Något hoppar hitåt…'),1800);
   if(cameraOverview){cameraOverview=false;$('cameraText').textContent=t('Översikt');setIcon($('cameraIcon'),'map')}
 }
@@ -457,7 +462,7 @@ function capHole(){
   $('winStars').textContent=starText(0);$('winStarsNote').textContent=t('{n} slag är max i en match',{n:STROKE_CAP});
   $('winStrokes').textContent=STROKE_CAP;$('winTitle').innerHTML=t('TIO<br><em>SLAG</em>');
   $('winText').textContent=t('Hålet räknas som tio slag. Nästa hål blir bättre!');
-  $('win').classList.remove('hidden');mp.finishHole(STROKE_CAP);
+  $('win').classList.remove('hidden');mp.finishHole(STROKE_CAP);trophy('matchHole');
 }
 function win(){
   setPhase('win');state.vx=0;state.vz=0;
@@ -466,7 +471,14 @@ function win(){
   if(mp.watching()){burst(CUP.x,.6,CUP.z,0xffd264,55,1.7);audio.duck(4);audio.fanfare(stars);return}
   const best=Number(localStorage.getItem(LEVEL.recordKey))||Infinity;
   // The event bench never saves scores.
-  if(!QA){if(state.strokes<best)localStorage.setItem(LEVEL.recordKey,String(state.strokes));recordRunHole(localStorage,SELECTION.slot,state.strokes)}
+  if(!QA){
+    if(state.strokes<best)localStorage.setItem(LEVEL.recordKey,String(state.strokes));
+    const run=recordRunHole(localStorage,SELECTION.slot,state.strokes);
+    trophy('hole',{strokes:state.strokes,par:LEVEL.par,putt:lastShotPutt});
+    // A world played in a row and finished: under par, perhaps three stars all the way.
+    const card=run&&runScorecard(run,SELECTION.slot.world);
+    if(card?.complete&&!mp.inMatch())trophy('run',{strokes:card.strokes,par:card.par,perfect:card.rows.every(row=>row.stars===3)});
+  }
   updateUI();
   const bestNow=bestStars(localStorage,LEVEL);
   $('winStars').textContent=starText(stars);$('winStars').setAttribute('aria-label',t('{n} av 3 stjärnor',{n:stars}));
@@ -483,7 +495,7 @@ function win(){
   },250+i*420));
   if(course?.motherTree){course.motherTree.bloom();burst(LEVEL.treeEye.x,LEVEL.treeEye.y,LEVEL.treeEye.z,0xffb3d4,60,2.2)}
   audio.duck(4);audio.fanfare(stars);
-  mp.finishHole(state.strokes);
+  mp.finishHole(state.strokes);if(mp.inMatch())trophy('matchHole');
 }
 
 function celebratePins(indices){
@@ -494,7 +506,7 @@ function celebratePins(indices){
   }
   sound(320+count*70,.14,'triangle',.08,1.5);
   if(state.phase!=='win')toast(count===pinStates.length?t('ALLA KÄGLOR! ✦'):t('{count} / {all} KÄGLOR!',{count,all:pinStates.length}),1100);
-  if(count===pinStates.length)course?.carnival?.celebrate();
+  if(count===pinStates.length){course?.carnival?.celebrate();trophy('strike')}
 }
 function physics(dt){
   if(rescue)updateRescue(dt);
@@ -536,7 +548,7 @@ function physics(dt){
     if(crossesHorizon(previous,state,LEVEL.blackHole)){swallow();return}
     if(crossesDock(previous,state,LEVEL.ferris)){
       if(docked(LEVEL.ferris,wheelTime)){
-        state.ride=wheelTurn(LEVEL.ferris,wheelTime);state.vx=0;state.vz=0;setPhase('riding');
+        state.ride=wheelTurn(LEVEL.ferris,wheelTime);state.vx=0;state.vz=0;setPhase('riding');trophy('ferris');
         toast('OMBORD! ✦',1200);sound(520,.3,'sine',.08,1.5);burst(state.x,.4,state.z,0xffd264,18,.8);return;
       }
       state.x=previous.x;state.vx=-state.vx*.5;state.settle=0;
@@ -545,7 +557,7 @@ function physics(dt){
     if(entersFunnel(previous,state,LEVEL.funnel)){
       funnelRide=startFunnelRide(state,LEVEL.funnel);funnelPosition=sampleFunnelRide(funnelRide,funnelTrack);
       tubeCameraEntry={position:cameraPosition.clone(),target:cameraTarget.clone(),up:camera.up.clone()};
-      state.vx=0;state.vz=0;setPhase('funnel');
+      state.vx=0;state.vz=0;setPhase('funnel');trophy('tube');
       toast('SPECIALLEVERANS! ✦',1600);sound(210,.65,'sine',.09,3.2);
       burst(state.x,surfaceHeight(state.x,state.z)+.35,state.z,0x9befe1,16,.5);return;
     }
@@ -652,7 +664,7 @@ function physics(dt){
       state.settle=0;state.shotAge=0;setPhase('moving');
       toast(rolledBack?t('För lite fart – tillbaka till ansatsen'):LEVEL.loop.exitToast||t('ROTVOLT! ↻ Bromsa före kanten'),1800);
       sound(rolledBack?140:640,.25,'triangle',.09,rolledBack?.6:1.4);
-      if(!rolledBack)burst(state.x,.7,state.z,0xffd884,22,.9);
+      if(!rolledBack){burst(state.x,.7,state.z,0xffd884,22,.9);trophy('loop')}
       loopRide=null;loopPosition=null;
     }
   }else if(state.phase==='bridgeflight'||state.phase==='drumflight'){
@@ -1106,6 +1118,36 @@ $('menuLevels').addEventListener('click',openLevels);
 // The language: native names, a reload on change.
 $('menuLanguage').innerHTML=LANGUAGES.map(l=>`<button data-lang="${l.code}" title="${l.name}" aria-label="${l.name}"${l.code===lang?' class="active" aria-pressed="true"':' aria-pressed="false"'}><span aria-hidden="true">${l.flag}</span><b>${l.code.toUpperCase()}</b></button>`).join('');
 $('menuLanguage').addEventListener('click',e=>{const b=e.target.closest('[data-lang]');if(b&&b.dataset.lang!==lang)setLanguage(b.dataset.lang)});
+// --- Trophies: the cabinet in the menu, and a toast when one is won. ---
+const TIER_NAMES={bronze:t('Brons'),silver:t('Silver'),gold:t('Guld'),platinum:t('Platina')};
+const trophiesOf=tier=>trophies.TROPHIES.filter(x=>x.tier===tier);
+function updateTrophyCount(){$('menuTrophyCount').textContent=`${trophies.getUnlocked().length}/${trophies.TROPHIES.length}`}
+function openTrophies(){
+  const held=new Set(trophies.getUnlocked());
+  $('trophySummary').textContent=t('{n} av {all} troféer',{n:trophies.TROPHIES.filter(x=>held.has(x.id)).length,all:trophies.TROPHIES.length});
+  $('trophyTally').innerHTML=trophies.TIERS.map(tier=>{const all=trophiesOf(tier);
+    return `<div class="tally tally--${tier}"><b>${all.filter(x=>held.has(x.id)).length}<small>/${all.length}</small></b><span>${TIER_NAMES[tier]}</span></div>`}).join('');
+  // A grid per tier, as in GameVolt's other games; a locked trophy shows its object in dark metal.
+  $('trophyList').innerHTML=trophies.TIERS.map(tier=>{const items=trophiesOf(tier);
+    return `<h3 class="tier-head tier-head--${tier}">${TIER_NAMES[tier]}<span>${items.filter(x=>held.has(x.id)).length}/${items.length}</span></h3><div class="trophy-grid">${items.map(x=>
+      `<div class="trophy-card trophy-card--${tier}${held.has(x.id)?' is-held':''}" role="img" aria-label="${t(x.name)}: ${t(x.desc)}${held.has(x.id)?'':` (${t('låst')})`}"><img src="${trophies.trophyArt(x)}" alt="" width="96" height="96" loading="lazy" decoding="async" /><b>${t(x.name)}</b><small>${t(x.desc)}</small></div>`).join('')}</div>`}).join('');
+  $('trophyPanel').showModal();
+}
+$('menuTrophies').addEventListener('click',openTrophies);
+$('closeTrophies').addEventListener('click',()=>$('trophyPanel').close());
+const trophyQueue=[];let trophyShowing=false;
+function showTrophyToast(x){trophyQueue.push(x);updateTrophyCount();if(!trophyShowing)nextTrophyToast()}
+function nextTrophyToast(){
+  const x=trophyQueue.shift();if(!x){trophyShowing=false;return}
+  trophyShowing=true;const el=$('trophyToast');
+  $('trophyToastArt').src=trophies.trophyArt(x);$('trophyToastName').textContent=t(x.name);
+  $('trophyToastTier').textContent=TIER_NAMES[x.tier];el.className=`trophy-toast trophy-toast--${x.tier}`;
+  el.hidden=false;void el.offsetWidth;el.classList.add('show');
+  const lift=x.tier==='platinum'?2:x.tier==='gold'?1.5:x.tier==='silver'?1.26:1;
+  sound(784*lift,.16,'triangle',.06,1.2);setTimeout(()=>sound(1175*lift,.3,'triangle',.05,1.1),130);
+  setTimeout(()=>{el.classList.remove('show');setTimeout(()=>{el.hidden=true;nextTrophyToast()},400)},3400);
+}
+updateTrophyCount();
 $('menuFriends').hidden=!mp.available;
 $('menuFriends').addEventListener('click',()=>mp.openLobby());
 $('menuHelp').addEventListener('click',()=>$('helpPanel').showModal());
@@ -1247,9 +1289,11 @@ async function init(){
   if(BOT){startBot();return}
   ghosts=createGhostBalls(scene,BALL_RADIUS);
   frame();
+  // Trophies: what the records already earn, quietly; GameVolt when the game runs there.
+  if(!QA){trophies.setToast(showTrophyToast);trophies.check(true);trophies.loadSDK().then(ok=>{if(ok)trophies.initSDK()})}
   if(QA)startQA();else mp.start();
   // The browser tests drive a match through this handle; only in development.
-  if(import.meta.env?.DEV){window.minigolfMultiplayer=mp;window.minigolfBall=()=>({phase:state.phase,x:state.x,z:state.z,strokes:state.strokes})}
+  if(import.meta.env?.DEV){window.minigolfMultiplayer=mp;window.minigolfTrophies={...trophies,toast:showTrophyToast,open:openTrophies};window.minigolfBall=()=>({phase:state.phase,x:state.x,z:state.z,strokes:state.strokes})}
 }
 // The event bench: start straight into play, with a panel of set pieces to fire.
 function startQA(){
