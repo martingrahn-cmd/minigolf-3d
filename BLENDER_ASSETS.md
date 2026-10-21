@@ -165,8 +165,14 @@ De fem prototyperna har fått tema och plats som Spökhamnen. Modellerna byggs i
 | `halloween/dead-tree-0`, `-1`, `-2` | Döda träd på kyrkogårdsöarna, ungefär 4 m höga, med knotig bark. Byggs i `blender/assets/harbour.py`. |
 | `halloween/lighthouse` | Fyren på klippön, 19,4 m till vindflöjeln. Lampan `lamp` (materialet `Lamp`) sitter på 16,8 m; ljuskäglan som sveper genom dimman ritas av spelet. |
 | `halloween/ghost-ship` | Spökskeppet i bakgrunden, cirka 19 m från akterlyktorna till bogsprötet, vattenlinjen på 0. Trasiga lysande segel (materialet `Sail`) och tre lyktor `lantern-0…2` som fladdrar var för sig. Spelet gungar det på dyningen. |
+| `halloween/lantern` | En liten järnlykta, 0,64 m från kroken och nedåt, med lysande glas (materialet `Flame`). Hänger i lyktstolparna och gravgrindarna och står på stolparna på spökskeppet, där glaset får grön häxeld. |
+| `halloween/lamp-post` | Den sneda lyktstolpen längs stranden: en påle i vattnet med surrningar och havstulpaner och en lutande järnstolpe med en svängd arm. Lyktan hänger i kroken vid (0,9, 2,78). |
+| `halloween/grave-gate` | Gravgrinden över banan på hål 20, 21 och 23: stenpelare 3,6 m isär (där bågens stolpar kolliderar), kulor på topparna, dubbel järnbåge med spjut och en kedja för lyktan. |
+| `halloween/crypt-pillar` | Pelarna vid kryptgallret på hål 19: ojämna stenblock på en sockel, med tre järnkoppar på var sida för häxelden (rött, gult och grönt). Gallret, överliggaren och lågorna är kvar i koden, eftersom de rör sig eller följer spelets mått. |
+| `halloween/scarecrow` | Fågelskrämman på snurran: stolpe, säckvävsskjorta stoppad med halm, repbälte, lapp och en böjd hatt. Armarna är snurrans egna och ritas av koden, så att det man ser är det man träffar. |
+| `halloween/cannon`, `halloween/ship-wheel`, `halloween/skull` | Kanonerna längs spökskeppets skrov, ratten på akterdäck (ratten `wheel` är ett eget objekt) och dödskallen i fören med lysande ögon (materialet `Glow`). Skrovet är banan och stannar i koden. |
 
-KayKit-delarna finns kvar för rör och kanon men färgas om. Spökskeppet som bana på hål 24, kryptgaller, ruttna plankor, fågelskrämmor och häxringar är kodgrafik och kan bli Blender-modeller senare.
+KayKit-delarna finns kvar för rör och kanon men färgas om. Spökskeppets skrov (banan på hål 24), kryptgallret, de ruttna plankorna, fågelskrämmans armar och häxringarna är kodgrafik, eftersom spelets fysik mäter dem.
 
 ## Föreslagen arbetsordning
 
