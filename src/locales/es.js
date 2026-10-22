@@ -824,4 +824,6 @@ export default {
   "⛳ PAR 5":"⛳ PAR 5",
   "✦ Se slutet igen":"✦ Ver el final otra vez",
   "✧ 3D-BANA":"✧ CAMPO 3D",
+  "TID":"TIEMPO",
+  "avgör vid lika":"desempata",
 };

@@ -40,7 +40,11 @@ Mini Mayhem har **31 troféer** enligt GameVolts standard, som i de andra GameVo
 
 ## Topplista
 
-GameVolt har en topplista per värld: `clockwork-run`, `forest-run`, `moon-run` och `halloween-run`. Poängen är världens totala antal slag när den spelas i rad, alltså summan på resultatkortet. GameVolt rankar högst först, så slagen sparas som `1000 − slag`, precis som Sudoku och Minesweeper gör med sin tid. Spelet visar poängen som slag igen.
+GameVolt har en topplista per värld: `clockwork-run`, `forest-run`, `moon-run` och `halloween-run`. En runda är världen spelad i rad.
+
+- **Ranking:** först räknas antalet slag, summan på resultatkortet. Vid lika antal slag vinner den snabbaste tiden.
+- **Klockan:** varje hål har en egen klocka. Den går medan man kan spela och står still under öppningsöversikten, i menyerna, när fliken är dold och när bollen har gått i. Startar man om ett hål börjar dess klocka om, precis som slagen.
+- **Lagring:** GameVolt sparar ett heltal per resultat och rankar högst först. Rundan sparas därför som `(1000 − slag) · 100000 + (99999 − tiondelar)`, ungefär som Sudoku och Minesweeper lagrar sin tid. Spelet visar den som till exempel ”38 slag · 4:12.3”.
 
 - **Inskick:** varje avslutad världsrunda skickas in. Är spelaren gäst ber GameVolt om inloggning, och de bästa rundorna flyttas med när kontot skapas.
 - **Bästa runda** per värld sparas också på enheten och visas på resultatkortet, även utan GameVolt.

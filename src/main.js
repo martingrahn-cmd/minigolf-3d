@@ -90,6 +90,9 @@ window.addEventListener('pointerdown',e=>setInput(e.pointerType==='touch'||e.poi
 let fineAim=0,fineAimHeld=0;
 // Seconds left of the course overview shown when a hole starts; any tap begins play.
 let preview=0;
+// The hole's clock for the leaderboard: running while you can play, stopped in
+// the opening flyover, in menus and once the ball drops.
+let holeTime=0;
 let pipeCooldown=0;
 const springCooldowns=SPRINGS.map(()=>0);
 const gates=LEVEL.gates||[];
@@ -291,6 +294,7 @@ function reset(full=true){
   Object.assign(bellBridgeState,createBellBridgeState());
   Object.assign(liftState,createLiftState());
   nearPutt=null;puttEnabled=false;puttLength=1;
+  if(full)holeTime=0;
   preview=0;cameraOverview=false;$('cameraText').textContent=t('Översikt');setIcon($('cameraIcon'),'map');
   setPhase('idle');
   if(full)toast('Ny chans! Sikta mot flaggan.');
@@ -476,14 +480,14 @@ function win(){
   // The event bench never saves scores.
   if(!QA){
     if(state.strokes<best)localStorage.setItem(LEVEL.recordKey,String(state.strokes));
-    const run=recordRunHole(localStorage,SELECTION.slot,state.strokes);
+    const run=recordRunHole(localStorage,SELECTION.slot,state.strokes,holeTime);
     trophy('hole',{strokes:state.strokes,par:LEVEL.par,putt:lastShotPutt});
     // A world played in a row and finished: under par, perhaps three stars all the way.
     const card=run&&runScorecard(run,SELECTION.slot.world);
     if(card?.complete&&!mp.inMatch()){
       trophy('run',{strokes:card.strokes,par:card.par,perfect:card.rows.every(row=>row.stars===3)});
       // The round for the world's leaderboard, and the best on this device.
-      runResult=leaderboard.recordRun(localStorage,SELECTION.slot.world.key,card.strokes);
+      runResult=leaderboard.recordRun(localStorage,SELECTION.slot.world.key,card.strokes,card.seconds);
     }
   }
   updateUI();
@@ -926,9 +930,15 @@ function draw(dt){
     label.textContent=t('SLAG {n}',{n:state.strokes});label.style.opacity=String(Math.min(1,(1.15-state.shotAge)*2));
   }else label.style.opacity='0';
 }
+function clockRunning(){
+  if(preview>0||mp.watching()||document.hidden)return false;
+  if(['intro','sinking','win'].includes(state.phase))return false;
+  return !($('helpPanel').open||$('levelPanel').open||$('soundPanel').open||$('mpPanel').open);
+}
 function frame(){
   requestAnimationFrame(frame);
-  realDt=Math.min(clock.getDelta(),.05);
+  const rawDt=clock.getDelta();realDt=Math.min(rawDt,.05);
+  if(clockRunning())holeTime+=Math.min(rawDt,2);
   const slow=sink&&sink.t<SINK.settle&&!reducedCameraMotion?SLOW_MOTION:1;timeScale+=(slow-timeScale)*Math.min(1,realDt*8);
   const dt=realDt*timeScale;elapsed+=dt;
   if(preview>0){preview-=dt;if(preview<=0)finishPreview()}
@@ -1058,7 +1068,8 @@ $('soundOn').addEventListener('change',e=>applySound({on:e.target.checked}));
 for(const key of ['music','effects','ambience'])$(`${key}Level`).addEventListener('input',e=>applySound({[key]:Number(e.target.value)/100,on:true}));
 applySound();
 window.addEventListener('resize',resize);
-document.addEventListener('visibilitychange',()=>audio.setHidden(document.hidden));
+// Back from another tab: the time away is not the hole's.
+document.addEventListener('visibilitychange',()=>{audio.setHidden(document.hidden);if(!document.hidden)clock.getDelta()});
 
 const recordText=level=>{const best=localStorage.getItem(level.recordKey);return best?`${starText(bestStars(localStorage,level))} · ${t('Bästa {n}',{n:best})}`:t('Inget rekord')};
 function openLevels(){
@@ -1231,12 +1242,14 @@ function openScorecard(){
   const diff=card.strokes-card.par;
   $('scoreStrokes').textContent=card.strokes;$('scoreVsPar').textContent=diff===0?t('på par'):diff<0?t('{n} under par',{n:-diff}):t('{n} över par',{n:diff});
   $('scoreStars').textContent=card.stars;$('scoreStarsMax').textContent=t('av {n}',{n:card.max});
+  $('scoreTime').textContent=card.seconds==null?'–':leaderboard.formatTime(card.seconds);
+  $('scoreTimeNote').textContent=card.complete?t('avgör vid lika'):'';
   const missing=card.max-card.stars;
   $('scoreText').textContent=missing===0?t('Alla stjärnor i världen. Mästarklass!'):plural(missing,'{n} stjärna kvar att hämta. Hål med tomma stjärnor är värda ett nytt försök.','{n} stjärnor kvar att hämta. Hål med tomma stjärnor är värda ett nytt försök.');
   $('scoreEnding').hidden=!isCampaignFinale(SELECTION.slot);
   const best=leaderboard.bestRun(localStorage,world.key);
   $('scoreBest').hidden=!best;
-  if(best)$('scoreBest').textContent=t('Bästa runda: {strokes}',{strokes:plural(best,'1 slag','{n} slag')})+(card.complete&&runResult?.newBest?` · ${t('Nytt rekord!')}`:'');
+  if(best)$('scoreBest').textContent=t('Bästa runda: {strokes}',{strokes:runText(best)})+(card.complete&&runResult?.newBest?` · ${t('Nytt rekord!')}`:'');
   $('scoreBoard').hidden=!leaderboard.available();
   $('win').classList.add('hidden');$('scorecard').classList.remove('hidden');($('scoreEnding').hidden?$('scoreAgain'):$('scoreEnding')).focus();
 }
@@ -1274,7 +1287,9 @@ $('nextHole').addEventListener('click',event=>{
 });
 $('scoreEnding').addEventListener('click',openEnding);
 // GameVolt's leaderboard, a tab per world (only where GameVolt is around).
-const openBoard=worldKey=>leaderboard.openBoard({worldKey,title:'Mini Mayhem',format:score=>plural(leaderboard.decodeRun(score),'1 slag','{n} slag')});
+// A round as strokes and time: "38 slag · 4:12.3".
+const runText=run=>plural(run.strokes,'1 slag','{n} slag')+(run.seconds==null?'':` · ${leaderboard.formatTime(run.seconds)}`);
+const openBoard=worldKey=>leaderboard.openBoard({worldKey,title:'Mini Mayhem',format:score=>runText(leaderboard.decodeRun(score))});
 $('menuBoard').addEventListener('click',()=>openBoard());
 $('scoreBoard').addEventListener('click',()=>openBoard(SELECTION.slot.world.key));
 $('scoreAgain').addEventListener('click',()=>{const first=startWorldRun(localStorage,SELECTION.slot.world);location.href=`?hole=${first.hole}`});
