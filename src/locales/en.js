@@ -824,4 +824,6 @@ export default {
   "⛳ PAR 5":"⛳ PAR 5",
   "✦ Se slutet igen":"✦ See the ending again",
   "✧ 3D-BANA":"✧ 3D COURSE",
+  "TID":"TIME",
+  "avgör vid lika":"breaks ties",
 };

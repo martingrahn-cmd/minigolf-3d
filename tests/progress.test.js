@@ -36,6 +36,13 @@ test('a world run walks the built holes in order and ends with a scorecard',()=>
   assert.equal(card.stars,built.reduce((s,_,i)=>s+Math.max(0,3-i),0));
   recordRunHole(storage,built[0],built[0].level.par);
   assert.equal(runScorecard(activeRun(storage,built[0]),moon).rows[0].strokes,built[0].level.par,'Replaying a hole keeps the latest score');
+  assert.equal(card.seconds,null,'No clock, no time');
+  built.forEach((slot,i)=>recordRunHole(storage,slot,slot.level.par,40+i+.04));
+  const timed=runScorecard(activeRun(storage,built[0]),moon);
+  assert.equal(timed.seconds,Math.round(built.reduce((s,_,i)=>s+40+i,0)*10)/10,'The round\'s time is the holes\' times, to the tenth');
+  assert.equal(timed.rows[1].seconds,41);
+  recordRunHole(storage,built[1],3);
+  assert.equal(runScorecard(activeRun(storage,built[0]),moon).seconds,null,'A hole replayed without a time drops the round\'s time');
   endWorldRun(storage);
   assert.equal(activeRun(storage,built[0]),null);
   assert.equal(recordRunHole(storage,built[0],3),null,'Without a run nothing is recorded');

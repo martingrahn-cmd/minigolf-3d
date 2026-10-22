@@ -31,9 +31,12 @@ export function activeRun(storage,slot){
     return run&&slot&&run.world===slot.world.key?run:null;
   }catch{return null}
 }
-export function recordRunHole(storage,slot,strokes){
+// A hole of the run: its strokes and, when the clock ran, its time in seconds.
+export function recordRunHole(storage,slot,strokes,seconds=null){
   const run=activeRun(storage,slot);if(!run)return null;
-  run.scores[slot.hole]=strokes;storage.setItem(RUN_KEY,JSON.stringify(run));return run;
+  run.scores[slot.hole]=strokes;
+  run.times={...run.times};if(Number.isFinite(seconds))run.times[slot.hole]=Math.round(seconds*10)/10;else delete run.times[slot.hole];
+  storage.setItem(RUN_KEY,JSON.stringify(run));return run;
 }
 export const endWorldRun=storage=>storage.removeItem(RUN_KEY);
 
@@ -44,12 +47,14 @@ export function nextRunHole(slot){
 
 export function runScorecard(run,world){
   const rows=ROUND.filter(slot=>slot.world===world&&slot.level).map(slot=>{
-    const strokes=run.scores[slot.hole]??null;
-    return {slot,strokes,par:slot.level.par,stars:strokes?starsFor(strokes,slot.level.par):0};
+    const strokes=run.scores[slot.hole]??null,seconds=strokes?run.times?.[slot.hole]??null:null;
+    return {slot,strokes,seconds,par:slot.level.par,stars:strokes?starsFor(strokes,slot.level.par):0};
   });
   const played=rows.filter(row=>row.strokes);
   return {
     rows,complete:played.length===rows.length,
+    // The round's time, once every played hole has one.
+    seconds:played.length&&played.every(row=>row.seconds!=null)?Math.round(played.reduce((sum,row)=>sum+row.seconds,0)*10)/10:null,
     strokes:played.reduce((sum,row)=>sum+row.strokes,0),
     par:played.reduce((sum,row)=>sum+row.par,0),
     stars:rows.reduce((sum,row)=>sum+row.stars,0),max:rows.length*STARS_PER_HOLE,
