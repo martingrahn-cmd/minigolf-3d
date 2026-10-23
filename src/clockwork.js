@@ -63,7 +63,7 @@ function dialTexture(textOnly=false){
   ctx.font='bold 65px Georgia';ctx.fillStyle=textOnly?'#efd299':'#3d4943';ctx.textAlign='center';ctx.textBaseline='middle';
   roman.forEach((n,i)=>{const a=i*Math.PI/6;ctx.fillText(n,Math.sin(a)*397,-Math.cos(a)*397)});
   if(!textOnly){ctx.font='24px Georgia';ctx.fillStyle='#937344';ctx.fillText(t('URVERKETS STAD'),0,-155);ctx.font='italic 30px Georgia';ctx.fillText(t('Sedan tick blev tack'),0,172)}
-  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=8;return t;
+  const texture=new THREE.CanvasTexture(c);texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=8;return texture;
 }
 function clockFace(g,r,x,y,z){
   const root=group(g,x,y,z);

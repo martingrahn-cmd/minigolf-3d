@@ -93,6 +93,7 @@ let preview=0;
 // The hole's clock for the leaderboard: running while you can play, stopped in
 // the opening flyover, in menus and once the ball drops.
 let holeTime=0;
+const PAGE_TITLE=document.title;
 let pipeCooldown=0;
 const springCooldowns=SPRINGS.map(()=>0);
 const gates=LEVEL.gates||[];
@@ -430,7 +431,7 @@ function startRescue(){
   if(cameraOverview){cameraOverview=false;$('cameraText').textContent=t('Översikt');setIcon($('cameraIcon'),'map')}
 }
 function updateRescue(dt){
-  const t=(rescue.t+=dt),once=(name,at)=>t>=at&&!rescue.events.has(name)&&rescue.events.add(name);
+  const time=(rescue.t+=dt),once=(name,at)=>time>=at&&!rescue.events.has(name)&&rescue.events.add(name);
   const cat=['clockwork','halloween'].includes(LEVEL.theme);
   if(once('hello',.3))audio.critter(LEVEL.theme==='forest'?'dig':cat?'meow':'boop');
   if(once('look',RESCUE.arrive+.1)&&LEVEL.theme!=='forest')audio.critter(cat?'meow':'boop');
@@ -439,7 +440,7 @@ function updateRescue(dt){
     audio.critter('tap');state.strokes++;$('strokeCount').textContent=state.strokes;toast('Inknackad · +1 slag',1400);
     state.vx=rescue.dir.x*1.8;state.vz=rescue.dir.z*1.8;state.settle=0;setPhase('moving');
   }
-  if(t>=RESCUE.gone){course?.lipRescuer?.hide();rescue=null}
+  if(time>=RESCUE.gone){course?.lipRescuer?.hide();rescue=null}
 }
 function startSink(){
   sink={t:0,entry:{x:state.x-CUP.x,z:state.z-CUP.z,vx:state.vx,vz:state.vz},y:0,events:new Set()};
@@ -447,8 +448,8 @@ function startSink(){
   if(cameraOverview){cameraOverview=false;$('cameraText').textContent=t('Översikt');setIcon($('cameraIcon'),'map')}
 }
 function updateSink(dt){
-  const t=(sink.t+=dt),once=(name,at)=>t>=at&&!sink.events.has(name)&&sink.events.add(name);
-  if(t<SINK.settle){const p=sinkPose(t,sink.entry);state.x=CUP.x+p.x;state.z=CUP.z+p.z;sink.y=p.y}
+  const time=(sink.t+=dt),once=(name,at)=>time>=at&&!sink.events.has(name)&&sink.events.add(name);
+  if(time<SINK.settle){const p=sinkPose(time,sink.entry);state.x=CUP.x+p.x;state.z=CUP.z+p.z;sink.y=p.y}
   if(once('drop',SINK.drop)){audio.plink(1);audio.cup()}
   if(once('bounce',SINK.drop+.12))audio.plink(.5);
   const critter=course?.cupCritter;
@@ -458,7 +459,7 @@ function updateSink(dt){
     if(once('munch',SINK.swallowed)){audio.critter('munch');toast(LEVEL.theme==='forest'?t('MUMS! sa mullvaden ✦'):LEVEL.theme==='clockwork'?t('KUKU! Gött! ✦'):LEVEL.theme==='halloween'?t('HEHEHE! Skeletthanden tog bollen ✦'):t('BLIPP! Smaskens ✦'),1600);burst(CUP.x,course.cupHeight+1.1,CUP.z,0xffd264,28,1.2)}
     if(once('duck',SINK.duck))audio.critter('duck');
   }
-  if(t>=(critter?SINK.done:SINK.settle+.25))finishSink();
+  if(time>=(critter?SINK.done:SINK.settle+.25))finishSink();
 }
 function finishSink(){
   if(!sink)return;sink=null;timeScale=1;course?.cupCritter?.hide();rescue=null;course?.lipRescuer?.hide();ball.visible=false;win();
@@ -488,7 +489,11 @@ function win(){
       trophy('run',{strokes:card.strokes,par:card.par,perfect:card.rows.every(row=>row.stars===3)});
       // The round for the world's leaderboard, and the best on this device.
       runResult=leaderboard.recordRun(localStorage,SELECTION.slot.world.key,card.strokes,card.seconds);
+      if(runResult.newBest)trophies.gvPost('high_score',{score:leaderboard.encodeRun(card.strokes,card.seconds),mode:leaderboard.runMode(SELECTION.slot.world.key)});
     }
+    // The GameVolt player page counts the hole as a finished game. It keeps the
+    // highest score it is sent, so the strokes go in the stats, not as a score.
+    trophies.gvPost('game_over',{mode:holeMode(),stats:{strokes:state.strokes,par:LEVEL.par,stars,seconds:Math.round(holeTime*10)/10}});
   }
   updateUI();
   const bestNow=bestStars(localStorage,LEVEL);
@@ -930,6 +935,8 @@ function draw(dt){
     label.textContent=t('SLAG {n}',{n:state.strokes});label.style.opacity=String(Math.min(1,(1.15-state.shotAge)*2));
   }else label.style.opacity='0';
 }
+// The hole as GameVolt's player page names a game: 'hole-7'.
+const holeMode=()=>`hole-${SELECTION.slot?.hole??LEVEL.id}`;
 function clockRunning(){
   if(preview>0||mp.watching()||document.hidden)return false;
   if(['intro','sinking','win'].includes(state.phase))return false;
@@ -1048,7 +1055,7 @@ $('actionButton').addEventListener('click',action);
 $('cancelShot').addEventListener('click',()=>{if(['power','accuracy'].includes(state.phase)){state.power=0;setPhase('idle')}});
 $('mpReact').addEventListener('click',e=>{const b=e.target.closest('[data-react]');if(b){mp.react(b.dataset.react);b.blur()}});
 $('shotMode').addEventListener('click',()=>{if(!mp.watching())puttEnabled=!puttEnabled;updateUI();$('shotMode').blur()});
-$('playButton').addEventListener('click',()=>{lockPortrait();audio.unlock();$('intro').classList.add('hidden');if(state.phase==='intro'||!mp.inMatch())reset();startPreview();if(pendingSplash)showSplash(pendingSplash)});
+$('playButton').addEventListener('click',()=>{lockPortrait();audio.unlock();$('intro').classList.add('hidden');if(state.phase==='intro'||!mp.inMatch())reset();startPreview();if(pendingSplash)showSplash(pendingSplash);trophies.gvPost('game_start',{mode:holeMode()})});
 $('againButton').addEventListener('click',()=>{$('win').classList.add('hidden');reset()});
 $('resetButton').addEventListener('click',()=>{if(state.phase!=='intro'&&!mp.inMatch()){reset();$('win').classList.add('hidden')}});
 $('cameraButton').addEventListener('click',()=>{preview=0;setOverview(!cameraOverview)});
@@ -1190,7 +1197,8 @@ function configureLevelUI(){
   $('meter').style.setProperty('--sweet-width',`${PERFECT_ZONE*100}%`);
   configureNext();
 
-  document.title=SELECTION.menu?'Mini Mayhem':`${LEVEL.name} · ${t('Hål {n}',{n:number})}`;
+  // The menu keeps the page's own title (GameVolt sets a fuller one); a hole names itself.
+  document.title=SELECTION.menu?PAGE_TITLE:`${LEVEL.name} · ${t('Hål {n}',{n:number})}`;
   $('holeNumber').textContent=number;$('holeName').textContent=LEVEL.name.toUpperCase();
   $('parCount').textContent=LEVEL.par;
   $('introKicker').textContent=mp.inMatch()?mp.holeLabel():SELECTION.slot.finale?`${SELECTION.slot.world.finale.toUpperCase()} · ${holeText}`:t('VÄLKOMMEN TILL {hole}',{hole:holeText});

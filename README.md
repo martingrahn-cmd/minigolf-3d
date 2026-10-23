@@ -22,6 +22,11 @@ Rundans ordning och platshållarna finns i `src/round.js`. Banornas interna `id`
 ## Publicering, uppdateringar och mobil
 
 - **GitHub Pages:** `.github/workflows/pages.yml` testar, bygger och publicerar vid varje push till `main`. Slå på det en gång under repots *Settings → Pages → Source: GitHub Actions*. Spelet hamnar på `https://<användare>.github.io/minigolf-3d/`. Bygget använder relativa sökvägar (`base: './'` i `vite.config.js`), så det fungerar både där och på en egen domän.
+- **GameVolt:** spelet finns också på `https://gamevolt.io/mini-mayhem/`.
+  - GameVolts arbetsflöde `sync-mini-mayhem.yml` kollar `main` två gånger i timmen. Har den flyttat sig bygger flödet spelet och lägger bygget i `/mini-mayhem/` där.
+  - Ovanpå bygget lägger GameVolt sin egen head (titel, delningstaggar och SDK:n) och en SEO-text. Mallarna finns i GameVolt-repot under `scripts/mini-mayhem/`.
+  - Förhandsvideon på spelkorten är `promo/preview.mp4`: 10 sekunder i 1280×720 utan ljud.
+  - Hero-bilderna finns i `promo/`.
 - **Versionskoll:** varje bygge får ett versions-id som finns i spelet och i `version.json`. Spelet kollar efter en nyare version vid start, när det kommer tillbaka i förgrunden och var femte minut. Finns en nyare version visas **Ny version av spelet finns · Uppdatera**. Knappen laddar om med `?v=<id>` så att ingen gammal cache blir kvar. Aktuell version står längst ner i huvudmenyn. Kollen är avstängd i `npm run dev`.
 - **Manifest och ikoner:** `public/manifest.webmanifest` och `public/icons/` gör att spelet kan läggas till på hemskärmen och då öppnas i helskärm utan webbläsarlist.
 - **Stående läge:** manifestet låser stående läge när spelet är installerat på Android. iOS tillåter inte låsning, så en liggande telefon får ett tips att vrida den, med knappen *Spela liggande ändå*.
