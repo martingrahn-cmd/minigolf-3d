@@ -491,8 +491,9 @@ function win(){
       runResult=leaderboard.recordRun(localStorage,SELECTION.slot.world.key,card.strokes,card.seconds);
       if(runResult.newBest)trophies.gvPost('high_score',{score:leaderboard.encodeRun(card.strokes,card.seconds),mode:leaderboard.runMode(SELECTION.slot.world.key)});
     }
-    // The GameVolt player page counts the hole as a finished game.
-    trophies.gvPost('game_over',{score:state.strokes,mode:holeMode(),stats:{par:LEVEL.par,stars,seconds:Math.round(holeTime*10)/10}});
+    // The GameVolt player page counts the hole as a finished game. It keeps the
+    // highest score it is sent, so the strokes go in the stats, not as a score.
+    trophies.gvPost('game_over',{mode:holeMode(),stats:{strokes:state.strokes,par:LEVEL.par,stars,seconds:Math.round(holeTime*10)/10}});
   }
   updateUI();
   const bestNow=bestStars(localStorage,LEVEL);
